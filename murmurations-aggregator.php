@@ -2,13 +2,13 @@
 
 /**
  * Plugin Name:       Murmurations Aggregator
- * Plugin URI:        murmurationsprotocol.org
+ * Plugin URI:        murmurations.network
  * Description:       Collect and display data from the Murmurations network
  * Version:           1.0.0
- * Author:            Murmurations
- * Author URI:        uri
+ * Author:            A. McKenty / Photosynthesis
+ * Author URI:        Photosynthesis.ca
  * License:           Peer Production License
- * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * License URI:       
  * Text Domain:       murmurations
  * Domain Path:       /languages
  */

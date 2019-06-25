@@ -1,13 +1,12 @@
 <?php
 
-/* Environment-specific functions for the aggregator */
+/* Environment-specific functions for the Murmurations aggregator */
 
 class Murmurations_Aggregator_WP{
 
-  /* Functions called from core class */
+  /* Methods are called from core class */
 
   /* Saves a node as WP post */
-
   public function save_node($node_data){
 
     llog($node_data,"Saving node data");
@@ -106,7 +105,8 @@ class Murmurations_Aggregator_WP{
 
   /* Activate the plugin */
   public function activate(){
-    // For now, we'll stuff a bunch of defaults in here...
+
+    // Temporary hard-coded defaults. TODO: Move to admin settings page
     $default_settings = array(
       'node_cron_interval' => 'week',
       'feed_cron_interval' => 'day',
@@ -133,7 +133,6 @@ class Murmurations_Aggregator_WP{
 
   public function format_nodes($nodes){
     llog($nodes,"Nodes");
-    //return "<pre>".print_r($nodes_info,true)."</pre>";
     $html = '<div id="murmurations-directory">';
     foreach ($nodes as $key => $node) {
       $html .= $this->format_node($node);

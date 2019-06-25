@@ -13,7 +13,6 @@ function murmurations_feed_update(){
 }
 
 /* Core aggregator class */
-
 class Murmurations_Aggregator{
   var $env ;
 
@@ -23,7 +22,7 @@ class Murmurations_Aggregator{
   }
 
   public function includeDependencies(){
-    // Load the feed reading class here, unless we ditch it
+    // Move feed reading include here, unless we ditch it
   }
 
   /* Update all locally-stored node data from the index and nodes, adding new matching nodes and updating existing nodes */
@@ -57,7 +56,7 @@ class Murmurations_Aggregator{
 
   }
 
-  // Show the directory. For annoying architectural reasons we have to go through this, and then the environment, rather than the other way around...
+  // Show the directory. For architectural reasons we have to go through this, and then the environment, rather than the other way around...
   public function showDirectory(){
     $nodes = $this->env->load_nodes();
     llog($nodes, 'Nodes loaded from env...');
@@ -106,14 +105,13 @@ class Murmurations_Aggregator{
     if(count($feeds_to_update) > 0){
       foreach ($feeds_to_update as $url) {
         $feed = $this->feedRequest($url);
-        // Should be some processing in here definitely...
+        //TODO: Add processing here
         $feeds_array[] = $feed;
-
       }
 
       $feeds_json = json_encode($feeds_array);
 
-      // For now we'll do something super hacky and stuff this into a JSON file somewhere...
+      //TODO: Consider improved solution for storing feed data
       file_put_contents($this->setting("feed_storage_path"),$feeds_json);
     }
   }
@@ -181,8 +179,6 @@ class Murmurations_Aggregator{
 
     // Get simpleXML of feed
     $rss = Feed::loadRss($url);
-
-    // Now what do we do with it???
 
     $ar = xml2array($rss);
 
