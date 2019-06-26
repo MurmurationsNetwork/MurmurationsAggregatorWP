@@ -8,7 +8,7 @@
  * Author:            A. McKenty / Photosynthesis
  * Author URI:        Photosynthesis.ca
  * License:           Peer Production License
- * License URI:       
+ * License URI:
  * Text Domain:       murmurations
  * Domain Path:       /languages
  */
@@ -39,6 +39,8 @@ register_deactivation_hook( __FILE__, 'deactivate_murmurations_agg' );
 
 add_action('wp_footer', 'murms_flush_log');
 add_action('admin_footer', 'murms_flush_log');
+
+wp_enqueue_style('murmurations-agg-css', plugin_dir_url( __FILE__ ) . 'css/murmurations-aggregator.css');
 
 
 $murmagg = new Murmurations_Aggregator();

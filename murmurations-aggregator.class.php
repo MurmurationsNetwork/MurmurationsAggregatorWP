@@ -15,10 +15,17 @@ function murmurations_feed_update(){
 /* Core aggregator class */
 class Murmurations_Aggregator{
   var $env ;
+  var $settings = array();
 
 
   public function __construct(){
     $this->env = new Murmurations_Aggregator_WP();
+    $this->settings = array(
+      'map_origin' => '51.505, -0.09',
+      'map_scale' => '4',
+      // API key for Mapbox, tile provider for Leaflet. https://www.mapbox.com/studio/account/tokens/
+      'mapbox_token' => 'pk.eyJ1IjoibXVybXVyYXRpb25zIiwiYSI6ImNqeGN2MTIxYTAwMWQzdnBhODlmOHRyeXEifQ.KkzeMmUS2suuPI_n3l7jAA'
+    );
   }
 
   public function includeDependencies(){
@@ -42,13 +49,17 @@ class Murmurations_Aggregator{
     );
 
     // Query the index to collect URLs of (possibly) wanted nodes that are recently updated
-    $nodes_to_fetch = $this->indexRequest($query);
+    $index_nodes = $this->indexRequest($query);
 
-    llog($nodes_to_fetch,"Fetched from index");
+    llog($index_nodes,"Fetched from index");
 
     // Then query the nodes themselves to collect the data, and update the node in the local DB
-    foreach ($nodes_to_fetch as $key => $data) {
-      $this->updateNode($data['apiUrl']);
+    if(is_array($index_nodes)){
+      if(count($index_nodes) > 0){
+        foreach ($index_nodes as $key => $data) {
+          $this->updateNode($data['apiUrl']);
+        }
+      }
     }
 
     // Update the local update time in the environment
@@ -56,7 +67,7 @@ class Murmurations_Aggregator{
 
   }
 
-  // Show the directory. For architectural reasons we have to go through this, and then the environment, rather than the other way around...
+  /* Show the directory */
   public function showDirectory(){
     $nodes = $this->env->load_nodes();
     llog($nodes, 'Nodes loaded from env...');
@@ -70,7 +81,58 @@ class Murmurations_Aggregator{
 
   public function showMap(){
     $nodes = $this->env->load_nodes();
-    return $this->env->format_nodes($nodes);
+
+    /* Because of the cross-origin stuff, these don't fit WP's queue paradigm. In future, we should use this method, but for now loading scripts as HTML in the head via env
+    $this->env->add_css(array(
+      'href'=>"https://unpkg.com/leaflet@1.5.1/dist/leaflet.css",
+      'integrity' => "sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==",
+      'crossorigin' => "");
+
+    $this->env->add_script(array(
+        'href'=>"https://unpkg.com/leaflet@1.5.1/dist/leaflet.js",
+        'integrity' => "sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og==",
+        'crossorigin' => "");
+    */
+
+    //$this->env->queue_leaflet_scripts();
+
+    $html = $this->env->leaflet_scripts();
+
+    $map_origin = $this->settings['map_origin'];
+    $map_scale = $this->settings['map_scale'];
+
+    $html .= '<div id="murmurations-map" class="murmurations-map"></div>'."\n";
+    $html .= '<script type="text/javascript">'."\n";
+    $html .= "var murmurations_map = L.map('murmurations-map').setView([".$map_origin."], $map_scale);\n";
+
+    $html .= "L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+    attribution: 'Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>',
+    maxZoom: 18,
+    id: 'mapbox.streets',
+    accessToken: '".$this->settings['mapbox_token']."'
+}).addTo(murmurations_map);\n";
+
+    foreach ($nodes as $key => $node) {
+
+      llog($node);
+
+      if($node->murmurations['lat'] && $node->murmurations['lon']){
+
+          //$popup = "test";
+
+          $popup = trim($this->env->load_template('map_node_popup',$node));
+
+          $lat = $node->murmurations['lat'];
+          $lon = $node->murmurations['lon'];
+
+          $html .= "var marker = L.marker([".$lat.", ".$lon."]).addTo(murmurations_map);\n";         $html .= "marker.bindPopup(\"$popup\");\n";
+
+       }
+    }
+
+    $html .= "</script>\n";
+
+    return $html;
   }
 
   public function showFeed(){

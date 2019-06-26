@@ -112,7 +112,7 @@ class Murmurations_Aggregator_WP{
       'feed_cron_interval' => 'day',
       'index_url' => 'http://localhost/projects/murmurations/murmurations-index/murmurations-index.php',
       'filters' => array(
-        array('nodeTypes','includes','Co-op'),
+        array('nodeTypes','includes','co-op'),
         //array('location','isInCountry','UK')
       ),
       'template' => 'default'
@@ -141,6 +141,23 @@ class Murmurations_Aggregator_WP{
     echo $html;
   }
 
+  /* Load an overridable template file */
+  public function load_template($template,$data){
+    if(file_exists(get_stylesheet_directory().'/murmurations-aggregator-templates/'.$template.'.php')){
+      ob_start();
+      include get_stylesheet_directory().'/murmurations-aggregator-templates/'.$template.'.php';
+      $html = ob_get_clean();
+    }else if(file_exists(dirname( __FILE__ ).'/templates/'.$template.'.php')){
+      ob_start();
+      include dirname( __FILE__ ).'/templates/' . $template . '.php';
+      $html = ob_get_clean();
+    }else{
+      exit("Missing template file: ".$template);
+    }
+    return $html;
+  }
+
+  //TODO: Remove this from the WP class and use load_template instead
   public function format_node($node, $template = 'default'){
 
     $org_types_array = explode(', ',$node->murmurations['nodeTypes']);
@@ -160,6 +177,24 @@ class Murmurations_Aggregator_WP{
     }
 
     return $html;
+  }
+
+  // WP's enqueues don't accommodate integrity and crossorigin attributes without trickery, so we're using an action hook
+  public function queue_leaflet_scripts(){
+    llog("Queueing leaflet scripts");
+    add_action( 'wp_head', array($this,'leaflet_scripts'));
+  }
+
+  public function leaflet_scripts(){
+    llog("Outputting leaflet scripts");
+    ?>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
+  integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+  crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
+  integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
+  crossorigin=""></script>
+  <?php
   }
 }
 ?>
