@@ -4,5 +4,6 @@
   <div class="murmurations-node-image"><img src="<?= $node->murmurations['logo'] ?>"></div>
   <div class="murmurations-node-mission"><?= $node->murmurations['mission'] ?></div>
   <div class="murmurations-node-org-types"><?= $node->murmurations['nodeTypes'] ?></div>
+  <div class="murmurations-node-coordinates"><?= $node->murmurations['lat'] ?>,<?=$node->murmurations['lon'] ?></div>
   <a class="murmurations-node-url" href="<?= $node->murmurations['url'] ?>"><?= $node->murmurations['url'] ?></a>
 </div>

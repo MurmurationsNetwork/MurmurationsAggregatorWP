@@ -110,7 +110,7 @@ class Murmurations_Aggregator_WP{
     $default_settings = array(
       'node_cron_interval' => 'week',
       'feed_cron_interval' => 'day',
-      'index_url' => 'http://localhost/projects/murmurations/murmurations-index.php',
+      'index_url' => 'http://localhost/projects/murmurations/murmurations-index/murmurations-index.php',
       'filters' => array(
         array('nodeTypes','includes','Co-op'),
         //array('location','isInCountry','UK')
