@@ -49,6 +49,24 @@ add_shortcode('murmurations-directory', array($murmagg, 'showDirectory'));
 add_shortcode('murmurations-map', array($murmagg, 'showMap'));
 add_shortcode('murmurations-feeds', array($murmagg, 'showFeeds'));
 
+add_action( 'admin_menu', 'murmurations_ag_add_settings_page' );
+
+function murmurations_ag_add_settings_page() {
+
+  global $murmagg;
+
+  $args = array(
+    'page_title' => 'Murmurations Aggregator Settings',
+    'menu_title' => 'Murmurations Aggregator',
+    'capability' => 'manage_options',
+    'menu_slug' => 'murmurations-aggregator-settings',
+    'function' => array($murmagg,'showAdminSettingsPage'),
+  );
+
+  add_options_page($args['page_title'], $args['menu_title'], $args['capability'], $args['menu_slug'], $args['function']);
+}
+
+
 
 function murmurations_register_node_post_type()
 {

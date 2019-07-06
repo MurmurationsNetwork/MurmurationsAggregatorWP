@@ -226,6 +226,7 @@ class Murmurations_Aggregator{
     curl_setopt($ch,CURLOPT_URL, $url);
     curl_setopt($ch,CURLOPT_POST, true);
     curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
+    curl_setopt($ch,CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch,CURLOPT_RETURNTRANSFER, 1);
 
     $result = curl_exec($ch);
@@ -245,6 +246,10 @@ class Murmurations_Aggregator{
     $ar = xml2array($rss);
 
     return $ar;
+  }
+
+  public function showAdminSettingsPage(){
+    $this->env->show_admin_settings_page();
   }
 
 }

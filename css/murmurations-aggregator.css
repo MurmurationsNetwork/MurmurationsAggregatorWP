@@ -1,3 +1,70 @@
 .murmurations-map{
   height: 400px;
 }
+
+.murmurations-node{
+  margin-bottom: 2em;
+}
+
+.murmurations-node div{
+  margin-bottom: 10px;
+}
+
+.murmurations-node-image {
+  vertical-align: top;
+  width: 150px;
+    /*width: 28.7%;*/
+    /*float: left;*/
+    margin: 0;
+    /*position: relative;*/
+}
+.murmurations-node-table td {
+  word-break:break-word;
+  vertical-align: top;
+}
+
+.murmurations-node-image img{
+  width: 150px;
+  height: auto;
+}
+
+.murmurations-node-content {
+  /*width: 71.3%; */
+  width: 700px;
+  float: right;
+  padding: 0 0 0 45px;
+}
+
+.murmurations-node-org-types{
+  font-weight:bold;
+}
+
+.murmurations-node-tagline{
+  font-style: italic;
+}
+
+h3.murmurations-node-name{
+  margin-top:0;
+  font-size: 26px;
+}
+
+/* Admin styles (should be moved to admin-specific CSS) */
+  .murmurations-ag-admin-field{
+   padding: 1.5em;
+ }
+
+
+ .murmurations-ag-admin-field label{
+   width: 50%;
+   max-width: 150px;
+   float:left;
+ }
+
+ .murmurations-ag-admin-field input,  .murmurations-ag-admin-field textarea,  .murmurations-ag-admin-field div.awesomeplete{
+   width: 50%;
+   max-width: 500px;
+ }
+
+ input.autocomplete-multiple{
+   width:500px;
+ }

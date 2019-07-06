@@ -1,0 +1,35 @@
+{
+"node_update_interval" : {
+  "type" :  "string",
+  "title" :  "Node update interval",
+  "description" :  "Node update interval",
+  "inputAs" : "text",
+  "validateAs" : "text"
+},
+"feed_update_interval" : {
+  "type" :  "string",
+  "title" :  "Feed update interval",
+  "inputAs" : "text",
+  "validateAs" : "text"
+},
+"filters" : {
+  "type" :  "multiple_array",
+  "title" :  "Filters",
+  "inputAs" : "multiple_array",
+  "validateAs" : "text"
+},
+"index_url" : {
+  "type" :  "string",
+  "maxLength" : 1000,
+  "title" :  "Index URL",
+  "inputAs" : "text",
+  "validateAs" : "url"
+},
+"directory_template" : {
+  "type" :  "string",
+  "maxLength" : 1000,
+  "title" :  "Template",
+  "inputAs" : "text",
+  "validateAs" : "text"
+}
+}
