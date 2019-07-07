@@ -325,7 +325,7 @@ class Murmurations_Aggregator_WP{
         $filters = $f['current_value'];
 
         $out = '<div class="murmurations_ag_filter_field_set">';
-        $out .= '<table><tr><th>Field</th><th>Match if</th><th>Value</th></tr>';
+        $out .= '<table><tr><th>Field</th><th>Match type</th><th>Value</th></tr>';
         $filter_count = 0;
 
         if(is_array($filters)){
@@ -360,7 +360,8 @@ class Murmurations_Aggregator_WP{
       '' => "",
       'nodeTypes' => "Node types",
       'url' => "URL",
-      //'mission' => "Mission",
+      'mission' => "Mission",
+      'name' => "Name",
       'networks' => "Networks"
     );
 

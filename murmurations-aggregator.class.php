@@ -19,7 +19,7 @@ class Murmurations_Aggregator{
 
   // This needs to replaced with pulling the base schema (or add on schemas) and determining which fields can be queried to the index. Queries that include non-index fields don't match nodes.
 
-  var $index_fields = array('url','nodeTypes');
+  var $index_fields = array('url','nodeTypes','updated');
 
 
   public function __construct(){
@@ -45,15 +45,21 @@ class Murmurations_Aggregator{
     // Filters are stored in the environment as multilevel array
     $filters = $this->env->load_setting('filters');
 
+    foreach ($filters as $key => $condition) {
+      if(in_array($condition[0],$this->index_fields)){
+        $index_filters[] = $condition;
+      }
+    }
+
     $settings = $this->env->load_settings();
 
     if($settings['ignore_date'] != 'true'){
-      $filters[] = array('updated','isGreaterThan',$update_since);
+      $index_filters[] = array('updated','isGreaterThan',$update_since);
     }
 
     $query = array(
       'action' => 'get_nodes',
-      'conditions' => $filters
+      'conditions' => $index_filters
     );
 
     // Query the index to collect URLs of (possibly) wanted nodes that are recently updated
@@ -191,8 +197,6 @@ class Murmurations_Aggregator{
     // Get the JSON from the node
     $node_data = $this->nodeRequest($url);
 
-    //TODO: add filtering here to rejcet nodes that don't match non-index filters
-
     llog($node_data,"Got node data");
 
     if(!$node_data){
@@ -200,9 +204,56 @@ class Murmurations_Aggregator{
     }else{
       // Parse and save to environment
       $node_data_ar = json_decode($node_data, true);
-      $this->env->save_node($node_data_ar);
+
+      $conditions = $this->env->load_setting('filters');
+
+      $matched = true;
+
+      foreach ($conditions as $condition) {
+        if(!$this->check_node_condition($node_data_ar,$condition)){
+          $matched = false;
+          llog("Failed condition.</b> Node: ".print_r($node_data_ar,true)." \n Cond:".print_r($condition,true));
+        }else{
+          llog("Matched condition. Node: ".print_r($node_data_ar,true)." \n Cond:".print_r($condition,true));
+        }
+      }
+      if($matched == true){
+        $this->env->save_node($node_data_ar);
+      }
     }
   }
+
+  private function check_node_condition($node,$condition){
+
+    llog($node,"Checking node");
+
+    list($subject, $predicate, $object) = $condition;
+
+    if(!isset($node[$subject])) return false;
+
+    switch ($predicate){
+      case 'equals':
+        if($node[$subject] == $object) return true;
+        break;
+      case 'isGreaterThan':
+        if($node[$subject] > $object) return true;
+        break;
+      case 'isLessThan':
+        if($node[$subject] < $object) return true;
+        break;
+      case 'isIn':
+        if(strpos($object,$node[$subject]) !== false) return true;
+        break;
+      case 'includes':
+        if(strpos($node[$subject],$object) !== false) return true;
+        break;
+       // This is where we need to add some very clever geographic matching things
+
+      default: return false;
+    }
+
+  }
+
 
   /* Do a query to a Murmurations node */
   private function nodeRequest($url){
