@@ -410,6 +410,16 @@ class Murmurations_Aggregator_WP{
     // Check the WP nonce
     check_admin_referer( 'murmurations_ag_admin_form');
 
+
+    if($murm_post_data['delete_existing'] == 'true'){
+
+      $delete_nodes = get_posts( array('post_type'=>'murmurations_node','numberposts'=> -1) );
+      llog($delete_nodes,"Deleting nodes");
+      foreach ($delete_nodes as $delete_node) {
+        wp_delete_post($delete_node->ID, true);
+      }
+    }
+
     // Catch the filter fields and process
 
     if(is_array($_POST['filters'])){

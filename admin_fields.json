@@ -36,5 +36,11 @@
   "title" :  "Ignore date",
   "inputAs" : "checkbox",
   "validateAs" : "text"
+},
+"delete_existing" : {
+  "type" :  "string",
+  "title" :  "Delete existing data",
+  "inputAs" : "checkbox",
+  "validateAs" : "text"
 }
 }
