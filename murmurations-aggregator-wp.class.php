@@ -5,6 +5,7 @@
 class Murmurations_Aggregator_WP{
 
   var $notices = array();
+  var $template_directory = 'templates/';
 
   public function __construct(){
     $this->load_settings();
@@ -123,6 +124,11 @@ class Murmurations_Aggregator_WP{
   public function save_settings(){
     llog($this->settings,"Settings in save_settings()");
     return update_option('murmurations_aggregator_settings',$this->settings);
+  }
+
+  public function save_setting($setting,$value){
+    $this->settings[$setting] = $value;
+    $this->save_settings();
   }
 
   /* Retrieve a setting from the WP options table
@@ -287,12 +293,39 @@ class Murmurations_Aggregator_WP{
     // This is very rudimentary now. Possibly should be replaced with a field class
     if($f['inputAs'] == 'text'){
       $out = '<input type="text" class="" name="'.$f['name'].'" id="'.$f['name'].'" value="'.$f['current_value'].'" />';
+    }else if($f['inputAs'] == 'checkbox'){
+      if ($f['current_value'] == 'true'){
+        $checked = 'checked';
+      }else{
+        $checked = '';
+      }
+      $out = '<input type="checkbox" class="checkbox" name="'.$f['name'].'" id="'.$f['name'].'" value="true" '.$checked.'/>';
+
+    }else if($f['inputAs'] == 'template_selector'){
+      // This should be updated to find templates in the css directory
+      // (It's overridable as is, but only by files of the same name)
+
+      $files = array_diff(scandir(dirname( __FILE__ ).'/'.$this->template_directory), array('..', '.'));
+
+      $options = array();
+
+      foreach ($files as $key => $fn) {
+        if(substr($fn,-4) == ".php"){
+          $name = substr($fn,0,-4);
+          $options[$name] = $name;
+        }
+      }
+
+      $out = '<select name="'.$f['name'].'" id="'.$f['name'].'">';
+      $out .= $this->show_select_options($options,$f['current_value']);
+      $out .= '</select>';
+
     }else if($f['inputAs'] == 'multiple_array'){
 
         $filters = $f['current_value'];
 
         $out = '<div class="murmurations_ag_filter_field_set">';
-        $out .= '<table><tr><th>Subject</th><th>Predicate</th><th>Object</th></tr>';
+        $out .= '<table><tr><th>Field</th><th>Match if</th><th>Value</th></tr>';
         $filter_count = 0;
 
         if(is_array($filters)){
@@ -307,7 +340,7 @@ class Murmurations_Aggregator_WP{
           $filter_count++;
         }
 
-        $out .= '</table>';
+        $out .= '</table></div>';
     }
     return $out;
   }
@@ -325,21 +358,27 @@ class Murmurations_Aggregator_WP{
     //TODO: This needs to come from the appropriate murmurations schema, or else be a non constrained field
     $subject_options = array(
       '' => "",
-      'nodeTypes' => "Types",
+      'nodeTypes' => "Node types",
+      'url' => "URL",
+      //'mission' => "Mission",
+      'networks' => "Networks"
     );
 
 
     $match_options = array(
       '' => "",
       'includes' => "Includes",
+      'equals' => "Equals",
+      'isGreaterThan' => "Is greater than",
+      'isIn' => "Is in",
     );
 
 
     $out  = '<tr><td><select name="filters['.$id.'][subject]">';
-    $out .= $this->show_filter_select_options($subject_options,$current_value['subject']);
+    $out .= $this->show_select_options($subject_options,$current_value['subject']);
     $out .= '</select></td><td>';
     $out .= '<select name="filters['.$id.'][predicate]">';
-    $out .= $this->show_filter_select_options($match_options,$current_value['predicate']);
+    $out .= $this->show_select_options($match_options,$current_value['predicate']);
     $out .= '</select></td><td>';
     $out .= '<input type="text" class="" name="filters['.$id.'][object]" value="'.$current_value['object'].'" />';
     $out .= '</select></td></tr>';
@@ -347,7 +386,7 @@ class Murmurations_Aggregator_WP{
     return $out;
   }
 
-  public function show_filter_select_options($options, $current = false){
+  public function show_select_options($options, $current = false){
     $out = "";
     foreach ($options as $key => $value) {
       if($current && $key == $current) $selected = "selected";
@@ -374,11 +413,13 @@ class Murmurations_Aggregator_WP{
 
     if(is_array($_POST['filters'])){
       foreach ($_POST['filters'] as $key => $filter) {
-        $murm_post_data['filters'][] = array(
-          $filter['subject'],
-          $filter['predicate'],
-          $filter['object']
-        );
+        if($filter['subject'] && $filter['predicate'] &&  $filter['object']){
+          $murm_post_data['filters'][] = array(
+            $filter['subject'],
+            $filter['predicate'],
+            $filter['object']
+          );
+        }
       }
     }
 

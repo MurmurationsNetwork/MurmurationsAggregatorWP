@@ -17,6 +17,10 @@ class Murmurations_Aggregator{
   var $env ;
   var $settings = array();
 
+  // This needs to replaced with pulling the base schema (or add on schemas) and determining which fields can be queried to the index. Queries that include non-index fields don't match nodes.
+
+  var $index_fields = array('url','nodeTypes');
+
 
   public function __construct(){
     $this->env = new Murmurations_Aggregator_WP();
@@ -41,7 +45,11 @@ class Murmurations_Aggregator{
     // Filters are stored in the environment as multilevel array
     $filters = $this->env->load_setting('filters');
 
-    $filters[] = array('updated','isGreaterThan',$update_since);
+    $settings = $this->env->load_settings();
+
+    if($settings['ignore_date'] != 'true'){
+      $filters[] = array('updated','isGreaterThan',$update_since);
+    }
 
     $query = array(
       'action' => 'get_nodes',
@@ -182,6 +190,8 @@ class Murmurations_Aggregator{
   private function updateNode($url){
     // Get the JSON from the node
     $node_data = $this->nodeRequest($url);
+
+    //TODO: add filtering here to rejcet nodes that don't match non-index filters
 
     llog($node_data,"Got node data");
 

@@ -60,7 +60,7 @@ h3.murmurations-node-name{
    float:left;
  }
 
- .murmurations-ag-admin-field input,  .murmurations-ag-admin-field textarea,  .murmurations-ag-admin-field div.awesomeplete{
+ .murmurations-ag-admin-field input[type=text],  .murmurations-ag-admin-field textarea,  .murmurations-ag-admin-field div.awesomeplete{
    width: 50%;
    max-width: 500px;
  }

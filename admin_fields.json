@@ -27,9 +27,14 @@
 },
 "directory_template" : {
   "type" :  "string",
-  "maxLength" : 1000,
-  "title" :  "Template",
-  "inputAs" : "text",
+  "title" :  "Directory template",
+  "inputAs" : "template_selector",
+  "validateAs" : "text"
+},
+"ignore_date" : {
+  "type" :  "string",
+  "title" :  "Ignore date",
+  "inputAs" : "checkbox",
   "validateAs" : "text"
 }
 }

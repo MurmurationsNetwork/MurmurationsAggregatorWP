@@ -36,9 +36,18 @@ function deactivate_murmurations_agg() {
 register_activation_hook( __FILE__, 'activate_murmurations_agg' );
 register_deactivation_hook( __FILE__, 'deactivate_murmurations_agg' );
 
+/* Development logging fallbacks */
 
-add_action('wp_footer', 'murms_flush_log');
-add_action('admin_footer', 'murms_flush_log');
+if(is_callable('murms_flush_log')){
+  add_action('wp_footer', 'murms_flush_log');
+  add_action('admin_footer', 'murms_flush_log');
+}
+
+if(!is_callable('llog')){
+  function llog(){
+    return false;
+  }
+}
 
 wp_enqueue_style('murmurations-agg-css', plugin_dir_url( __FILE__ ) . 'css/murmurations-aggregator.css');
 
