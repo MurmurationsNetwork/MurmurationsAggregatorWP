@@ -4,43 +4,50 @@
   "title" :  "Node update interval",
   "description" :  "Node update interval",
   "inputAs" : "text",
-  "validateAs" : "text"
+  "validateAs" : "text",
+  "comment" : ""
 },
 "feed_update_interval" : {
   "type" :  "string",
   "title" :  "Feed update interval",
   "inputAs" : "text",
-  "validateAs" : "text"
+  "validateAs" : "text",
+  "comment" : ""
 },
 "filters" : {
   "type" :  "multiple_array",
   "title" :  "Filters",
   "inputAs" : "multiple_array",
-  "validateAs" : "text"
+  "validateAs" : "text",
+  "comment" : ""
 },
 "index_url" : {
   "type" :  "string",
   "maxLength" : 1000,
   "title" :  "Index URL",
   "inputAs" : "text",
-  "validateAs" : "url"
+  "validateAs" : "url",
+  "comment" : ""
 },
 "directory_template" : {
   "type" :  "string",
   "title" :  "Directory template",
   "inputAs" : "template_selector",
-  "validateAs" : "text"
+  "validateAs" : "text",
+  "comment" : ""
 },
 "ignore_date" : {
   "type" :  "string",
   "title" :  "Ignore date",
   "inputAs" : "checkbox",
-  "validateAs" : "text"
+  "validateAs" : "text",
+  "comment" : ""
 },
 "delete_existing" : {
   "type" :  "string",
   "title" :  "Delete existing data",
   "inputAs" : "checkbox",
-  "validateAs" : "text"
+  "validateAs" : "text",
+  "comment" : ""
 }
 }

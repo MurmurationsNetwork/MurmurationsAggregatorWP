@@ -35,6 +35,9 @@ class Murmurations_Aggregator_WP{
     $post_data['post_title'] = $node_data['name'];
     $post_data['post_content'] = $node_data['name'];
     $post_data['post_excerpt'] = $node_data['tagline'];
+    if(!$post_data['post_excerpt']){
+      $post_data['post_excerpt'] = $node_data['name'];
+    }
     $post_data['post_type'] = 'murmurations_node';
     $post_data['post_status'] = 'publish';
 
@@ -441,7 +444,7 @@ class Murmurations_Aggregator_WP{
 
     $this->save_settings();
 
-    $this->set_notice("Data saved");
+    $this->set_notice("Data saved",'success');
 
   }
 

@@ -4,13 +4,12 @@
  * Plugin Name:       Murmurations Aggregator
  * Plugin URI:        murmurations.network
  * Description:       Collect and display data from the Murmurations network
- * Version:           1.0.0
+ * Version:           0.1.0-alpha
  * Author:            A. McKenty / Photosynthesis
  * Author URI:        Photosynthesis.ca
  * License:           Peer Production License
  * License URI:
  * Text Domain:       murmurations
- * Domain Path:       /languages
  */
 
 // If this file is called directly, abort.
@@ -22,6 +21,7 @@ if ( ! defined( 'WPINC' ) ) {
 /* Include the environment and core classes */
 require plugin_dir_path( __FILE__ ) . 'murmurations-aggregator.class.php';
 require plugin_dir_path( __FILE__ ) . 'murmurations-aggregator-wp.class.php';
+
 
 function activate_murmurations_agg() {
    $env = new Murmurations_Aggregator_WP();

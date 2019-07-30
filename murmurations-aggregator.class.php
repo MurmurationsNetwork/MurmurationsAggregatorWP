@@ -313,6 +313,25 @@ class Murmurations_Aggregator{
     $this->env->show_admin_settings_page();
   }
 
+
+  public function importNodes(){
+    /* What this (or associated pieces) needs to do:
+    Add a tab to the admin page
+    Show a file upload form
+    Process uploaded CSV data
+        -- No: for now, since this is relatively rare operation, well skip the interface:
+          Upload a file to the "imports" directory
+          Load a separate file that's only for importing that:
+            1) Opens the import data file
+            2) Parses it into an array
+            4) Writes out to JSON files and adds to index (optionally) <-- this will need to be batched in some way, otherwise the index requests will get out of control on non-tiny data sets
+            3) Adds to WP DB
+
+            */
+
+
+  }
+
 }
 
 
