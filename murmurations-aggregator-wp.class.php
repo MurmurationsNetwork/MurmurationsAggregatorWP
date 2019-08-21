@@ -1,6 +1,6 @@
 <?php
 
-/* Environment-specific functions for the Murmurations aggregator */
+/* Environment-specific functions for the Murmurations aggregator. Current intention, under experimentation, is to move these to the Murmurations_Environment class, which is then extended by the core class, to avoid current awkward inter-class call requirements*/
 
 class Murmurations_Aggregator_WP{
 
@@ -112,18 +112,17 @@ class Murmurations_Aggregator_WP{
     return $result;
   }
 
-  /* Save a setting to the WP options table */
+  /* Retrieve a setting from the WP options table */
   public function load_setting($setting){
     return $this->settings[$setting];
-
-    //return get_option('murmurations_'.$setting);
   }
 
   public function load_settings(){
     $this->settings = get_option('murmurations_aggregator_settings');
     return $this->settings;
   }
-    /* Retrieve a setting from the WP options table */
+
+  /* Save a setting to the WP options table */
   public function save_settings(){
     llog($this->settings,"Settings in save_settings()");
     return update_option('murmurations_aggregator_settings',$this->settings);
@@ -134,12 +133,6 @@ class Murmurations_Aggregator_WP{
     $this->save_settings();
   }
 
-  /* Retrieve a setting from the WP options table
-  public function save_setting($setting,$value){
-    return update_option('murmurations_'.$setting,$value);
-  }
-*/
-
   /* Activate the plugin */
   public function activate(){
 
@@ -147,7 +140,6 @@ class Murmurations_Aggregator_WP{
     $default_settings = array(
       'node_update_interval' => 'week',
       'feed_update_interval' => 'day',
-      //'index_url' => 'https://murmurations.network/api/index',
       'index_url' => 'https://murmurations.network/api/index',
       'filters' => array(
         array('nodeTypes','includes','co-op'),
