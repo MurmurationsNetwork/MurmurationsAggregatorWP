@@ -19,16 +19,12 @@ class Murmurations_Aggregator_WP{
 
     llog($node_data,"Saving node data");
 
-    // TODO: remove this. It seems that in some cases extra enclosing brackets lead to error-free json_decode calls returning strings of JSON, raather than array. This is a fallback.
-    if(!is_array($node_data)){
-      $node_data = json_decode($node_data,true);
-    }
 
     if(!$node_data['name'] || !$node_data['url']){
       llog($node_data,"Missing or unacceptable required node data in save_node");
+      $this->set_notice("Node is missing required data and won't be saved: <a href=\"$node_data[apiUrl]\">$node_data[apiUrl]</a>",'warning');
       return false;
     }
-
 
     $post_data = array();
 
@@ -48,22 +44,22 @@ class Murmurations_Aggregator_WP{
       $post_data['ID'] = $existing_post->ID;
     }
 
-    llog($post_data, "Post data");
-
     // Insert the post
     $result = wp_insert_post($post_data,true);
 
     if($result === false){
       llog($result,"Failed to insert post");
+      return false;
     }else{
       llog($result,"Inserted post");
       $result === true ? $id = $post_data['ID'] : $id = $result;
+
+      // And use the ID to update meta
+      update_post_meta($id,'murmurations_node_url',$node_data['url']);
+      update_post_meta($id,'murmurations_node_data',$node_data);
+      return $id;
+
     }
-
-    // And use the ID to update meta
-    update_post_meta($id,'murmurations_node_url',$node_data['url']);
-    update_post_meta($id,'murmurations_node_data',$node_data);
-
   }
 
   /* Load a murmurations_node post from WP */
@@ -112,7 +108,21 @@ class Murmurations_Aggregator_WP{
     return $result;
   }
 
-  /* Retrieve a setting from the WP options table */
+  public function delete_all_nodes(){
+    $nodes = get_posts( array('post_type'=>'murmurations_node','numberposts'=> -1) );
+    $count = 0;
+    foreach ($nodes as $node) {
+      $result = wp_delete_post($node->ID, true);
+      if($result){
+        $count++;
+      }
+    }
+    $this->set_notice("$count nodes deleted");
+    return $count;
+  }
+
+
+  /* Retrieve a setting */
   public function load_setting($setting){
     return $this->settings[$setting];
   }
@@ -137,20 +147,23 @@ class Murmurations_Aggregator_WP{
   public function activate(){
 
     // Temporary hard-coded defaults. TODO: Move to admin settings page
+
     $default_settings = array(
       'node_update_interval' => 'week',
       'feed_update_interval' => 'day',
       'index_url' => 'https://murmurations.network/api/index',
       'filters' => array(
-        array('nodeTypes','includes','co-op'),
+        //array('nodeTypes','includes','co-op'),
         //array('location','isInCountry','UK')
       ),
       'directory_template' => 'default'
     );
 
+    /*
     if($_SERVER['host'] == 'localhost'){
       $default_settings['index_url'] = 'http://localhost/projects/murmurations/murmurations-index/murmurations-index.php';
     }
+    */
 
     $this->settings = $default_settings;
 
@@ -238,42 +251,70 @@ class Murmurations_Aggregator_WP{
       $this->process_admin_form();
     }
 
-    echo "<h1>Murmurations Aggregator Settings</h1>";
-
     echo $this->show_notices();
+
+    /* TODO: Separate sections into their own JS-toggled tabs
+
+    $admin_tabs = array(
+      'network-settings' => 'Network Settings',
+      'feeds' => 'Feeds'
+    );
+
+    $tab = $_GET['tab'];
+
+    if($tab === null) $tab = 'network-settings';
+
+
+    echo '<nav class="nav-tab-wrapper">';
+    foreach ($admin_tabs as $key => $name) {
+      echo "<a href=\"?page=murmurations-aggregator-settings&tab=$key\" class=\"nav-tab ";
+      if($tab === $key) echo 'nav-tab-active';
+      echo "\">$name</a>";
+    }
+
+    echo "</nav>";
+
+    */
 
     $this->show_admin_form($murm_post_data);
 
-  }
-
-  public function load_admin_fields(){
-     return json_decode(file_get_contents(dirname( __FILE__ ).'/admin_fields.json'),true);
   }
 
 
   public function show_admin_form($post_data = false){
     $current = $this->settings;
 
-    $fields = $this->load_admin_fields();
+    $sections = json_decode(file_get_contents(dirname( __FILE__ ).'/admin_fields.json'),true);
 
     ?>
     <form method="POST">
     <?php
     wp_nonce_field( 'murmurations_ag_admin_form' );
 
-    foreach ($fields as $key => $f) {
-      $f['name'] = "murmurations_ag[$key]";
-      $f['current_value'] = $current[$key];
-
+    foreach ($sections as $section => $fields) {
+      $name = ucfirst(str_replace('_',' ',$section));
       ?>
-      <div class="murmurations-ag-admin-field">
-        <label for="<?= $f['name'] ?>"><?= $f['title'] ?></label>
-        <?php
-        echo $this->admin_field($f);
-        ?>
-      </div>
-
+      <div id="murms-admin-form-section-<?php echo $section ?>" class="murms-admin-form-section">
+        <h2><?php echo $name ?></h2>
       <?php
+
+      foreach ($fields as $key => $f) {
+        $f['name'] = "murmurations_ag[$key]";
+        $f['current_value'] = $current[$key];
+
+        ?>
+        <div class="murmurations-ag-admin-field">
+          <label for="<?= $f['name'] ?>"><?= $f['title'] ?></label>
+          <?php
+          echo $this->admin_field($f);
+          ?>
+        </div>
+
+        <?php
+      }
+
+      echo "</div>";
+
     }
 
     ?>
@@ -395,25 +436,12 @@ class Murmurations_Aggregator_WP{
   /* Process node data saved from the admin page */
   public function process_admin_form(){
 
-
     $fields = $this->load_admin_fields();
 
     $murm_post_data = $_POST['murmurations_ag'];
 
-    echo llog($murm_post_data, "POST data");
-
     // Check the WP nonce
     check_admin_referer( 'murmurations_ag_admin_form');
-
-
-    if($murm_post_data['delete_existing'] == 'true'){
-
-      $delete_nodes = get_posts( array('post_type'=>'murmurations_node','numberposts'=> -1) );
-      llog($delete_nodes,"Deleting nodes");
-      foreach ($delete_nodes as $delete_node) {
-        wp_delete_post($delete_node->ID, true);
-      }
-    }
 
     // Catch the filter fields and process
 
@@ -471,7 +499,128 @@ class Murmurations_Aggregator_WP{
 
   }
 
+  function update_local_feeds($feed_items){
+
+    echo llog("Updating local feed items");
+
+    $max_num = $this->settings['max_feed_items'] ?? 25;
+
+    $count = 0;
+    foreach ($feed_items as $key => $item) {
+      $this->save_feed_item($item);
+      $count++;
+      if($count == $max_num){
+        break;
+      }
+    }
+  }
+
+  private function save_feed_item($item_data){
+
+    echo llog("Saving local feed item");
+
+    if(!$item_data['url'] && $item_data['link']){
+      $item_data['url'] = $item_data['link'];
+    }
+
+    $post_data = array();
+
+    $post_data['post_title'] = $item_data['title'];
+    $post_data['post_content'] = $item_data['content:encoded'];
+    if(!$post_data['post_content']){
+      $post_data['post_content'] = $item_data['title'];
+    }
+    $post_data['post_excerpt'] = strip_tags($item_data['description']);
+    if(!$post_data['post_excerpt']){
+      $post_data['post_excerpt'] = substr($post_data['post_content'],0,100)."...";
+    }
+    $post_data['post_type'] = 'murms_feed_item';
+    $post_data['post_status'] = 'publish';
+    $post_data['post_date'] = date('Y-m-d H:i:s', strtotime($item_data['pubDate']));
+
+    $tags = $item_data['category'];
+
+    $networks = explode(',',$item_data['node_info']['networks']);
+    $node_types = explode(',',$item_data['node_info']['nodeTypes']);
+
+    // Check if node exists. If yes, update using existing post ID
+    $existing_post = $this->load_feed_item($item_data['url']);
+
+    if($existing_post){
+      $post_data['ID'] = $existing_post->ID;
+    }
+
+    echo llog($item_data,"RSS item data");
+
+    echo llog($post_data,"Feed item data before insert");
+
+    //exit();
 
 
+    // Insert the post
+    $result = wp_insert_post($post_data,true);
+
+    if($result === false){
+      llog($result,"Failed to insert feed item post");
+    }else{
+      llog($result,"Inserted feed item post");
+      $result === true ? $id = $post_data['ID'] : $id = $result;
+
+      // Add terms directly
+      $tresult = wp_set_object_terms($id, $tags, 'murms_feed_item_tag');
+      $tresult1 = wp_set_object_terms($id, $node_types, 'murms_feed_item_node_type');
+      $tresult2 = wp_set_object_terms($id, $networks, 'murms_feed_item_network');
+
+      // And use the ID to update meta
+      update_post_meta($id,'murmurations_feed_item_url',$item_data['url']);
+      update_post_meta($id,'murmurations_feed_item_data',$item_data);
+
+    }
+
+
+  }
+
+  public function delete_all_feed_items(){
+
+    echo llog("Deleting feed items");
+
+    $args = array(
+      'post_type' => 'murms_feed_item',
+      'posts_per_page' => -1
+    );
+
+    $posts = get_posts( $args );
+
+    foreach ($posts as $post) {
+      llog($post->post_title,"Deleting feed item");
+      wp_delete_post($post->ID,true);
+    }
+
+  }
+
+  /* Load a murmurations_feed_item post from WP */
+
+  public function load_feed_item($url){
+    llog($url,"retrieving URL");
+
+    $args = array(
+      'post_type' => 'murms_feed_item',
+       'meta_query' => array(
+           array(
+               'key' => 'murmurations_feed_item_url',
+               'value' => $url,
+               'compare' => '=',
+           )
+        )
+    );
+
+    $posts = get_posts( $args );
+
+    if(count($posts) > 0){
+      return $posts[0];
+    }else{
+      return false;
+    }
+  }
 }
 ?>

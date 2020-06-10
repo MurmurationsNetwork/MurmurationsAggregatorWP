@@ -1,53 +1,70 @@
 {
-"node_update_interval" : {
-  "type" :  "string",
-  "title" :  "Node update interval",
-  "description" :  "Node update interval",
-  "inputAs" : "text",
-  "validateAs" : "text",
-  "comment" : ""
-},
-"feed_update_interval" : {
-  "type" :  "string",
-  "title" :  "Feed update interval",
-  "inputAs" : "text",
-  "validateAs" : "text",
-  "comment" : ""
-},
-"filters" : {
-  "type" :  "multiple_array",
-  "title" :  "Filters",
-  "inputAs" : "multiple_array",
-  "validateAs" : "text",
-  "comment" : ""
-},
-"index_url" : {
-  "type" :  "string",
-  "maxLength" : 1000,
-  "title" :  "Index URL",
-  "inputAs" : "text",
-  "validateAs" : "url",
-  "comment" : ""
-},
-"directory_template" : {
-  "type" :  "string",
-  "title" :  "Directory template",
-  "inputAs" : "template_selector",
-  "validateAs" : "text",
-  "comment" : ""
-},
-"ignore_date" : {
-  "type" :  "string",
-  "title" :  "Ignore date",
-  "inputAs" : "checkbox",
-  "validateAs" : "text",
-  "comment" : ""
-},
-"delete_existing" : {
-  "type" :  "string",
-  "title" :  "Delete existing data",
-  "inputAs" : "checkbox",
-  "validateAs" : "text",
-  "comment" : ""
-}
+  "node_settings": {
+    "node_update_interval" : {
+      "type" :  "string",
+      "title" :  "Node update interval",
+      "description" :  "Node update interval",
+      "inputAs" : "text",
+      "validateAs" : "text",
+      "default" : "weekly",
+      "comment" : "How often should locally stored nodes be updated from the network?"
+    },
+    "filters" : {
+      "type" :  "multiple_array",
+      "title" :  "Filters",
+      "inputAs" : "multiple_array",
+      "validateAs" : "text",
+      "comment" : ""
+    },
+    "index_url" : {
+      "type" :  "string",
+      "maxLength" : 1000,
+      "title" :  "Index URL",
+      "inputAs" : "text",
+      "validateAs" : "url",
+      "default" : "https://murmurations.network/api/index",
+      "comment" : ""
+    },
+    "directory_template" : {
+      "type" :  "string",
+      "title" :  "Directory template",
+      "inputAs" : "template_selector",
+      "validateAs" : "text",
+      "default" : "default",
+      "comment" : ""
+    },
+    "ignore_date" : {
+      "type" :  "string",
+      "title" :  "Ignore date",
+      "inputAs" : "checkbox",
+      "validateAs" : "text",
+      "comment" : "Include nodes that haven't changed since the last update"
+    }
+  },
+  "feed_settings": {
+    "feed_update_interval" : {
+      "type" :  "string",
+      "title" :  "Feed update interval",
+      "inputAs" : "text",
+      "validateAs" : "text",
+      "default" : "daily",
+      "comment" : "How often should locally stored feed items be updated?"
+    },
+    "max_feed_items" : {
+      "type" :  "int",
+      "title" :  "Max number of feed items total",
+      "inputAs" : "text",
+      "validateAs" : "int",
+      "default" : 30,
+      "comment" : "Maximum number of feed items to fetch from node sites"
+    },
+    "max_feed_items_per_node" : {
+      "type" :  "int",
+      "title" :  "Max number of feed items per node",
+      "inputAs" : "text",
+      "validateAs" : "int",
+      "default" : 4,
+      "comment" : "Use this if some nodes are producing a lot of posts and you want ot include more sources"
+    }
+  }
 }

@@ -68,3 +68,38 @@ h3.murmurations-node-name{
  input.autocomplete-multiple{
    width:500px;
  }
+
+ button.murms-has-icon{
+   padding-left: 0;
+ }
+
+ button.murms-delete{
+   color: #ff0000;
+ }
+
+ button.murms-update i.murms-icon::before{
+    content: "\f463";
+ }
+
+i.murms-icon-update::before{
+    content: "\f463";
+}
+
+i.murms-icon-delete::before{
+    content: "\f182";
+}
+
+ .murms-icon{
+   font: normal 20px/1 dashicons;
+   float: left;
+   padding-right:5px;
+ }
+
+  .murms-admin-form-section {
+    margin-top: 2em;
+    margin-bottom: 2em;
+  }
+
+ .murms-admin-form-section h2{
+   border-bottom: 1px solid #ccc;
+ }

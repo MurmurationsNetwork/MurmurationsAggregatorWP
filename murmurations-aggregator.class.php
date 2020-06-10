@@ -28,7 +28,8 @@ class Murmurations_Aggregator{
       'map_origin' => '51.505, -0.09',
       'map_scale' => '4',
       // API key for Mapbox, tile provider for Leaflet. https://www.mapbox.com/studio/account/tokens/
-      'mapbox_token' => 'pk.eyJ1IjoibXVybXVyYXRpb25zIiwiYSI6ImNqeGN2MTIxYTAwMWQzdnBhODlmOHRyeXEifQ.KkzeMmUS2suuPI_n3l7jAA'
+      'mapbox_token' => 'pk.eyJ1IjoibXVybXVyYXRpb25zIiwiYSI6ImNqeGN2MTIxYTAwMWQzdnBhODlmOHRyeXEifQ.KkzeMmUS2suuPI_n3l7jAA',
+      'feed_storage_path' => plugin_dir_path(__FILE__).'feeds/feeds.json'
     );
   }
 
@@ -39,19 +40,20 @@ class Murmurations_Aggregator{
   /* Update all locally-stored node data from the index and nodes, adding new matching nodes and updating existing nodes */
   public function updateNodes(){
 
-    // Only pull data for nodes that have updated since we last collected data
-    $update_since = $this->env->load_setting('update_time');
+    $settings = $this->env->load_settings();
 
     // Filters are stored in the environment as multilevel array
-    $filters = $this->env->load_setting('filters');
+    $filters = $settings['filters'];
 
-    foreach ($filters as $key => $condition) {
-      if(in_array($condition[0],$this->index_fields)){
-        $index_filters[] = $condition;
+    if(is_array($filters)){
+      foreach ($filters as $key => $condition) {
+        if(in_array($condition[0],$this->index_fields)){
+          $index_filters[] = $condition;
+        }
       }
     }
 
-    $settings = $this->env->load_settings();
+    $update_since = $settings['update_time'];
 
     if($settings['ignore_date'] != 'true'){
       $index_filters[] = array('updated','isGreaterThan',$update_since);
@@ -65,28 +67,108 @@ class Murmurations_Aggregator{
     // Query the index to collect URLs of (possibly) wanted nodes that are recently updated
     $index_nodes = $this->indexRequest($query);
 
-    llog($index_nodes,"Fetched from index");
+    if(!$index_nodes){
+      $this->setNotice("Could not connect to the index","error");
+      return false;
+      /* TODO: Even if the index is out, could still query from stored nodes */
+    }
 
-    // Then query the nodes themselves to collect the data, and update the node in the local DB
+    $failed_nodes = array();
+    $fetched_nodes = array();
+    $matched_nodes = array();
+    $saved_nodes = array();
+
+    $results = array(
+      'nodes_from_index' => array(),
+      'failed_nodes' => array(),
+      'fetched_nodes' => array(),
+      'matched_nodes' => array(),
+      'saved_nodes' => array()
+    );
+
+    // Query the nodes to collect the data
     if(is_array($index_nodes)){
+
       if(count($index_nodes) > 0){
+
         foreach ($index_nodes as $key => $data) {
-          $this->updateNode($data['apiUrl']);
+
+          $url = $data['apiUrl'];
+
+          $results['nodes_from_index'][] = $url;
+
+          // Get the JSON from the node
+          $node_data = $this->nodeRequest($url);
+
+          if(!$node_data){
+            $results['failed_nodes'][] = $url;
+          }else{
+
+            $results['fetched_nodes'][] = $url;
+
+            $node_data_ar = json_decode($node_data, true);
+
+            // TODO: remove this. It seems that in some cases extra enclosing brackets lead to error-free json_decode calls returning strings of JSON, raather than array. This is a fallback.
+
+            if(!is_array($node_data_ar)){
+              $node_data_ar = json_decode($node_data_ar, true);
+            }
+
+            $node_data_ar['apiUrl'] = $url;
+
+            $matched = true;
+
+            if(is_array($filters)){
+              foreach ($filters as $condition) {
+                if(!$this->check_node_condition($node_data_ar,$condition)){
+                  $matched = false;
+                  //llog("Failed condition.</b> Node: ".print_r($node_data_ar,true)." \n Cond:".print_r($condition,true));
+                }else{
+                  //llog("Matched condition. Node: ".print_r($node_data_ar,true)." \n Cond:".print_r($condition,true));
+                }
+              }
+            }
+
+            if($matched == true){
+              $results['matched_nodes'][] = $url;
+
+              // Save the node to local DB
+              $result = $this->env->save_node($node_data_ar);
+
+              if($result){
+                $results['saved_nodes'][] = $url;
+              }
+            }
+          }
         }
       }
     }
+
+    $message = "Nodes updated. ".count($results['nodes_from_index'])." nodes fetched from index. ".count($results['failed_nodes'])." failed. ".count($results['fetched_nodes'])." nodes returned results. ".count($results['matched_nodes'])." nodes matched filters. ".count($results['saved_nodes'])." nodes saved. ";
+
+    if(count($results['saved_nodes']) > 0){
+      $class = 'success';
+    }else{
+      $class = 'notice';
+    }
+
+    $this->setNotice($message,$class);
 
     // Update the local update time in the environment
     $this->env->save_setting('update_time',time());
 
   }
 
+  public function setNotice($message,$class = 'notice'){
+    $this->env->set_notice($message,$class);
+  }
+
   /* Show the directory */
   public function showDirectory(){
     $nodes = $this->env->load_nodes();
-    llog($nodes, 'Nodes loaded from env...');
 
-    llog("Updating nodes...");
+    //llog($nodes, 'Nodes loaded from env...');
+    //llog("Updating nodes...");
 
     $this->updateNodes();
 
@@ -128,18 +210,17 @@ class Murmurations_Aggregator{
 
     foreach ($nodes as $key => $node) {
 
-      llog($node);
+      //llog($node);
 
-      if($node->murmurations['lat'] && $node->murmurations['lon']){
-
-          //$popup = "test";
+      if(is_numeric($node->murmurations['lat']) && is_numeric($node->murmurations['lon'])){
 
           $popup = trim($this->env->load_template('map_node_popup',$node));
 
           $lat = $node->murmurations['lat'];
           $lon = $node->murmurations['lon'];
 
-          $html .= "var marker = L.marker([".$lat.", ".$lon."]).addTo(murmurations_map);\n";         $html .= "marker.bindPopup(\"$popup\");\n";
+          $html .= "var marker = L.marker([".$lat.", ".$lon."]).addTo(murmurations_map);\n";
+          $html .= "marker.bindPopup(\"$popup\");\n";
 
        }
     }
@@ -149,7 +230,35 @@ class Murmurations_Aggregator{
     return $html;
   }
 
-  public function showFeed(){
+  /* Called by shortcode to display feed on front end */
+  public function showFeeds(){
+
+    //$this->env->delete_all_feed_items();
+
+    //$this->updateFeeds();
+    //LazyLog::flush();
+    //exit();
+    //$feeds = json_decode(file_get_contents($this->settings['feed_storage_path']),true);
+/*
+    if(safe_count($feeds) < 1){
+      return "No feeds to display";
+    }
+
+    //llog($feeds,"Feeds in display");
+
+    $feeds_html = "<div class=\"murmurations-feeds\">";
+
+    foreach ($feeds as $item) {
+      $feeds_html .= $this->env->load_template('feed_item',$item);
+    }
+
+    $feeds_html .= "</div>";
+
+    //llog($feeds_html,'Feeds HTML');
+
+    //return $feeds_html;
+
+*/
 
   }
 
@@ -159,48 +268,67 @@ class Murmurations_Aggregator{
 
   /* Update locally-stored feed data from the feed-providing nodes */
   public function updateFeeds(){
-    $feeds_array = array();
+
+    echo llog("Updating feeds");
+    echo llog("Loading feed URLs from locally stored nodes");
+
+    $feed_items = array();
     $since_time = $this->env->load_setting('feed_update_time');
     $feeds_to_update = array();
 
     // Get the locally stored nodes
-    $nodes = $this->env->load_nodes();
+    $nodes = $this->env->load_nodes(5);
 
     // Get feed URLs from nodes
     foreach ($nodes as $key => $node) {
-      if($node['feeds']){
-        if(safe_count($node['feeds']) > 0){
-           foreach ($node['feeds'] as $key => $url) {
-             $feeds_to_update[] = $url;
-           }
-        }
+      if($node->murmurations['feed']){
+         $feeds_to_update[] = $node->murmurations;
       }
     }
+
+    echo llog($feeds_to_update,"Feeds to update");
 
     // If we have feeds to update
     if(count($feeds_to_update) > 0){
-      foreach ($feeds_to_update as $url) {
-        $feed = $this->feedRequest($url);
-        //TODO: Add processing here
-        $feeds_array[] = $feed;
+      foreach ($feeds_to_update as $node) {
+        $feed = $this->feedRequest($node['feed']);
+
+        // For some reason this comes with an *xml key that misbehaves...
+        $feed = array_shift($feed);
+
+        if(is_array($feed)){
+          foreach ($feed['item'] as $item) {
+            // Add the info about the node to each item
+            $item['node_info'] = $node;
+            $feed_items[] = $item;
+          }
+        }else{
+          $this->log_error("Bad feed array");
+        }
       }
 
-      $feeds_json = json_encode($feeds_array);
+      // Sort reverse chronologically
+      usort($feed_items, function($a, $b) {
+          return $b['timestamp'] - $a['timestamp'];
+      });
 
-      //TODO: Consider improved solution for storing feed data
-      file_put_contents($this->setting("feed_storage_path"),$feeds_json);
+      echo llog("Fetched ".count($feed_items). " feed items");
+
+      $this->env->update_local_feeds($feed_items);
+
     }
   }
 
+
+
   /* Update a node in the local DB from the node's JSON-LD */
   private function updateNode($url){
+
     // Get the JSON from the node
     $node_data = $this->nodeRequest($url);
 
-    llog($node_data,"Got node data");
-
     if(!$node_data){
-      // TODO: When this is a genuine error with the request to the node, a message needs to be sent to the index reporting a node that's offline/otherwise not working properly
+      return false;
     }else{
       // Parse and save to environment
       $node_data_ar = json_decode($node_data, true);
@@ -209,14 +337,17 @@ class Murmurations_Aggregator{
 
       $matched = true;
 
-      foreach ($conditions as $condition) {
-        if(!$this->check_node_condition($node_data_ar,$condition)){
-          $matched = false;
-          llog("Failed condition.</b> Node: ".print_r($node_data_ar,true)." \n Cond:".print_r($condition,true));
-        }else{
-          llog("Matched condition. Node: ".print_r($node_data_ar,true)." \n Cond:".print_r($condition,true));
+      if(is_array($conditions)){
+        foreach ($conditions as $condition) {
+          if(!$this->check_node_condition($node_data_ar,$condition)){
+            $matched = false;
+            llog("Failed condition.</b> Node: ".print_r($node_data_ar,true)." \n Cond:".print_r($condition,true));
+          }else{
+            llog("Matched condition. Node: ".print_r($node_data_ar,true)." \n Cond:".print_r($condition,true));
+          }
         }
       }
+
       if($matched == true){
         $this->env->save_node($node_data_ar);
       }
@@ -274,11 +405,7 @@ class Murmurations_Aggregator{
   /* Do a query to the Murmurations index */
   private function indexRequest($query){
 
-    llog($query,"Making index request with");
-
     $url = $this->loadSetting('index_url');
-
-    llog($url,"Making index request to");
 
     $fields_string = http_build_query($query);
 
@@ -292,8 +419,6 @@ class Murmurations_Aggregator{
 
     $result = curl_exec($ch);
 
-    llog($result,"cURL result");
-
     return json_decode($result,true);
 
   }
@@ -302,14 +427,49 @@ class Murmurations_Aggregator{
   private function feedRequest($url,$since_time = null){
 
     // Get simpleXML of feed
-    $rss = Feed::loadRss($url);
+    try {
+      $rss = Feed::loadRss($url);
+    } catch (\Exception $e) {
+      $this->log_error("Couldn't load feed");
+    }
 
     $ar = xml2array($rss);
+
+    llog($ar,"Feed array");
 
     return $ar;
   }
 
   public function showAdminSettingsPage(){
+
+    if($_POST['action']){
+      check_admin_referer( 'murmurations_ag_actions_form');
+      if($_POST['action'] == 'update_murms_feed_items'){
+        $this->updateFeeds();
+      }
+      if($_POST['action'] == 'update_nodes'){
+        $this->updateNodes();
+      }
+      if($_POST['action'] == 'delete_all_nodes'){
+        $this->env->delete_all_nodes();
+      }
+    }
+
+   echo "<h1>Murmurations Aggregator</h1>";
+   ?>
+   <form method="POST">
+   <?php
+   wp_nonce_field( 'murmurations_ag_actions_form' );
+   ?>
+   <button type="submit" name="action" class="murms-update murms-has-icon" value="update_nodes"><i class="murms-icon murms-icon-update"></i>Update nodes</button>
+   <button type="submit" name="action" class="murms-update murms-has-icon" value="update_murms_feed_items"><i class="murms-icon murms-icon-update"></i>Update feeds</button>
+
+   <button type="submit" name="action" class="murms-delete murms-has-icon" value="delete_all_nodes"><i class="murms-icon murms-icon-delete"></i>Delete all stored nodes</button>
+
+ </form>
+ <?php
+
+
     $this->env->show_admin_settings_page();
   }
 
@@ -331,6 +491,11 @@ class Murmurations_Aggregator{
 
 
   }
+  public function log_error($error){
+    if(is_callable('llog')){
+      llog($error);
+    }
+  }
 
 }
 
@@ -344,6 +509,16 @@ function xml2array ( $xmlObject, $out = array () )
         return $out;
 }
 
+/* Count an array that might not be an array */
+if(!function_exists('safe_count')){
+  function safe_count($a){
+    if(is_array($a)){
+      return count($a);
+    }else{
+      return false;
+    }
+  }
+}
 
 
  ?>
