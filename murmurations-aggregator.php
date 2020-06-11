@@ -17,7 +17,7 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-LazyLog::setSetting('toHTML',true);
+LazyLog::setSetting('toHTML',false);
 
 /* Include the environment and core classes */
 require plugin_dir_path( __FILE__ ) . 'murmurations-aggregator.class.php';
@@ -74,7 +74,8 @@ function murmurations_ag_add_settings_page() {
     'function' => array($murmagg,'showAdminSettingsPage'),
   );
 
-  add_options_page($args['page_title'], $args['menu_title'], $args['capability'], $args['menu_slug'], $args['function']);
+  add_menu_page($args['page_title'], $args['menu_title'], $args['capability'], $args['menu_slug'], $args['function']);
+
 }
 
 
@@ -88,6 +89,7 @@ function murmurations_register_feed_item_post_type()
          ),
          'public'      => true,
          'has_archive' => true,
+         'menu_icon'   => 'dashicons-rss',
          'rewrite'     => array( 'slug' => 'murmurations-feed-item' )
      )
   );
@@ -101,7 +103,8 @@ function murmurations_register_feed_item_post_type()
       'labels'  => array(
         'name'  => __( 'Types' ),
         'singular_name' => __( 'Type' ),
-      )
+      ),
+      'show_admin_column' => true
     )
   );
   register_taxonomy(
@@ -111,7 +114,8 @@ function murmurations_register_feed_item_post_type()
       'labels'  => array(
         'name'  => __( 'Networks' ),
         'singular_name' => __( 'Network' ),
-      )
+      ),
+      'show_admin_column' => true
     )
   );
 
@@ -129,6 +133,7 @@ function murmurations_register_node_post_type()
            ),
            'public'      => true,
            'has_archive' => true,
+           'menu_icon'   => 'dashicons-rest-api',
            'rewrite'     => array( 'slug' => 'nodes' ), //TODO: This should be a setting, so aggregator sites can set the slug prefix. This also means we want to move this into the environment class, so we can access stuff from there (but there's the small matter of how to get that instantiated from the main file and call this without having to pass environment-specific information in the core class)
        )
     );

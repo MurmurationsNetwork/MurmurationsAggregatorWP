@@ -25,8 +25,8 @@ class Murmurations_Aggregator{
   public function __construct(){
     $this->env = new Murmurations_Aggregator_WP();
     $this->settings = array(
-      'map_origin' => '51.505, -0.09',
-      'map_scale' => '4',
+      'map_origin' => '49.505, -29.09',
+      'map_scale' => '1.7',
       // API key for Mapbox, tile provider for Leaflet. https://www.mapbox.com/studio/account/tokens/
       'mapbox_token' => 'pk.eyJ1IjoibXVybXVyYXRpb25zIiwiYSI6ImNqeGN2MTIxYTAwMWQzdnBhODlmOHRyeXEifQ.KkzeMmUS2suuPI_n3l7jAA',
       'feed_storage_path' => plugin_dir_path(__FILE__).'feeds/feeds.json'
@@ -190,7 +190,7 @@ class Murmurations_Aggregator{
         'crossorigin' => "");
     */
 
-    //$this->env->queue_leaflet_scripts();
+    //This API recently changed (https://docs.mapbox.com/help/troubleshooting/migrate-legacy-static-tiles-api)
 
     $html = $this->env->leaflet_scripts();
 
@@ -201,10 +201,12 @@ class Murmurations_Aggregator{
     $html .= '<script type="text/javascript">'."\n";
     $html .= "var murmurations_map = L.map('murmurations-map').setView([".$map_origin."], $map_scale);\n";
 
-    $html .= "L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+    $html .= "L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
     attribution: 'Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>',
+    tileSize: 512,
     maxZoom: 18,
-    id: 'mapbox.streets',
+    zoomOffset: -1,
+    id: 'mapbox/streets-v11',
     accessToken: '".$this->settings['mapbox_token']."'
 }).addTo(murmurations_map);\n";
 
@@ -269,54 +271,93 @@ class Murmurations_Aggregator{
   /* Update locally-stored feed data from the feed-providing nodes */
   public function updateFeeds(){
 
-    echo llog("Updating feeds");
-    echo llog("Loading feed URLs from locally stored nodes");
+    $this->env->delete_all_feed_items();
 
     $feed_items = array();
-    $since_time = $this->env->load_setting('feed_update_time');
-    $feeds_to_update = array();
+    //$since_time = $this->env->load_setting('feed_update_time');
+
+    $max_feed_items = $this->env->settings['max_feed_items'];
+    $max_feed_items_per_node = $this->env->settings['max_feed_items_per_node'];
 
     // Get the locally stored nodes
-    $nodes = $this->env->load_nodes(5);
+    $nodes = $this->env->load_nodes();
 
-    // Get feed URLs from nodes
-    foreach ($nodes as $key => $node) {
+    $results = array(
+      'nodes_with_feeds' => 0,
+      'feed_items_fetched' => 0,
+      'feed_items_saved' => 0
+    );
+
+    foreach ($nodes as $node) {
+
+      //echo llog($node,"Node for fetching feed");
+
       if($node->murmurations['feed']){
-         $feeds_to_update[] = $node->murmurations;
-      }
-    }
+        $feed_url = $node->murmurations['feed'];
 
-    echo llog($feeds_to_update,"Feeds to update");
-
-    // If we have feeds to update
-    if(count($feeds_to_update) > 0){
-      foreach ($feeds_to_update as $node) {
-        $feed = $this->feedRequest($node['feed']);
+        $feed = $this->feedRequest($feed_url);
 
         // For some reason this comes with an *xml key that misbehaves...
         $feed = array_shift($feed);
 
         if(is_array($feed)){
+          $node_item_count = 0;
+
+          $results['nodes_with_feeds']++;
+
+          //echo llog($feed);
+
+          //exit();
+
+          /* RSS includes multiple <item> elements. The RSS parser adds a single ['item'],
+          with numerically indexed elements for each item from the RSS. But, if there is only one item in the feed, it doesn't do this, and ['item'] is an array of item properties, not items */
+
+          if(!$feed['item'][0]){
+            $temp = $feed['item'];
+            unset($feed['item']);
+            $feed['item'][0] = $temp;
+          }
+
           foreach ($feed['item'] as $item) {
-            // Add the info about the node to each item
-            $item['node_info'] = $node;
-            $feed_items[] = $item;
+            if(is_array($item)){
+              $node_item_count++;
+              // Add the info about the node to each item
+              $item['node_info'] = $node->murmurations;
+              $feed_items[] = $item;
+              if($node_item_count == $max_feed_items_per_node) break;
+
+            }else{
+              echo llog($feed,"Strange non-array feed item.");
+            }
           }
         }else{
-          $this->log_error("Bad feed array");
+          $results['broken_feeds']++;
+          $this->setNotice("This feed could not be parsed: $feed_url",'warning');
         }
       }
-
-      // Sort reverse chronologically
-      usort($feed_items, function($a, $b) {
-          return $b['timestamp'] - $a['timestamp'];
-      });
-
-      echo llog("Fetched ".count($feed_items). " feed items");
-
-      $this->env->update_local_feeds($feed_items);
-
     }
+
+    // Sort reverse chronologically
+    usort($feed_items, function($a, $b) {
+        return $b['timestamp'] - $a['timestamp'];
+    });
+
+    $results['feed_items_fetched'] = count($feed_items);
+
+    $count = 0;
+
+    foreach ($feed_items as $key => $item) {
+
+      $result = $this->env->save_feed_item($item);
+
+      $results['feed_items_saved']++;
+      if($results['feed_items_saved'] == $max_feed_items){
+        break;
+      }
+    }
+
+    $this->setNotice("Feeds updated. ".$results['feed_items_fetched']." feed items fetched from ".$results['nodes_with_feeds']." nodes. ".$results['feed_items_saved']." feed items saved.",'success');
+
   }
 
 
@@ -430,6 +471,7 @@ class Murmurations_Aggregator{
     try {
       $rss = Feed::loadRss($url);
     } catch (\Exception $e) {
+      $this->setNotice("Error connecting to feed URL: ".$url,'warning');
       $this->log_error("Couldn't load feed");
     }
 

@@ -9,7 +9,6 @@ class Murmurations_Aggregator_WP{
 
   public function __construct(){
     $this->load_settings();
-
   }
 
   /* Methods are called from core class */
@@ -146,18 +145,15 @@ class Murmurations_Aggregator_WP{
   /* Activate the plugin */
   public function activate(){
 
-    // Temporary hard-coded defaults. TODO: Move to admin settings page
+    $fields = json_decode(file_get_contents(dirname( __FILE__ ).'/admin_fields.json'),true);
 
-    $default_settings = array(
-      'node_update_interval' => 'week',
-      'feed_update_interval' => 'day',
-      'index_url' => 'https://murmurations.network/api/index',
-      'filters' => array(
-        //array('nodeTypes','includes','co-op'),
-        //array('location','isInCountry','UK')
-      ),
-      'directory_template' => 'default'
-    );
+    $default_settings = array();
+
+    foreach ($fields as $name => $field) {
+      if($field['default']){
+        $default_settings[$name] = $field['default'];
+      }
+    }
 
     /*
     if($_SERVER['host'] == 'localhost'){
@@ -280,21 +276,32 @@ class Murmurations_Aggregator_WP{
 
   }
 
+  public function load_admin_fields(){
+    return json_decode(file_get_contents(dirname( __FILE__ ).'/admin_fields.json'),true);
+  }
+
 
   public function show_admin_form($post_data = false){
     $current = $this->settings;
 
-    $sections = json_decode(file_get_contents(dirname( __FILE__ ).'/admin_fields.json'),true);
+    $fields = json_decode(file_get_contents(dirname( __FILE__ ).'/admin_fields.json'),true);
+
+    $field_groups = array();
+
+    // Reorganize into sections
+    foreach ($fields as $name => $field_info) {
+      $field_groups[$field_info['group']][$name] = $field_info;
+    }
 
     ?>
     <form method="POST">
     <?php
     wp_nonce_field( 'murmurations_ag_admin_form' );
 
-    foreach ($sections as $section => $fields) {
-      $name = ucfirst(str_replace('_',' ',$section));
+    foreach ($field_groups as $group => $fields) {
+      $name = ucfirst(str_replace('_',' ',$group));
       ?>
-      <div id="murms-admin-form-section-<?php echo $section ?>" class="murms-admin-form-section">
+      <div id="murms-admin-form-section-<?php echo $group ?>" class="murms-admin-form-section">
         <h2><?php echo $name ?></h2>
       <?php
 
@@ -328,14 +335,24 @@ class Murmurations_Aggregator_WP{
 
     // This is very rudimentary now. Possibly should be replaced with a field class
     if($f['inputAs'] == 'text'){
+
       $out = '<input type="text" class="" name="'.$f['name'].'" id="'.$f['name'].'" value="'.$f['current_value'].'" />';
+
     }else if($f['inputAs'] == 'checkbox'){
+
       if ($f['current_value'] == 'true'){
         $checked = 'checked';
       }else{
         $checked = '';
       }
       $out = '<input type="checkbox" class="checkbox" name="'.$f['name'].'" id="'.$f['name'].'" value="true" '.$checked.'/>';
+
+    }else if($f['inputAs'] == 'select'){
+       $options = $f['options'];
+       $out = '<select name="'.$f['name'].'" id="'.$f['name'].'">';
+       $out .= $this->show_select_options($options,$f['current_value']);
+       $out .= '</select>';
+
 
     }else if($f['inputAs'] == 'template_selector'){
       // This should be updated to find templates in the css directory
@@ -499,25 +516,8 @@ class Murmurations_Aggregator_WP{
 
   }
 
-  function update_local_feeds($feed_items){
 
-    echo llog("Updating local feed items");
-
-    $max_num = $this->settings['max_feed_items'] ?? 25;
-
-    $count = 0;
-    foreach ($feed_items as $key => $item) {
-      $this->save_feed_item($item);
-      $count++;
-      if($count == $max_num){
-        break;
-      }
-    }
-  }
-
-  private function save_feed_item($item_data){
-
-    echo llog("Saving local feed item");
+  public function save_feed_item($item_data){
 
     if(!$item_data['url'] && $item_data['link']){
       $item_data['url'] = $item_data['link'];
@@ -530,12 +530,23 @@ class Murmurations_Aggregator_WP{
     if(!$post_data['post_content']){
       $post_data['post_content'] = $item_data['title'];
     }
-    $post_data['post_excerpt'] = strip_tags($item_data['description']);
-    if(!$post_data['post_excerpt']){
-      $post_data['post_excerpt'] = substr($post_data['post_content'],0,100)."...";
+
+    // Get the images if possible
+    preg_match('/<img.+src=[\'"](?P<src>.+?)[\'"].*>/i',$item_data['description'], $image);
+
+    if($image['src']){
+      $item_data['image'] = $image['src'];
+    }else if ($item_data['node_info']['logo']){
+      $item_data['image'] = $item_data['node_info']['logo'];
     }
+
+    $post_data['post_excerpt'] = substr(strip_tags($item_data['description']),0,300)."...";
+
+    if(!$post_data['post_excerpt']){
+      $post_data['post_excerpt'] = substr($post_data['post_content'],0,300)."...";
+    }
+
     $post_data['post_type'] = 'murms_feed_item';
-    $post_data['post_status'] = 'publish';
     $post_data['post_date'] = date('Y-m-d H:i:s', strtotime($item_data['pubDate']));
 
     $tags = $item_data['category'];
@@ -548,14 +559,14 @@ class Murmurations_Aggregator_WP{
 
     if($existing_post){
       $post_data['ID'] = $existing_post->ID;
+    }else{
+      $post_data['post_status'] = $this->load_setting('default_feed_item_status');
+      echo llog($post_data['post_status'],"Saving with post status");
     }
 
-    echo llog($item_data,"RSS item data");
+    //echo llog($item_data,"RSS item data");
 
-    echo llog($post_data,"Feed item data before insert");
-
-    //exit();
-
+    //echo llog($post_data,"Feed item data before insert");
 
     // Insert the post
     $result = wp_insert_post($post_data,true);
@@ -582,8 +593,6 @@ class Murmurations_Aggregator_WP{
 
   public function delete_all_feed_items(){
 
-    echo llog("Deleting feed items");
-
     $args = array(
       'post_type' => 'murms_feed_item',
       'posts_per_page' => -1
@@ -592,7 +601,6 @@ class Murmurations_Aggregator_WP{
     $posts = get_posts( $args );
 
     foreach ($posts as $post) {
-      llog($post->post_title,"Deleting feed item");
       wp_delete_post($post->ID,true);
     }
 
@@ -601,17 +609,18 @@ class Murmurations_Aggregator_WP{
   /* Load a murmurations_feed_item post from WP */
 
   public function load_feed_item($url){
-    llog($url,"retrieving URL");
 
     $args = array(
       'post_type' => 'murms_feed_item',
-       'meta_query' => array(
+      'post_status' => array('publish', 'pending', 'draft', 'auto-draft', 'future', 'private', 'inherit', 'trash'),
+
+      'meta_query' => array(
            array(
                'key' => 'murmurations_feed_item_url',
                'value' => $url,
                'compare' => '=',
            )
-        )
+       )
     );
 
     $posts = get_posts( $args );

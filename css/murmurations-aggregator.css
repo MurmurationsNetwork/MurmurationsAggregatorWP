@@ -48,6 +48,11 @@ h3.murmurations-node-name{
   font-size: 26px;
 }
 
+.murmurations-feed-item{
+  margin-bottom: 2em;
+}
+
+
 /* Admin styles (should be moved to admin-specific CSS) */
   .murmurations-ag-admin-field{
    padding: 1.5em;
