@@ -11,7 +11,22 @@
   <div class="murmurations-node-tagline"><?= $node->murmurations['tagline'] ?></div>
   <div class="murmurations-node-mission"><?= $node->murmurations['mission'] ?></div>
   <div class="murmurations-node-org-types"><?= $node->murmurations['nodeTypes'] ?></div>
-  <div class="murmurations-node-coordinates"><?= $node->murmurations['location'] ?> (<?= $node->murmurations['geolocation']['lat'] ?>,<?=$node->murmurations['geolocation']['lon'] ?>)</div>
+  <div class="murmurations-node-coordinates">
+    <?php
+
+    $place_components = array();
+
+    if($node->murmurations['location']['locality']){
+       $place_components[] = $node->murmurations['location']['locality'];
+    }
+
+    if($node->murmurations['location']['region']){
+       $place_components[] = $node->murmurations['location']['region'];
+    }
+
+    echo join(', ',$place_components);
+
+    ?></div>
   <a class="murmurations-node-url" href="<?= $node->murmurations['url'] ?>"><?= $node->murmurations['url'] ?></a>
 </div>
 </td>
