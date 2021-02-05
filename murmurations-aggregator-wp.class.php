@@ -21,7 +21,7 @@ class Murmurations_Aggregator_WP{
 
     if(!$node_data['name'] || !$node_data['url']){
       llog($node_data,"Missing or unacceptable required node data in save_node");
-      $this->set_notice("Node is missing required data and won't be saved: <a href=\"$node_data[apiUrl]\">$node_data[apiUrl]</a>",'warning');
+      $this->set_notice("Node is missing required data and won't be saved: <a href=\"$node_data[profile_url]\">$node_data[profile_url]</a>",'warning');
       return false;
     }
 
@@ -37,7 +37,7 @@ class Murmurations_Aggregator_WP{
     $post_data['post_status'] = 'publish';
 
     // Check if node exists. If yes, update using existing post ID
-    $existing_post = $this->load_node($node_data['url']);
+    $existing_post = $this->load_node($node_data['profile_url']);
 
     if($existing_post){
       $post_data['ID'] = $existing_post->ID;
@@ -54,7 +54,7 @@ class Murmurations_Aggregator_WP{
       $result === true ? $id = $post_data['ID'] : $id = $result;
 
       // And use the ID to update meta
-      update_post_meta($id,'murmurations_node_url',$node_data['url']);
+      update_post_meta($id,'murmurations_node_url',$node_data['profile_url']);
       update_post_meta($id,'murmurations_node_data',$node_data);
       return $id;
 
@@ -175,7 +175,7 @@ class Murmurations_Aggregator_WP{
   /* Generate the HTML for directory output */
 
   public function format_nodes($nodes){
-    llog($nodes,"Nodes");
+    //llog($nodes,"Nodes");
     $html = '<div id="murmurations-directory">';
     foreach ($nodes as $key => $node) {
       $html .= $this->format_node($node);

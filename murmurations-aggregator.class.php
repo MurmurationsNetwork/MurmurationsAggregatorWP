@@ -93,7 +93,7 @@ class Murmurations_Aggregator{
 
         foreach ($index_nodes as $key => $data) {
 
-          $url = $data['apiUrl'];
+          $url = $data['profile_url'];
 
           $results['nodes_from_index'][] = $url;
 
@@ -114,8 +114,6 @@ class Murmurations_Aggregator{
               $node_data_ar = json_decode($node_data_ar, true);
             }
 
-            $node_data_ar['apiUrl'] = $url;
-
             $matched = true;
 
             if(is_array($filters)){
@@ -131,6 +129,8 @@ class Murmurations_Aggregator{
 
             if($matched == true){
               $results['matched_nodes'][] = $url;
+
+              $node_data_ar['profile_url'] = $url;
 
               // Save the node to local DB
               $result = $this->env->save_node($node_data_ar);
@@ -214,12 +214,12 @@ class Murmurations_Aggregator{
 
       //llog($node);
 
-      if(is_numeric($node->murmurations['lat']) && is_numeric($node->murmurations['lon'])){
+      if(is_numeric($node->murmurations['geolocation']['lat']) && is_numeric($node->murmurations['geolocation']['lon'])){
 
           $popup = trim($this->env->load_template('map_node_popup',$node));
 
-          $lat = $node->murmurations['lat'];
-          $lon = $node->murmurations['lon'];
+          $lat = $node->murmurations['geolocation']['lat'];
+          $lon = $node->murmurations['geolocation']['lon'];
 
           $html .= "var marker = L.marker([".$lat.", ".$lon."]).addTo(murmurations_map);\n";
           $html .= "marker.bindPopup(\"$popup\");\n";
@@ -453,14 +453,21 @@ class Murmurations_Aggregator{
     $ch = curl_init();
 
     curl_setopt($ch,CURLOPT_URL, $url);
-    curl_setopt($ch,CURLOPT_POST, true);
-    curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
+    //curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
     curl_setopt($ch,CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch,CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch,CURLOPT_FAILONERROR, true);
 
     $result = curl_exec($ch);
 
-    return json_decode($result,true);
+    if($result === false){
+      $this->logError("No result returned from cURL request to index. cURL error: ".curl_error($ch));
+      return false;
+    }
+
+    $result_a = json_decode($result,true);
+
+    return $result_a['data'];
 
   }
 
@@ -472,7 +479,7 @@ class Murmurations_Aggregator{
       $rss = Feed::loadRss($url);
     } catch (\Exception $e) {
       $this->setNotice("Error connecting to feed URL: ".$url,'warning');
-      $this->log_error("Couldn't load feed");
+      $this->logError("Couldn't load feed");
     }
 
     $ar = xml2array($rss);
@@ -533,7 +540,7 @@ class Murmurations_Aggregator{
 
 
   }
-  public function log_error($error){
+  public function logError($error){
     if(is_callable('llog')){
       llog($error);
     }
