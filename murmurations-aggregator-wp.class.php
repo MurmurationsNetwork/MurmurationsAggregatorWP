@@ -19,7 +19,7 @@ class Murmurations_Aggregator_WP{
     llog($node_data,"Saving node data");
 
 
-    if(!$node_data['name'] || !$node_data['url']){
+    if(!$node_data['name']){
       llog($node_data,"Missing or unacceptable required node data in save_node");
       $this->set_notice("Node is missing required data and won't be saved: <a href=\"$node_data[profile_url]\">$node_data[profile_url]</a>",'warning');
       return false;
