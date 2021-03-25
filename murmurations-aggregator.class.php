@@ -167,11 +167,6 @@ class Murmurations_Aggregator{
   public function showDirectory(){
     $nodes = $this->env->load_nodes();
 
-    //llog($nodes, 'Nodes loaded from env...');
-    //llog("Updating nodes...");
-
-    $this->updateNodes();
-
     return $this->env->format_nodes($nodes);
   }
 
