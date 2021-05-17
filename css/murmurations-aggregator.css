@@ -49,9 +49,13 @@ h3.murmurations-node-name{
 }
 
 .murmurations-feed-item{
-  margin-bottom: 2em;
+  margin-bottom: 3em;
 }
 
+.murmurations-feed-item .tags{
+  font-size:0.9em;
+  font-weight: bold;
+}
 
 /* Admin styles (should be moved to admin-specific CSS) */
   .murmurations-ag-admin-field{

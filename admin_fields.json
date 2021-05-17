@@ -26,7 +26,7 @@
     "validateAs" : "url",
     "default" : "https://murmurations.network/api/index",
     "comment" : "",
-    "group" : "node_settings"
+    "group" : "api_settings"
   },
   "directory_template" : {
     "type" :  "string",
@@ -82,5 +82,27 @@
     "default" : "publish",
     "comment" : "",
     "group" : "feed_settings"
+  },
+  "api_key" : {
+    "type" :  "text",
+    "title" :  "API key",
+    "inputAs" : "text",
+    "group" : "api_settings"
+  },
+  "index_2_url" : {
+    "type" :  "string",
+    "maxLength" : 1000,
+    "title" :  "Secondary Index URL",
+    "inputAs" : "text",
+    "validateAs" : "url",
+    "default" : "https://murmurations.network/api/index",
+    "comment" : "",
+    "group" : "api_settings"
+  },
+  "index_2_api_key" : {
+    "type" :  "text",
+    "title" :  "Secondary API key",
+    "inputAs" : "text",
+    "group" : "api_settings"
   }
 }
