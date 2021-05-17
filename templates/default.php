@@ -10,6 +10,7 @@
   <h3 class="murmurations-node-name"><?= $node->murmurations['name'] ?></h3>
   <div class="murmurations-node-tagline"><?= $node->murmurations['tagline'] ?></div>
   <div class="murmurations-node-mission"><?= $node->murmurations['mission'] ?></div>
+  <div class="murmurations-node-description"><?= wp_trim_words($node->murmurations['description'],40,"...") ?></div>
   <div class="murmurations-node-org-types"><?= $node->murmurations['nodeTypes'] ?></div>
   <div class="murmurations-node-coordinates">
     <?php

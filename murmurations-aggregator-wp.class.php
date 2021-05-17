@@ -28,8 +28,8 @@ class Murmurations_Aggregator_WP{
     $post_data = array();
 
     $post_data['post_title'] = $node_data['name'];
-    $post_data['post_content'] = $node_data['name'];
-    $post_data['post_excerpt'] = $node_data['tagline'];
+    $post_data['post_content'] = $node_data['description'];
+    $post_data['post_excerpt'] = $node_data['description'];
     if(!$post_data['post_excerpt']){
       $post_data['post_excerpt'] = $node_data['name'];
     }

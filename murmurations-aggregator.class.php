@@ -427,7 +427,12 @@ class Murmurations_Aggregator{
 
     llog($url,"Making node request to");
 
+    $api_key = $this->loadSetting('api_key');
+
     $ch = curl_init();
+    if($api_key){
+      curl_setopt($ch, CURLOPT_USERPWD, $api_key . ":");
+    }
     curl_setopt($ch,CURLOPT_URL, $url);
     curl_setopt($ch,CURLOPT_RETURNTRANSFER, 1);
     $result = curl_exec($ch);
@@ -443,9 +448,15 @@ class Murmurations_Aggregator{
 
     $url = $this->loadSetting('index_url');
 
+    $api_key = $this->loadSetting('api_key');
+
     $fields_string = http_build_query($query);
 
     $ch = curl_init();
+
+    if($api_key){
+      curl_setopt($ch, CURLOPT_USERPWD, $api_key . ":");
+    }
 
     curl_setopt($ch,CURLOPT_URL, $url);
     //curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
