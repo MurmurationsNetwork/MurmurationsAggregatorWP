@@ -2,21 +2,39 @@
 
 class Murmurations_Aggregator_WP{
 
-  var $notices = array();
-  var $template_directory = 'templates/';
+  public $notices = array();
+  public $template_directory = 'templates/';
+
+  /*
 
   public $default_settings = array(
     'map_origin' => '49.505, -29.09',
     'map_scale' => '1.7',
     // API key for Mapbox, tile provider for Leaflet. https://www.mapbox.com/studio/account/tokens/
     'mapbox_token' => 'pk.eyJ1IjoibXVybXVyYXRpb25zIiwiYSI6ImNqeGN2MTIxYTAwMWQzdnBhODlmOHRyeXEifQ.KkzeMmUS2suuPI_n3l7jAA',
-    'feed_storage_path' => plugin_dir_path(__FILE__).'feeds/feeds.json'
   );
 
-  public function __construct(){
+  */
+
+
+  public function __construct($config){
+
+    $default_config = array(
+      'plugin_name' => 'Murmurations Aggregator',
+      'node_name' => 'Murmurations Node',
+      'node_slug' => 'murmurations_node',
+      'feed_storage_path' => plugin_dir_path(__FILE__).'feeds/feeds.json',
+      'schema_file' => plugin_dir_path(__FILE__).'schema.json',
+      'field_map_file' plugin_dir_path(__FILE__).'field_map.json',
+    );
+
+    $this->config = wp_parse_args($config, $default_config);
+
+    $this->load_includes();
     $this->load_settings();
     $this->load_schema();
     $this->load_field_map();
+    $this->register_hooks();
   }
 
   public function get_setting($setting){
@@ -658,6 +676,103 @@ class Murmurations_Aggregator_WP{
     $html .= "</script>\n";
 
     return $html;
+  }
+
+  public function load_includes(){
+    $include_path = plugin_dir_url( __FILE__ ) . 'includes/';
+    require_once $include_path.'murmurations-api.class.php';
+    require_once $include_path.'murmurations-node.class.php';
+    require_once $include_path.'murmurations-geocode.class.php';
+    //require_once $include_path.'murmurations-feeds.class.php';
+  }
+
+  public function register_hooks(){
+
+    add_action('init', array($this, 'register_cpts_and_taxes'));
+
+    add_shortcode('murmurations-directory', array($this, 'showDirectory'));
+    add_shortcode('murmurations-map', array($this, 'showMap'));
+    add_shortcode('murmurations-feeds', array($this, 'showFeeds'));
+
+    add_action( 'admin_menu', array($this, 'add_settings_page') );
+
+    register_activation_hook( __FILE__, array($this, 'activate') );
+    register_deactivation_hook( __FILE__, array($this, 'deactivate') );
+
+    wp_enqueue_style('murmurations-agg-css', plugin_dir_url( __FILE__ ) . 'css/murmurations-aggregator.css');
+
+  }
+
+  public function add_settings_page() {
+
+    $args = array(
+      'page_title' => 'Murmurations Aggregator Settings',
+      'menu_title' => 'Murmurations Aggregator',
+      'capability' => 'manage_options',
+      'menu_slug' => 'murmurations-aggregator-settings',
+      'function' => array($this,'show_admin_settings_page'),
+    );
+
+    add_menu_page($args['page_title'], $args['menu_title'], $args['capability'], $args['menu_slug'], $args['function']);
+
+  }
+
+  public function register_cpts_and_taxes(){
+
+
+    register_post_type('murmurations_node',
+       array(
+           'labels'      => array(
+               'name'          => __('Nodes'),
+               'singular_name' => __('Node'),
+           ),
+           'public'      => true,
+           'has_archive' => true,
+           'menu_icon'   => 'dashicons-rest-api',
+           'rewrite'     => array( 'slug' => 'nodes' ), //TODO: This should be a setting, so aggregator sites can set the slug prefix. This also means we want to move this into the environment class, so we can access stuff from there (but there's the small matter of how to get that instantiated from the main file and call this without having to pass environment-specific information in the core class)
+       )
+    );
+
+
+    register_post_type('murms_feed_item',
+       array(
+           'labels'      => array(
+               'name'          => __('Murmurations Feed Items'),
+               'singular_name' => __('Murmurations Feed Item'),
+           ),
+           'public'      => true,
+           'has_archive' => true,
+           'menu_icon'   => 'dashicons-rss',
+           'rewrite'     => array( 'slug' => 'murmurations-feed-item' )
+       )
+    );
+
+    register_taxonomy('murms_feed_item_tag','murms_feed_item');
+
+
+    register_taxonomy(
+      'murms_feed_item_node_type',
+      'murms_feed_item',
+      array(
+        'labels'  => array(
+          'name'  => __( 'Types' ),
+          'singular_name' => __( 'Type' ),
+        ),
+        'show_admin_column' => true
+      )
+    );
+    register_taxonomy(
+      'murms_feed_item_network',
+      'murms_feed_item',
+      array(
+        'labels'  => array(
+          'name'  => __( 'Networks' ),
+          'singular_name' => __( 'Network' ),
+        ),
+        'show_admin_column' => true
+      )
+    );
+
   }
 
 
