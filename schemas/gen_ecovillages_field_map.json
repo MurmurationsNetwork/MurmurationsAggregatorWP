@@ -1,0 +1,28 @@
+{
+  "name":{
+    "load_from":"post_title"
+  },
+  "description" :{
+    "load_from":"post_content"
+  },
+  "last_validated":{
+    "load_from":"post_modified"
+  },
+  "geolocation" : {
+    "load_from":"gen_lat_lng",
+    "callback": "Ecovillages_API_Server::process_coordinates"
+  },
+  "country" : {
+    "load_from":"gen_country",
+    "callback": "Ecovillages_API_Server::reduce_array"
+  },
+  "url" : {
+    "load_from":"gen_websites_0_url"
+  },
+  "gen_region" : {
+    "callback": "Ecovillages_API_Server::reduce_array"
+  },
+  "languages_spoken" : {
+    "load_from":"gen_language"
+  }
+}

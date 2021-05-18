@@ -25,7 +25,7 @@ class Murmurations_Aggregator_WP{
       'node_slug' => 'murmurations_node',
       'feed_storage_path' => plugin_dir_path(__FILE__).'feeds/feeds.json',
       'schema_file' => plugin_dir_path(__FILE__).'schema.json',
-      'field_map_file' plugin_dir_path(__FILE__).'field_map.json',
+      'field_map_file' => plugin_dir_path(__FILE__).'field_map.json',
     );
 
     $this->config = wp_parse_args($config, $default_config);
@@ -56,15 +56,13 @@ class Murmurations_Aggregator_WP{
     $this->save_settings();
   }
 
-  public static function load_schema(){
-    $schema_file = plugin_dir_path(__DIR__) .'schema.json';
-    $schema_json = file_get_contents($schema_file);
+  public function load_schema(){
+    $schema_json = file_get_contents($this->config['schema_file']);
     $this->schema = json_decode($schema_json,true);
   }
 
-  public static function load_field_map(){
-    $map_file = plugin_dir_path(__DIR__) .'field_map.json';
-    $map_json = file_get_contents($map_file);
+  public function load_field_map(){
+    $map_json = file_get_contents($this->config['field_map_file']);
     $this->field_map = json_decode($map_json,true);
   }
 
@@ -462,7 +460,7 @@ class Murmurations_Aggregator_WP{
 
     if(count($posts) > 0){
       foreach ($posts as $key => $post) {
-        $this->nodes[$post->ID] = new Murmurations_Node();
+        $this->nodes[$post->ID] = new Murmurations_Node($this->schema,$this->field_map,$this->settings);
 
         $this->nodes[$post->ID]->buildFromWPPost($post);
 
@@ -566,7 +564,7 @@ class Murmurations_Aggregator_WP{
 
         $results['fetched_nodes'][] = $url;
 
-        $node = new Murmurations_Node();
+        $node = new Murmurations_Node($this->schema,$this->field_map,$this->settings);
 
         $build_result = $node->buildFromJson($node_data);
 
@@ -679,7 +677,7 @@ class Murmurations_Aggregator_WP{
   }
 
   public function load_includes(){
-    $include_path = plugin_dir_url( __FILE__ ) . 'includes/';
+    $include_path = plugin_dir_path( __FILE__ );
     require_once $include_path.'murmurations-api.class.php';
     require_once $include_path.'murmurations-node.class.php';
     require_once $include_path.'murmurations-geocode.class.php';

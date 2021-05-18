@@ -4,7 +4,7 @@ class Murmurations_Node{
 
   private $errors = array();
 
-  __construct($schema,$field_map,$settings){
+  public function __construct($schema,$field_map,$settings){
     $this->schema = $schema;
     $this->field_map = $field_map;
     $this->settings = $settings;
@@ -60,12 +60,16 @@ class Murmurations_Node{
 
     foreach ($metas as $key => $value) {
 
-      if(substr(0,strlen($this->settings['meta_prefix'])),$key) == $this->settings['meta_prefix']){
-        $key = substr(strlen($this->settings['meta_prefix']),$key);
+      if(substr($key,0,strlen($this->settings['meta_prefix'])) == $this->settings['meta_prefix']){
+        $key = substr($key,strlen($this->settings['meta_prefix']));
       }
 
       $this->data[$key] = $value;
     }
+
+    echo llog($this->data);
+
+    exit;
 
     if(!$this->data['profile_url']){
       $this->error("Profile URL not found in WP Post data.");

@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft-04/schema#",
+  "id": "https://cdn.murmurations.network/schemas/gen_ecovillages_v0.0.1.json",
+  "title": "GEN Ecovillages",
+  "description": "Ecovillage projects in the Global Ecovillage Network.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "title": "Name",
+      "description": "The name of the ecovillage",
+      "type": "string"
+    },
+    "url": {
+      "title": "URL",
+      "description": "Website URL",
+      "type": "string",
+      "maxLength": 2000,
+      "pattern": "https?://"
+    },
+    "description": {
+      "title": "Description",
+      "description": "",
+      "type": "string"
+    },
+    "country": {
+       "title": "Country",
+       "description": "",
+       "type": "string"
+    },
+    "locality": {
+       "title": "Locality",
+       "description": "A city, town, village, etc.",
+       "type": "string",
+       "pattern": "^.{1,100}$"
+    },
+    "region": {
+       "title": "Region",
+       "description": "A state, county, province, etc.",
+       "type": "string",
+       "pattern": "^.{1,100}$"
+    },
+    "gen_region": {
+       "title": "GEN Region",
+       "description": "The GEN region of this project",
+       "type": "string",
+       "pattern": "^.{1,100}$"
+    },
+    "languages_spoken": {
+       "title": "Languages spoken",
+       "type": "string",
+       "pattern": "^.{1,100}$"
+    },
+    "geolocation": {
+    "title": "Geolocation Coordinates",
+      "description": "The geo-coordinates (latitude & longitude) of the project",
+      "type": "object",
+      "properties": {
+        "lat": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "lon": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        }
+      },
+      "required": ["lat", "lon"]
+    }
+  },
+  "required": ["name", "url"],
+  "metadata": {
+    "creator": {
+      "name": "GENNA Data Sharing Project"
+    },
+    "schema": {
+      "name": "gen_ecovillages_v0.0.1",
+      "version": "0.0.1"
+    }
+  }
+}

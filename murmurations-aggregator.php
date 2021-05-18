@@ -25,8 +25,8 @@ $config =  array(
   'node_name_plural' => 'Murmurations Nodes',
   'node_slug' => 'murmurations_node',
   'feed_storage_path' => plugin_dir_path(__FILE__).'feeds/feeds.json',
-  'schema_file' => plugin_dir_path(__FILE__).'schema.json',
-  'field_map_file' plugin_dir_path(__FILE__).'field_map.json',
+  'schema_file' => plugin_dir_path(__FILE__).'schemas/gen_ecovillages_v0.0.1.json',
+  'field_map_file' => plugin_dir_path(__FILE__).'schemas/gen_ecovillages_field_map.json',
 );
 
 
