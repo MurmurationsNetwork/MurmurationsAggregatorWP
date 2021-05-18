@@ -104,5 +104,25 @@
     "title" :  "Secondary API key",
     "inputAs" : "text",
     "group" : "api_settings"
+  },
+  "map_origin" : {
+    "type" :  "text",
+    "title" :  "Map origin coordinates",
+    "inputAs" : "text",
+    "group" : "map_settings",
+    "default" : "49.505, -29.09"
+  },
+  "map_scale" : {
+    "type" :  "text",
+    "title" :  "Map scale",
+    "inputAs" : "text",
+    "group" : "map_settings",
+    "default" : "1.7"
+  },
+  "mapbox_token" : {
+    "type" :  "text",
+    "title" :  "API key for Mapbox, tile provider for Leaflet. https://www.mapbox.com/studio/account/tokens/",
+    "inputAs" : "text",
+    "group" : "map_settings"
   }
 }
