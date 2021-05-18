@@ -19,6 +19,7 @@ class Murmurations_Geocode {
 
     $this->location_hash = $this->cacheHash($location);
     $this->location = $location;
+
   }
 
   /* Do the geocode lookup */
@@ -37,8 +38,6 @@ class Murmurations_Geocode {
 
       $fields_string = http_build_query($data);
 
-      llog($fields_string,"Querying geo api with string");
-
       $ch = curl_init();
 
       curl_setopt($ch,CURLOPT_URL, $url.'?'.$fields_string);
@@ -56,8 +55,6 @@ class Murmurations_Geocode {
         $this->setError("No matching location found");
         return false;
       }
-
-      llog($this->geo,"Geo result. Saving to cache");
 
       $this->saveCache($this->geo);
     }
