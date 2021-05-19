@@ -19,6 +19,8 @@ if ( ! defined( 'WPINC' ) ) {
 
 require plugin_dir_path( __FILE__ ) . 'includes/murmurations-aggregator-wp.class.php';
 
+define("MURMAG_ROOT_PATH",plugin_dir_path(__FILE__));
+
 $config =  array(
   'plugin_name' => 'Murmurations Aggregator',
   'node_name' => 'Murmurations Node',

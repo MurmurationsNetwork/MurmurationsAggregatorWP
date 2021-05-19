@@ -57,7 +57,7 @@ class Murmurations_API{
     $result = curl_exec($ch);
 
     if($result === false){
-      $this->logError("No result returned from cURL request to node. cURL error: ".curl_error($ch));
+      self::logError("No result returned from cURL request to node. cURL error: ".curl_error($ch));
       return false;
     }
 
@@ -82,7 +82,7 @@ class Murmurations_API{
     $result = curl_exec($ch);
 
     if($result === false){
-      $this->logError("No result returned from cURL request to index. cURL error: ".curl_error($ch));
+      self::logError("No result returned from cURL request to index. cURL error: ".curl_error($ch));
       return false;
     }else{
       return $result;
@@ -96,8 +96,8 @@ class Murmurations_API{
     try {
       $rss = Feed::loadRss($url);
     } catch (\Exception $e) {
-      $this->setNotice("Error connecting to feed URL: ".$url,'warning');
-      $this->logError("Couldn't load feed");
+      self::setNotice("Error connecting to feed URL: ".$url,'warning');
+      self::logError("Couldn't load feed");
     }
 
     $ar = xml2array($rss);

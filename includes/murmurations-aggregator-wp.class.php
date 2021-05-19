@@ -26,6 +26,7 @@ class Murmurations_Aggregator_WP{
       'feed_storage_path' => plugin_dir_path(__FILE__).'feeds/feeds.json',
       'schema_file' => plugin_dir_path(__FILE__).'schema.json',
       'field_map_file' => plugin_dir_path(__FILE__).'field_map.json',
+      'meta_prefix' => 'murmurations_'
     );
 
     $this->config = wp_parse_args($config, $default_config);
@@ -100,13 +101,13 @@ class Murmurations_Aggregator_WP{
 
   /* Load an overridable template file */
   public function load_template($template,$data){
-    if(file_exists(get_stylesheet_directory().'/murmurations-aggregator-templates/'.$template.'.php')){
+    if(file_exists(get_stylesheet_directory().'/murmurations-aggregator-templates/'.$template)){
       ob_start();
-      include get_stylesheet_directory().'/murmurations-aggregator-templates/'.$template.'.php';
+      include get_stylesheet_directory().'/murmurations-aggregator-templates/'.$template;
       $html = ob_get_clean();
-    }else if(file_exists(dirname( __FILE__ ).'/templates/'.$template.'.php')){
+    }else if(file_exists(MURMAG_ROOT_PATH.'/templates/'.$template)){
       ob_start();
-      include dirname( __FILE__ ).'/templates/' . $template . '.php';
+      include MURMAG_ROOT_PATH.'/templates/' . $template;
       $html = ob_get_clean();
     }else{
       exit("Missing template file: ".$template);
@@ -196,14 +197,14 @@ class Murmurations_Aggregator_WP{
   }
 
   public function load_admin_fields(){
-    return json_decode(file_get_contents(dirname( __FILE__ ).'/admin_fields.json'),true);
+    return json_decode(file_get_contents(dirname( __FILE__ ).'/../admin_fields.json'),true);
   }
 
 
   public function show_admin_form($post_data = false){
     $current = $this->settings;
 
-    $fields = json_decode(file_get_contents(dirname( __FILE__ ).'/admin_fields.json'),true);
+    $fields = json_decode(file_get_contents(dirname( __FILE__ ).'/../admin_fields.json'),true);
 
     $field_groups = array();
 
@@ -277,7 +278,7 @@ class Murmurations_Aggregator_WP{
       // This should be updated to find templates in the css directory
       // (It's overridable as is, but only by files of the same name)
 
-      $files = array_diff(scandir(dirname( __FILE__ ).'/'.$this->template_directory), array('..', '.'));
+      $files = array_diff(scandir(dirname( __FILE__ ).'/../'.$this->template_directory), array('..', '.'));
 
       $options = array();
 
@@ -434,27 +435,16 @@ class Murmurations_Aggregator_WP{
     }
   }
 
-  /* Generate the HTML for directory output */
-
-  public function format_nodes($nodes){
-    //llog($nodes,"Nodes");
-    $html = '<div id="murmurations-directory">';
-    foreach ($nodes as $key => $node) {
-      $html .= $this->format_node($node);
-    }
-    $html .= "</div>";
-    echo $html;
-  }
 
 
   public function load_nodes($args = null){
 
-    $deafult_args = array(
+    $default_args = array(
       'post_type'      => 'murmurations_node',
       'posts_per_page' => -1,
     );
 
-    $args = wp_parse_args($args,$deafult_args);
+    $args = wp_parse_args($args,$default_args);
 
     $posts = get_posts( $args );
 
@@ -498,6 +488,8 @@ class Murmurations_Aggregator_WP{
           $index_filters[] = $condition;
         }
       }
+    }else{
+      $filters = array();
     }
 
     $update_since = $settings['update_time'];
@@ -511,6 +503,19 @@ class Murmurations_Aggregator_WP{
       'conditions' => $index_filters
     );
 
+    $options = array();
+
+    if($settings['api_key']){
+      $options['api_key'] = $settings['api_key'];
+    }
+
+    $index_nodes = Murmurations_API::getIndexJson($settings['index_url'],$query,$options);
+
+    $index_nodes = json_decode($index_nodes,true);
+
+    $index_nodes = $index_nodes['data'];
+
+/* FUTURE
     foreach ($settings['indices'] as $index){
 
       $url = $index['url'];
@@ -528,9 +533,10 @@ class Murmurations_Aggregator_WP{
       }
 
     }
+    */
 
     if(!$index_nodes){
-      $this->setNotice("Could not connect to the index","error");
+      $this->set_notice("Could not connect to the index","error");
       return false;
       /* TODO: Even if the index is out, could still query from stored nodes */
     }
@@ -555,8 +561,14 @@ class Murmurations_Aggregator_WP{
 
       $results['nodes_from_index'][] = $url;
 
+      $options = array();
+
+      if($settings['use_api_key_for_nodes'] == 'true'){
+        $options['api_key'] = $settings['api_key'];
+      }
+
       // Get the JSON from the node
-      $node_data = Murmurations_API::getNodeJson($url);
+      $node_data = Murmurations_API::getNodeJson($url,$options);
 
       if(!$node_data){
         $results['failed_nodes'][] = $url;
@@ -569,7 +581,9 @@ class Murmurations_Aggregator_WP{
         $build_result = $node->buildFromJson($node_data);
 
         if(!$build_result){
-          $this->error($node->getErrors());
+          $this->set_notice($node->getErrorsText(),'error');
+          $results['failed_nodes'][] = $url;
+          break;
         }
 
         $matched = $node->checkFilters($filters);
@@ -577,14 +591,16 @@ class Murmurations_Aggregator_WP{
         if($matched == true){
           $results['matched_nodes'][] = $url;
 
-          $node_data_ar['profile_url'] = $url;
+          //$node_data_ar['profile_url'] = $url;
+
+          //$node->setProperty('profile_url',$url);
 
           $result = $node->save();
 
           if($result){
             $results['saved_nodes'][] = $url;
           }else{
-            $this->setNotice("Failed to save node: ".$url,"error");
+            $this->set_notice("Failed to save node: ".$url,"error");
           }
 
         }else{
@@ -606,7 +622,7 @@ class Murmurations_Aggregator_WP{
       $class = 'notice';
     }
 
-    $this->setNotice($message,$class);
+    $this->set_notice($message,$class);
 
     $this->save_setting('update_time',time());
 
@@ -614,13 +630,23 @@ class Murmurations_Aggregator_WP{
 
 
   public function showDirectory(){
-    $nodes = $this->load_nodes();
+    $this->load_nodes();
 
-    return $this->format_nodes($nodes);
+    $html = '<div id="murmurations-directory">';
+    if(count($this->nodes) < 1){
+      $html .= "No records found";
+    }else{
+      foreach ($this->nodes as $key => $node) {
+        $html .= $this->load_template("node_list_item.php",$node->data);
+      }
+    }
+
+    $html .= "</div>";
+    return $html;
   }
 
   public function showMap(){
-    $nodes = $this->load_nodes();
+    $this->load_nodes();
 
     /* Because of the cross-origin stuff, these don't fit WP's queue paradigm. In future, we should use this method, but for now loading scripts as HTML in the head via env
     $this->env->add_css(array(
@@ -654,16 +680,16 @@ class Murmurations_Aggregator_WP{
     accessToken: '".$this->settings['mapbox_token']."'
 }).addTo(murmurations_map);\n";
 
-    foreach ($nodes as $key => $node) {
+    foreach ($this->nodes as $key => $node) {
 
       //llog($node);
 
-      if(is_numeric($node->murmurations['geolocation']['lat']) && is_numeric($node->murmurations['geolocation']['lon'])){
+      if(is_numeric($node->data['geolocation']['lat']) && is_numeric($node->data['geolocation']['lon'])){
 
-          $popup = trim($this->env->load_template('map_node_popup',$node));
+          $popup = trim($this->load_template('map_node_popup.php',$node->data));
 
-          $lat = $node->murmurations['geolocation']['lat'];
-          $lon = $node->murmurations['geolocation']['lon'];
+          $lat = $node->data['geolocation']['lat'];
+          $lon = $node->data['geolocation']['lon'];
 
           $html .= "var marker = L.marker([".$lat.", ".$lon."]).addTo(murmurations_map);\n";
           $html .= "marker.bindPopup(\"$popup\");\n";
@@ -697,7 +723,7 @@ class Murmurations_Aggregator_WP{
     register_activation_hook( __FILE__, array($this, 'activate') );
     register_deactivation_hook( __FILE__, array($this, 'deactivate') );
 
-    wp_enqueue_style('murmurations-agg-css', plugin_dir_url( __FILE__ ) . 'css/murmurations-aggregator.css');
+    wp_enqueue_style('murmurations-agg-css', plugin_dir_url( __FILE__ ) . '../css/murmurations-aggregator.css');
 
   }
 

@@ -33,14 +33,16 @@ class Murmurations_Node{
 
     if(!$this->data['profile_url']){
       $this->error("Attempted to build from invalid node data. Profile URL not found.");
+      llog($this->data,"Node data missing profile url");
       return false;
     }
 
     $this->url = $this->data['profile_url'];
-    $db_data = $this->load($this->url);
 
-    if($db_data){
-      $this->ID = $db_data['ID'];
+    $existing_post = $this->getPostFromProfileUrl($this->url);
+
+    if($existing_post){
+      $this->ID = $existing_post->ID;
     }
 
     return true;
@@ -60,16 +62,13 @@ class Murmurations_Node{
 
     foreach ($metas as $key => $value) {
 
-      if(substr($key,0,strlen($this->settings['meta_prefix'])) == $this->settings['meta_prefix']){
-        $key = substr($key,strlen($this->settings['meta_prefix']));
+      if(substr($key,0,strlen($this->config['meta_prefix'])) == $this->config['meta_prefix']){
+        $key = substr($key,strlen($this->config['meta_prefix']));
       }
 
-      $this->data[$key] = $value;
+      $this->data[$key] = maybe_unserialize($value[0]);
     }
 
-    echo llog($this->data);
-
-    exit;
 
     if(!$this->data['profile_url']){
       $this->error("Profile URL not found in WP Post data.");
@@ -134,7 +133,6 @@ class Murmurations_Node{
 
     $wp_field_fallbacks = array(
       'post_title' => ['name','title','url','profile_url'],
-      //'post_excerpt' => ['content','tagline','description','name','title','url','profile_url'],
       'post_content' => ['description','name','title','url','profile_url']
     );
 
@@ -170,14 +168,14 @@ class Murmurations_Node{
 
     $post_data['post_type'] = 'murmurations_node';
 
+    $existing_post = $this->getPostFromProfileUrl($node_data['profile_url']);
 
-
-
-    $existing_post = $this->load($node_data['profile_url']);
 
     if($existing_post){
       $post_data['ID'] = $existing_post->ID;
-      $post_data['post_status'] = $this->settings['updated_node_post_status'];
+      if($this->settings['updated_node_post_status'] != 'no_change'){
+        $post_data['post_status'] = $this->settings['updated_node_post_status'];
+      }
     }else{
       $post_data['post_status'] = $this->settings['new_node_post_status'];
     }
@@ -191,20 +189,23 @@ class Murmurations_Node{
 
       $result === true ? $id = $post_data['ID'] : $id = $result;
 
-      update_post_meta($id,'murmurations_node_url',$node_data['profile_url']);
-      update_post_meta($id,'murmurations_node_data',$node_data);
+      foreach ($node_data as $key => $value) {
+        $meta_field = $this->config['meta_prefix'].$key;
+        update_post_meta($id,$meta_field,$value);
+      }
+
       return $id;
 
     }
   }
 
-  private function load($url){
+  public function getPostFromProfileUrl($url){
 
     $args = array(
       'post_type' => 'murmurations_node',
        'meta_query' => array(
            array(
-               'key' => 'murmurations_node_url',
+               'key' => $this->config['meta_prefix'].'profile_url',
                'value' => $url,
                'compare' => '=',
            )
@@ -252,33 +253,20 @@ class Murmurations_Node{
     llog($error, "Node error");
   }
 
-
-
-
-
-  /*
-  //TODO: Remove this from the WP class and use load_template instead
-  public function format($node, $template = 'default'){
-
-    $org_types_array = explode(', ',$node->murmurations['nodeTypes']);
-
-    $data_classes = 'org-type-'.join(' org-type-',$org_types_array);
-
-    if(file_exists(get_stylesheet_directory().'/murmurations-aggregator-templates/'.$template.'.php')){
-      ob_start();
-      include get_stylesheet_directory().'/murmurations-aggregator-templates/'.$template.'.php';
-      $html = ob_get_clean();
-    }else if(file_exists(dirname( __FILE__ ).'/templates/'.$template.'.php')){
-      ob_start();
-      include dirname( __FILE__ ).'/templates/' . $template . '.php';
-      $html = ob_get_clean();
-    }else{
-      exit("Missing template file");
-    }
-
-    return $html;
+  public function getErrors(){
+    return $this->errors;
   }
-  */
 
+  public function getErrorsText(){
+    $text = "";
+    foreach($this->errors as $error){
+      $text .= $error."<br />\n";
+    }
+    return $text;
+  }
+
+  public function setProperty($property,$value){
+    $this->data[$property] = $value;
+  }
 }
 ?>
