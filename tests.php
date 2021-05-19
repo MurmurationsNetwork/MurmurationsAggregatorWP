@@ -4,15 +4,119 @@ ini_set('dispay_errors', true);
 define('WP_USE_THEMES', false);
 $base = dirname(dirname(__FILE__));
 require($base.'/../../wp-load.php');
+if(!current_user_can('manage_options')) {
+  die("Permission denied");
+}
 
-
-echo "<pre>";
-$result = MurmsAggregatorTests::keyedApiRequest();
-print_r($result);
-MurmsAggregatorTests::indexRequest();
-echo "</pre>";
+if($_GET['t']){
+  if ($_GET['t'] && method_exists('MurmsAggregatorTests',$_GET['t'])){
+    $f = $_GET['t'];
+    if($_GET['p']){
+      $result = MurmsAggregatorTests::$f($_GET['p']);
+    }else{
+      $result = MurmsAggregatorTests::$f();
+    }
+    echo llog($result,$f.'('.$p.')');
+  }
+}
 
 class MurmsAggregatorTests{
+
+  public static function showNodes(){
+    $config =  array(
+      'schema_file' => plugin_dir_path(__FILE__).'schemas/gen_ecovillages_v0.0.1.json',
+      'field_map_file' => plugin_dir_path(__FILE__).'schemas/gen_ecovillages_field_map.json',
+    );
+
+    $ag = new Murmurations_Aggregator_WP($config);
+
+    $ag->load_nodes();
+
+    $out = array();
+
+    foreach ($ag->nodes as $id => $node) {
+      $out[$id] = $node->data;
+    }
+
+    return $out;
+
+  }
+
+  public static function updateNode(){
+
+    $config =  array(
+      'schema_file' => plugin_dir_path(__FILE__).'schemas/gen_ecovillages_v0.0.1.json',
+      'field_map_file' => plugin_dir_path(__FILE__).'schemas/gen_ecovillages_field_map.json',
+    );
+
+    $ag = new Murmurations_Aggregator_WP($config);
+
+    $url = 'http://localhost/TestPress4/wp-json/ecovillages/v1/get/index/Canada';
+
+    $options['api_key'] = 'JD%2js9#dflj';
+
+    $json = Murmurations_API::getIndexJson($url,array(),$options);
+
+    //echo llog($json,"Index JSON");
+
+    $index = json_decode($json,true);
+
+    $node = $index['data'][0];
+
+    $profile_url = $node['profile_url'];
+
+    $json = Murmurations_API::getNodeJson($profile_url,$options);
+
+    //echo llog($json,"Node JSON");
+
+    $node = new Murmurations_Node($ag->schema,$ag->field_map,$ag->settings);
+
+    $build_result = $node->buildFromJson($json);
+
+    //echo llog($node,"Node after building from JSON");
+
+    $id = $node->save();
+
+    echo llog($id,"ID after saving post");
+
+    $profile_url = $node->data['profile_url'];
+
+    $db_node = new Murmurations_Node($ag->schema,$ag->field_map,$ag->settings);
+
+    $post = $db_node->getPostFromProfileUrl($profile_url);
+
+    echo llog($post,"WP Post loaded");
+
+    $db_node->buildFromWPPost($post);
+
+    echo llog($db_node,"Node after build from WP post");
+
+  }
+
+
+  public static function getIndexJson(){
+
+    $url = 'http://localhost/TestPress4/wp-json/ecovillages/v1/get/index/Canada';
+
+    $options['api_key'] = 'JD%2js9#dflj';
+
+    $json = Murmurations_API::getIndexJson($url,array(),$options);
+
+    return json_decode($json,true);
+
+  }
+
+  public static function getNodeJson(){
+
+    $url = 'http://localhost/TestPress4/wp-json/ecovillages/v1/get/project/cohabitat-quebec';
+
+    $options['api_key'] = 'JD%2js9#dflj';
+
+    $json = Murmurations_API::getNodeJson($url,$options);
+
+    return json_decode($json,true);
+
+  }
 
   public static function keyedApiRequest(){
     $url = 'http://localhost/TestPress4/wp-json/ecovillages/v1/get/project/selba';
