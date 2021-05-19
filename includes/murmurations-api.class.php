@@ -74,7 +74,7 @@ class Murmurations_API{
       curl_setopt($ch, CURLOPT_USERPWD, $options['api_key'] . ":");
     }
 
-    curl_setopt($ch,CURLOPT_URL, $url);
+    curl_setopt($ch,CURLOPT_URL, $url . '?' .$fields_string);
     curl_setopt($ch,CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch,CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch,CURLOPT_FAILONERROR, true);

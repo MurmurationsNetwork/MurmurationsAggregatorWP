@@ -87,7 +87,7 @@ class Murmurations_Node{
     $matched = true;
 
     foreach ($filters as $condition) {
-      if(!$this->checkCondition($node_data_ar,$condition)){
+      if(!$this->checkCondition($condition)){
         $matched = false;
         //llog("Failed condition.</b> Node: ".print_r($node_data_ar,true)." \n Cond:".print_r($condition,true));
       }else{

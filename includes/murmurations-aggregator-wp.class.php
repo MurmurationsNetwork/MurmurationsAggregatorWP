@@ -328,16 +328,11 @@ class Murmurations_Aggregator_WP{
 
     $current_value = array_combine($keys, $current_value);
 
-    //TODO: This needs to come from the appropriate murmurations schema, or else be a non constrained field
-    $subject_options = array(
-      '' => "",
-      'nodeTypes' => "Node types",
-      'url' => "URL",
-      'mission' => "Mission",
-      'name' => "Name",
-      'networks' => "Networks"
-    );
+    $subject_options = array('' => "");
 
+    foreach ($this->schema['properties'] as $field => $attributes) {
+      $subject_options[$field] = $attributes['title'];
+    }
 
     $match_options = array(
       '' => "",
@@ -484,7 +479,7 @@ class Murmurations_Aggregator_WP{
 
     if(is_array($filters)){
       foreach ($filters as $key => $condition) {
-        if(in_array($condition[0],$this->index_fields)){
+        if(in_array($condition[0],$this->config['index_fields'])){
           $index_filters[] = $condition;
         }
       }
@@ -498,10 +493,10 @@ class Murmurations_Aggregator_WP{
       $index_filters[] = array('updated','isGreaterThan',$update_since);
     }
 
-    $query = array(
-      'action' => 'get_nodes',
-      'conditions' => $index_filters
-    );
+    $query = array();
+    foreach ($index_filters as $filter) {
+      $query[$filter[0]] = $filter[2];
+    }
 
     $options = array();
 

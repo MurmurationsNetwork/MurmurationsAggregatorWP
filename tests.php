@@ -96,11 +96,16 @@ class MurmsAggregatorTests{
 
   public static function getIndexJson(){
 
-    $url = 'http://localhost/TestPress4/wp-json/ecovillages/v1/get/index/Canada';
+    $url = 'http://localhost/TestPress4/wp-json/ecovillages/v1/get/index';
 
     $options['api_key'] = 'JD%2js9#dflj';
 
-    $json = Murmurations_API::getIndexJson($url,array(),$options);
+    $query = array(
+     // 'country' => 'Germany',
+      'gen_region' => 'GENOA'
+    );
+
+    $json = Murmurations_API::getIndexJson($url,$query,$options);
 
     return json_decode($json,true);
 
@@ -152,7 +157,9 @@ class MurmsAggregatorTests{
     //$url = 'https://index.murmurations.tech/v1/nodes';
     $url = 'http://localhost/TestPress4/wp-json/ecovillages/v1/get/index/Canada';
 
-    $query = array();
+    $query = array(
+      'test_param' => 'test_value'
+    );
 
     $fields_string = http_build_query($query);
 
@@ -176,6 +183,8 @@ class MurmsAggregatorTests{
     if($result === false){
       echo "No result returned from cURL request to index. cURL error:".curl_error($ch);
     }
+
+    echo $result;
 
     echo "<pre>".print_r(json_decode($result,true),true);
 
