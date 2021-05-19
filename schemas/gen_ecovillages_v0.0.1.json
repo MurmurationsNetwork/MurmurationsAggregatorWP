@@ -17,6 +17,13 @@
       "maxLength": 2000,
       "pattern": "https?://"
     },
+    "profile_url": {
+      "title": "Profile URL",
+      "description": "Profile URL",
+      "type": "string",
+      "maxLength": 2000,
+      "pattern": "https?://"
+    },
     "description": {
       "title": "Description",
       "description": "",
