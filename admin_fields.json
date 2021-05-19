@@ -89,6 +89,12 @@
     "inputAs" : "text",
     "group" : "api_settings"
   },
+  "use_api_key_for_nodes" : {
+    "type" :  "string",
+    "title" :  "Include API key in node requests",
+    "inputAs" : "checkbox",
+    "group" : "api_settings"
+  },
   "index_2_url" : {
     "type" :  "string",
     "maxLength" : 1000,
@@ -104,5 +110,45 @@
     "title" :  "Secondary API key",
     "inputAs" : "text",
     "group" : "api_settings"
+  },
+  "map_origin" : {
+    "type" :  "text",
+    "title" :  "Map origin coordinates",
+    "inputAs" : "text",
+    "group" : "map_settings",
+    "default" : "49.505, -29.09"
+  },
+  "map_scale" : {
+    "type" :  "text",
+    "title" :  "Map scale",
+    "inputAs" : "text",
+    "group" : "map_settings",
+    "default" : "1.7"
+  },
+  "mapbox_token" : {
+    "type" :  "text",
+    "title" :  "API key for Mapbox, tile provider for Leaflet. https://www.mapbox.com/studio/account/tokens/",
+    "inputAs" : "text",
+    "group" : "map_settings"
+  },
+  "updated_node_post_status" : {
+    "type" :  "text",
+    "title" :  "Updated node post status",
+    "inputAs" : "select",
+    "options" : {"no_change":"No change","draft":"Draft"},
+    "validateAs" : "text",
+    "default" : "no_change",
+    "group" : "node_settings"
+  },
+  "new_node_post_status" : {
+    "type" :  "text",
+    "title" :  "New node post status",
+    "inputAs" : "select",
+    "options" : {"publish":"Publish","draft":"Draft"},
+    "validateAs" : "text",
+    "default" : "publish",
+    "group" : "node_settings"
   }
+
+
 }
