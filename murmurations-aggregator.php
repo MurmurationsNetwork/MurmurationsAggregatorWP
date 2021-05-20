@@ -25,7 +25,8 @@ $config =  array(
   'plugin_name' => 'Murmurations Aggregator',
   'node_name' => 'Murmurations Node',
   'node_name_plural' => 'Murmurations Nodes',
-  'node_slug' => 'murmurations_node',
+  'node_slug' => 'murmurations-node',
+  'plugin_slug' => 'murmurations',
   'index_fields' => ['country','gen_region'],
   'feed_storage_path' => plugin_dir_path(__FILE__).'feeds/feeds.json',
   'schema_file' => plugin_dir_path(__FILE__).'schemas/gen_ecovillages_v0.0.1.json',
@@ -35,17 +36,5 @@ $config =  array(
 
 $mawp = new Murmurations_Aggregator_WP($config);
 
-/* Development logging fallbacks */
-
-if(is_callable('murms_flush_log')){
-  add_action('wp_footer', 'murms_flush_log');
-  add_action('admin_footer', 'murms_flush_log');
-}
-
-if(!is_callable('llog')){
-  function llog(){
-    return false;
-  }
-}
 
 ?>
