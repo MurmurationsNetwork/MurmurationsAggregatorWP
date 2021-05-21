@@ -11,7 +11,7 @@
       "type": "string"
     },
     "url": {
-      "title": "URL",
+      "title": "Website",
       "description": "Website URL",
       "type": "string",
       "maxLength": 2000,
@@ -28,6 +28,21 @@
       "title": "Description",
       "description": "",
       "type": "string"
+    },
+    "project_types": {
+      "title": "Project types",
+      "description": "",
+      "type": "array"
+    },
+    "community_types": {
+      "title": "Community types",
+      "description": "",
+      "type": "array"
+    },
+    "gen_community_setting": {
+      "title": "Community setting",
+      "description": "",
+      "type": "array"
     },
     "country": {
        "title": "Country",
@@ -52,10 +67,32 @@
        "type": "string",
        "pattern": "^.{1,100}$"
     },
+    "project_status": {
+       "title": "Project status",
+       "description": "",
+       "type": "string"
+    },
     "languages_spoken": {
        "title": "Languages spoken",
-       "type": "string",
+       "type": "array",
        "pattern": "^.{1,100}$"
+    },
+    "gen_sustainability_dimensions": {
+       "title": "GEN sustainability dimensions",
+       "type": "array"
+    },
+    "gen_project_gen_status": {
+      "title": "GEN membership status",
+      "type": "string"
+    },
+    "visitors_accepted": {
+       "title": "Visitors accepted",
+       "description": "",
+       "type": "string"
+    },
+    "new_members_accepted" : {
+      "title": "New members accepted",
+      "type": "string"
     },
     "geolocation": {
     "title": "Geolocation Coordinates",
