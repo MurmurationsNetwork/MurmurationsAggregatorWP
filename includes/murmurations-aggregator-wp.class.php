@@ -17,7 +17,8 @@ class Murmurations_Aggregator_WP{
       'feed_storage_path' => plugin_dir_path(__FILE__).'feeds/feeds.json',
       'schema_file' => plugin_dir_path(__FILE__).'schema.json',
       'field_map_file' => plugin_dir_path(__FILE__).'field_map.json',
-      'meta_prefix' => 'murmurations_'
+      'meta_prefix' => 'murmurations_',
+      'node_single' => true
     );
 
     $this->config = wp_parse_args($config, $default_config);
@@ -704,7 +705,7 @@ class Murmurations_Aggregator_WP{
     wp_enqueue_style('murmurations-agg-css', plugin_dir_url( __FILE__ ) . '../css/murmurations-aggregator.css');
 
     add_action( 'rest_api_init', array( $this, 'register_api_routes' ) );
-    
+
   }
 
   public function add_settings_page() {
