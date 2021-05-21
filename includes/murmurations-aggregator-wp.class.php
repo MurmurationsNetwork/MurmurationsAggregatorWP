@@ -4,6 +4,7 @@ class Murmurations_Aggregator_WP{
 
   public $notices = array();
   public $template_directory = 'templates/';
+  public $nodes = array();
 
   public function __construct($config){
 
@@ -12,6 +13,7 @@ class Murmurations_Aggregator_WP{
       'node_name' => 'Murmurations Node',
       'node_slug' => 'murmurations-node',
       'plugin_slug' => 'murmurations',
+      'api_route' => 'murmurations-aggregator/v1',
       'feed_storage_path' => plugin_dir_path(__FILE__).'feeds/feeds.json',
       'schema_file' => plugin_dir_path(__FILE__).'schema.json',
       'field_map_file' => plugin_dir_path(__FILE__).'field_map.json',
@@ -701,6 +703,8 @@ class Murmurations_Aggregator_WP{
 
     wp_enqueue_style('murmurations-agg-css', plugin_dir_url( __FILE__ ) . '../css/murmurations-aggregator.css');
 
+    add_action( 'rest_api_init', array( $this, 'register_api_routes' ) );
+    
   }
 
   public function add_settings_page() {
@@ -726,6 +730,78 @@ class Murmurations_Aggregator_WP{
     );
 
   }
+
+  public function rest_get_nodes($req) {
+
+    $operator_map = array(
+      'equals' => '=',
+      'doesNotEqual' => '!=',
+      'isGreaterThan' => '>',
+      'isLessThan' => '<',
+      'isIn' => 'IN',
+      'includes' => 'LIKE',
+    );
+
+    $args = array();
+
+    $map = $this->field_map;
+
+    if(isset($req['search'])){
+      $args['s'] = $req['search'];
+    }
+
+    foreach ($map as $field => $attribs) {
+      if($attribs['post_field']){
+        if(isset($req[$field])){
+          $args[$attribs['post_field']] = $req[$field];
+        }
+      }
+    }
+
+    if(isset($req['filters'])){
+      if(is_array($req['filters'])){
+        if(count($req['filters']) > 0){
+          $meta_query = array();
+          foreach ($req['filters'] as $filter) {
+            $meta_query[] = array(
+              'key' => $filter[0],
+              'value' => $filter[2],
+              'compare' => $operator_map[$filter[1]]
+            );
+          }
+          $args['meta_query'] = $meta_query;
+        }
+      }
+    }
+
+    //echo llog($args);
+
+
+    $this->load_nodes($args);
+    $rest_nodes = array();
+    foreach ($this->nodes as $node) {
+      $rest_nodes[] = $node->data;
+    }
+    return rest_ensure_response($rest_nodes);
+  }
+
+  public function register_api_routes() {
+    //echo "Registering route: ".$this->config['api_route'];
+    //exit;
+		$result = register_rest_route(
+			$this->config['api_route'],
+			'get/nodes',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'rest_get_nodes' )
+			)
+		);
+
+    if(!$result){
+      echo "Failed to register rest route";
+      exit;
+    }
+	}
 
   public function register_cpts_and_taxes(){
 
