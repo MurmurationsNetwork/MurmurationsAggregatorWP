@@ -1,5 +1,7 @@
-.murmurations-map{
-  height: 400px;
+#murmurations-map{
+  height: 480px;
+  width: 100%;
+  max-width: unset;
 }
 
 .murmurations-node{
