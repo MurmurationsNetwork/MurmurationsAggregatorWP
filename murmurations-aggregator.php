@@ -21,20 +21,8 @@ require plugin_dir_path( __FILE__ ) . 'includes/murmurations-aggregator-wp.class
 
 define("MURMAG_ROOT_PATH",plugin_dir_path(__FILE__));
 
-$config =  array(
-  'plugin_name' => 'Murmurations Aggregator',
-  'node_name' => 'Murmurations Node',
-  'node_name_plural' => 'Murmurations Nodes',
-  'node_slug' => 'murmurations-node',
-  'plugin_slug' => 'murmurations',
-  'index_fields' => ['country','gen_region'],
-  'feed_storage_path' => plugin_dir_path(__FILE__).'feeds/feeds.json',
-  'schema_file' => plugin_dir_path(__FILE__).'schemas/gen_ecovillages_v0.0.1.json',
-  'field_map_file' => plugin_dir_path(__FILE__).'schemas/gen_ecovillages_field_map.json',
-);
-
-
-$mawp = new Murmurations_Aggregator_WP($config);
-
+add_action('plugins_loaded', function(){
+  $mawp = new Murmurations_Aggregator_WP();
+});
 
 ?>

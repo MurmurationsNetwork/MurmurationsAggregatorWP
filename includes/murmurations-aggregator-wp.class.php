@@ -3,26 +3,32 @@
 class Murmurations_Aggregator_WP{
 
   public $notices = array();
-  public $template_directory = 'templates/';
   public $nodes = array();
+  public $config = array();
+  public $settings = array();
 
-  public function __construct($config){
+  public function __construct($config = null){
 
     $default_config = array(
       'plugin_name' => 'Murmurations Aggregator',
       'node_name' => 'Murmurations Node',
+      'node_name_plural' => 'Murmurations Nodes',
       'node_slug' => 'murmurations-node',
       'plugin_slug' => 'murmurations',
       'api_route' => 'murmurations-aggregator/v1',
-      'feed_storage_path' => plugin_dir_path(__FILE__).'feeds/feeds.json',
-      'schema_file' => plugin_dir_path(__FILE__).'schema.json',
-      'field_map_file' => plugin_dir_path(__FILE__).'field_map.json',
+      'feed_storage_path' => MURMAG_ROOT_PATH.'feeds/feeds.json',
+      'schema_file' => MURMAG_ROOT_PATH.'schemas/default.json',
+      'field_map_file' => MURMAG_ROOT_PATH.'schemas/field_map.json',
+      'css_directory' => '/wp-content/plugins/murmurations-aggregator/css/',
+      'template_directory' => MURMAG_ROOT_PATH.'templates/',
       'meta_prefix' => 'murmurations_',
+      'node_single_url_field' => false,
       'node_single' => true
     );
 
     $this->config = wp_parse_args($config, $default_config);
 
+    $this->config = apply_filters( 'murmurations-aggregator-config', $this->config );
 
     /* Development logging fallbacks */
 
@@ -63,13 +69,21 @@ class Murmurations_Aggregator_WP{
   }
 
   public function load_schema(){
-    $schema_json = file_get_contents($this->config['schema_file']);
-    $this->schema = json_decode($schema_json,true);
+    if(file_exists($this->config['schema_file'])){
+      $schema_json = file_get_contents($this->config['schema_file']);
+      $this->schema = json_decode($schema_json,true);
+    } else {
+      $this->error("Schema file not found: ".$this->config['schema_file'], "fatal" );
+    }
   }
 
   public function load_field_map(){
-    $map_json = file_get_contents($this->config['field_map_file']);
-    $this->field_map = json_decode($map_json,true);
+    if( file_exists( $this->config['field_map_file'] ) ){
+      $map_json = file_get_contents( $this->config['field_map_file'] );
+      $this->field_map = json_decode( $map_json, true );
+    } else {
+      $this->error( "Field map file not found: " . $this->config['field_map_file'], "fatal" );
+    }
   }
 
   public function activate(){
@@ -102,9 +116,9 @@ class Murmurations_Aggregator_WP{
       ob_start();
       include get_stylesheet_directory().'/murmurations-aggregator-templates/'.$template;
       $html = ob_get_clean();
-    }else if(file_exists(MURMAG_ROOT_PATH.'/templates/'.$template)){
+    }else if(file_exists($this->config['template_directory'] . $template)){
       ob_start();
-      include MURMAG_ROOT_PATH.'/templates/' . $template;
+      include $this->config['template_directory'] . $template;
       $html = ob_get_clean();
     }else{
       exit("Missing template file: ".$template);
@@ -134,10 +148,10 @@ class Murmurations_Aggregator_WP{
       if($_POST['action']){
         check_admin_referer( 'murmurations_ag_actions_form');
         if($_POST['action'] == 'update_murms_feed_items'){
-          $this->updateFeeds();
+          $this->update_feeds();
         }
         if($_POST['action'] == 'update_nodes'){
-          $this->updateNodes();
+          $this->update_nodes();
         }
         if($_POST['action'] == 'delete_all_nodes'){
           $this->delete_all_nodes();
@@ -273,7 +287,7 @@ class Murmurations_Aggregator_WP{
       // This should be updated to find templates in the css directory
       // (It's overridable as is, but only by files of the same name)
 
-      $files = array_diff(scandir(dirname( __FILE__ ).'/../'.$this->template_directory), array('..', '.'));
+      $files = array_diff(scandir($this->config['template_directory']), array('..', '.'));
 
       $options = array();
 
@@ -392,6 +406,13 @@ class Murmurations_Aggregator_WP{
 
   }
 
+  public function error($message,$type = 'notice'){
+    $this->set_notice($message,$type);
+    if($type == 'fatal'){
+      exit($message);
+    }
+  }
+
   public function set_notice($message,$type = 'notice'){
 
     $this->notices[] = array('message'=>$message,'type'=>$type);
@@ -460,10 +481,7 @@ class Murmurations_Aggregator_WP{
     return $count;
   }
 
-
-
-  /* Update all locally-stored node data from the index and nodes, adding new matching nodes and updating existing nodes */
-  public function updateNodes(){
+  public function update_nodes(){
 
     $settings = $this->settings;
 
@@ -624,7 +642,7 @@ class Murmurations_Aggregator_WP{
   }
 
 
-  public function showDirectory(){
+  public function show_directory(){
     $this->load_nodes();
 
     $html = '<div id="murmurations-directory">';
@@ -640,7 +658,7 @@ class Murmurations_Aggregator_WP{
     return $html;
   }
 
-  public function showMap(){
+  public function show_map(){
     $this->load_nodes();
 
     /* Because of the cross-origin stuff, these don't fit WP's queue paradigm. In future, we should use this method, but for now loading scripts as HTML in the head via env
@@ -707,16 +725,16 @@ class Murmurations_Aggregator_WP{
 
     add_action('init', array($this, 'register_cpts_and_taxes'));
 
-    add_shortcode($this->config['plugin_slug'].'-directory', array($this, 'showDirectory'));
-    add_shortcode($this->config['plugin_slug'].'-map', array($this, 'showMap'));
-    add_shortcode($this->config['plugin_slug'].'-feeds', array($this, 'showFeeds'));
+    add_shortcode($this->config['plugin_slug'].'-directory', array($this, 'show_directory'));
+    add_shortcode($this->config['plugin_slug'].'-map', array($this, 'show_map'));
+    add_shortcode($this->config['plugin_slug'].'-feeds', array($this, 'show_feeds'));
 
     add_action( 'admin_menu', array($this, 'add_settings_page') );
 
     register_activation_hook( __FILE__, array($this, 'activate') );
     register_deactivation_hook( __FILE__, array($this, 'deactivate') );
 
-    wp_enqueue_style('murmurations-agg-css', plugin_dir_url( __FILE__ ) . '../css/murmurations-aggregator.css');
+    wp_enqueue_style('murmurations-agg-css', $this->config['css_directory'].'murmurations-aggregator.css');
 
     add_action( 'rest_api_init', array( $this, 'register_api_routes' ) );
 
@@ -789,9 +807,6 @@ class Murmurations_Aggregator_WP{
       }
     }
 
-    //echo llog($args);
-
-
     $this->load_nodes($args);
     $rest_nodes = array();
     foreach ($this->nodes as $node) {
@@ -801,8 +816,7 @@ class Murmurations_Aggregator_WP{
   }
 
   public function register_api_routes() {
-    //echo "Registering route: ".$this->config['api_route'];
-    //exit;
+
 		$result = register_rest_route(
 			$this->config['api_route'],
 			'get/nodes',
