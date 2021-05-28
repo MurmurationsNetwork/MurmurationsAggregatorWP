@@ -11,8 +11,8 @@
     <div class="murmurations-node-description"><?= wp_trim_words($data['description'],40,"...")?>
     <?php
     if($this->config['node_single']){
-      if($this->config['node_single_base_url']){
-        $href = $this->config['node_single_base_url'].$data['post_name'];
+      if($this->config['node_single_url_field']){
+        $href = $data[$this->config['node_single_url_field']];
         $target =  ' target="_blank"';
       }else{
         $href = $data['guid'];

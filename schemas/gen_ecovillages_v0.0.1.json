@@ -24,6 +24,13 @@
       "maxLength": 2000,
       "pattern": "https?://"
     },
+    "gen_project_url": {
+      "title": "GEN Project URL",
+      "description": "URL of the project page on ecovillage.org",
+      "type": "string",
+      "maxLength": 2000,
+      "pattern": "https?://"
+    },
     "description": {
       "title": "Description",
       "description": "",
