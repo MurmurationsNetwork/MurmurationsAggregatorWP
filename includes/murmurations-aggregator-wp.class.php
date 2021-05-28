@@ -49,6 +49,12 @@ class Murmurations_Aggregator_WP{
     $this->load_schema();
     $this->load_field_map();
     $this->register_hooks();
+
+    if($this->config['enable_feeds']){
+      Murmurations_Feeds::$wpagg = $this;
+      Murmurations_Feeds::init();
+    }
+
   }
 
   public function get_setting($setting){
@@ -754,7 +760,6 @@ class Murmurations_Aggregator_WP{
 
     add_shortcode($this->config['plugin_slug'].'-directory', array($this, 'show_directory'));
     add_shortcode($this->config['plugin_slug'].'-map', array($this, 'show_map'));
-    add_shortcode($this->config['plugin_slug'].'-feeds', array($this, 'show_feeds'));
 
     add_action( 'admin_menu', array($this, 'add_settings_page') );
 
@@ -766,10 +771,6 @@ class Murmurations_Aggregator_WP{
     add_action( 'rest_api_init', array( $this, 'register_api_routes' ) );
 
     add_action( 'murmurations_node_update', array( $this, 'update_nodes' ) );
-
-    if($this->config['enable_feeds']){
-      add_action( 'murmurations_feed_update', array('Murmurations_Feeds', 'update_feeds' ) );
-    }
 
   }
 
@@ -867,7 +868,6 @@ class Murmurations_Aggregator_WP{
 
   public function register_cpts_and_taxes(){
 
-
     register_post_type('murmurations_node',
        array(
            'labels'      => array(
@@ -883,146 +883,6 @@ class Murmurations_Aggregator_WP{
        )
     );
 
-
-    register_post_type('murms_feed_item',
-       array(
-           'labels'      => array(
-               'name'          => $this->config['plugin_name'].' Feed Items',
-               'singular_name' => $this->config['plugin_name'].' Feed Item',
-           ),
-           'public'      => true,
-           'has_archive' => true,
-           'menu_icon'   => 'dashicons-rss',
-           //'show_in_menu' => 'murmurations-aggregator-settings',
-           'show_in_menu' => true,
-           'menu_position' => 21,
-           'rewrite'     => array( 'slug' => 'murmurations-feed-item' )
-       )
-    );
-
-    register_taxonomy('murms_feed_item_tag','murms_feed_item');
-
-
-    register_taxonomy(
-      'murms_feed_item_node_type',
-      'murms_feed_item',
-      array(
-        'labels'  => array(
-          'name'  => __( 'Types' ),
-          'singular_name' => __( 'Type' ),
-        ),
-        'show_admin_column' => true
-      )
-    );
-    register_taxonomy(
-      'murms_feed_item_network',
-      'murms_feed_item',
-      array(
-        'labels'  => array(
-          'name'  => __( 'Networks' ),
-          'singular_name' => __( 'Network' ),
-        ),
-        'show_admin_column' => true
-      )
-    );
-
   }
-
-
-  /*
-  public function updateFeeds(){
-
-    $this->env->delete_all_feed_items();
-
-    $feed_items = array();
-    //$since_time = $this->env->load_setting('feed_update_time');
-
-    $max_feed_items = $this->env->settings['max_feed_items'];
-    $max_feed_items_per_node = $this->env->settings['max_feed_items_per_node'];
-
-    // Get the locally stored nodes
-    $nodes = $this->env->load_nodes();
-
-    $results = array(
-      'nodes_with_feeds' => 0,
-      'feed_items_fetched' => 0,
-      'feed_items_saved' => 0
-    );
-
-    foreach ($nodes as $node) {
-
-      //echo llog($node,"Node for fetching feed");
-
-      if($node->murmurations['feed']){
-        $feed_url = $node->murmurations['feed'];
-
-        $feed = $this->feedRequest($feed_url);
-
-        // For some reason this comes with an *xml key that misbehaves...
-        $feed = array_shift($feed);
-
-        if(is_array($feed)){
-          $node_item_count = 0;
-
-          $results['nodes_with_feeds']++;
-
-          //echo llog($feed);
-
-          //exit();
-
-          /* RSS includes multiple <item> elements. The RSS parser adds a single ['item'],
-          with numerically indexed elements for each item from the RSS. But, if there is only one item in the feed, it doesn't do this, and ['item'] is an array of item properties, not items
-
-          if(!$feed['item'][0]){
-            $temp = $feed['item'];
-            unset($feed['item']);
-            $feed['item'][0] = $temp;
-          }
-
-          foreach ($feed['item'] as $item) {
-            if(is_array($item)){
-              $node_item_count++;
-              // Add the info about the node to each item
-              $item['node_info'] = $node->murmurations;
-              $feed_items[] = $item;
-              if($node_item_count == $max_feed_items_per_node) break;
-
-            }else{
-              echo llog($feed,"Strange non-array feed item.");
-            }
-          }
-        }else{
-          $results['broken_feeds']++;
-          $this->setNotice("This feed could not be parsed: $feed_url",'warning');
-        }
-      }
-    }
-
-    // Sort reverse chronologically
-    usort($feed_items, function($a, $b) {
-        return $b['timestamp'] - $a['timestamp'];
-    });
-
-    $results['feed_items_fetched'] = count($feed_items);
-
-    $count = 0;
-
-    foreach ($feed_items as $key => $item) {
-
-      $result = $this->env->save_feed_item($item);
-
-      $results['feed_items_saved']++;
-      if($results['feed_items_saved'] == $max_feed_items){
-        break;
-      }
-    }
-
-    $this->setNotice("Feeds updated. ".$results['feed_items_fetched']." feed items fetched from ".$results['nodes_with_feeds']." nodes. ".$results['feed_items_saved']." feed items saved.",'success');
-
-  }
-
-*/
-
-
 }
 ?>
