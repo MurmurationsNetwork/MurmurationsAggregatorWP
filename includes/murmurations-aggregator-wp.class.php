@@ -23,7 +23,8 @@ class Murmurations_Aggregator_WP{
       'template_directory' => MURMAG_ROOT_PATH.'templates/',
       'meta_prefix' => 'murmurations_',
       'node_single_url_field' => false,
-      'node_single' => true
+      'node_single' => true,
+      'enable_feeds' => false
     );
 
     $this->config = wp_parse_args($config, $default_config);
@@ -106,7 +107,11 @@ class Murmurations_Aggregator_WP{
 
 
   public function deactivate(){
-    //
+    $timestamp = wp_next_scheduled( 'murmurations_node_update' );
+    wp_unschedule_event( $timestamp, 'murmurations_node_update' );
+
+    $timestamp = wp_next_scheduled( 'murmurations_feed_update' );
+    wp_unschedule_event( $timestamp, 'murmurations_feed_update' );
   }
 
 
@@ -395,6 +400,26 @@ class Murmurations_Aggregator_WP{
       }
     }
 
+
+    if($murm_post_data['node_update_interval'] != $this->settings['node_update_interval']){
+      $new_interval = $murm_post_data['node_update_interval'];
+      $timestamp = wp_next_scheduled( 'murmurations_node_update' );
+      wp_unschedule_event( $timestamp, 'murmurations_node_update' );
+      if($new_interval != 'manual'){
+        wp_schedule_event( time(), $new_interval, 'murmurations_node_update' );
+      }
+    }
+
+    if($this->config['enable_feeds']){
+      if($murm_post_data['feed_update_interval'] != $this->settings['feed_update_interval']){
+        $new_interval = $murm_post_data['feed_update_interval'];
+        $timestamp = wp_next_scheduled( 'murmurations_feed_update' );
+        wp_unschedule_event( $timestamp, 'murmurations_feed_update' );
+        if($new_interval != 'manual'){
+          wp_schedule_event( time(), $new_interval, 'murmurations_feed_update' );
+        }
+      }
+    }
 
     foreach ($fields as $key => $f) {
        $this->settings[$key] = $murm_post_data[$key];
@@ -718,7 +743,9 @@ class Murmurations_Aggregator_WP{
     require_once $include_path.'murmurations-api.class.php';
     require_once $include_path.'murmurations-node.class.php';
     require_once $include_path.'murmurations-geocode.class.php';
-    //require_once $include_path.'murmurations-feeds.class.php';
+    if($this->config['enable_feeds']){
+      require_once $include_path.'murmurations-feeds.class.php';
+    }
   }
 
   public function register_hooks(){
@@ -737,6 +764,12 @@ class Murmurations_Aggregator_WP{
     wp_enqueue_style('murmurations-agg-css', $this->config['css_directory'].'murmurations-aggregator.css');
 
     add_action( 'rest_api_init', array( $this, 'register_api_routes' ) );
+
+    add_action( 'murmurations_node_update', array( $this, 'update_nodes' ) );
+
+    if($this->config['enable_feeds']){
+      add_action( 'murmurations_feed_update', array('Murmurations_Feeds', 'update_feeds' ) );
+    }
 
   }
 
