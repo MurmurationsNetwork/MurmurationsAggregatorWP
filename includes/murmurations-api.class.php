@@ -47,8 +47,19 @@ class Murmurations_API{
 
     $ch = curl_init();
 
-    if($options['api_key']){
-      curl_setopt($ch, CURLOPT_USERPWD, $options['api_key'] . ":");
+    if ($options['api_basic_auth_user'] && $options['api_basic_auth_pass']){
+        $curl_upass = $options['api_basic_auth_user'] . ":" . $options['api_basic_auth_pass'];
+        if ( $options['api_key'] ) {
+          $url .= '?' . http_build_query(array('api_key' => $options['api_key']));
+        }
+    }else{
+      if ( $options['api_key'] ) {
+        $curl_upass = $options['api_key'] . ":";
+      }
+    }
+
+    if($curl_upass){
+      curl_setopt($ch, CURLOPT_USERPWD, $curl_upass);
     }
 
     curl_setopt($ch,CURLOPT_URL, $url);
@@ -66,12 +77,27 @@ class Murmurations_API{
 
   public static function getIndexJson($url,$query,$options = null){
 
-    $fields_string = http_build_query($query);
-
     $ch = curl_init();
 
-    if($options['api_key']){
-      curl_setopt($ch, CURLOPT_USERPWD, $options['api_key'] . ":");
+    // For handling data sources that are behind basic auth:
+    // If basic auth information is set, add it to cURL request...
+    if ($options['api_basic_auth_user'] && $options['api_basic_auth_pass']){
+        $curl_upass = $options['api_basic_auth_user'] . ":" . $options['api_basic_auth_pass'];
+        // And put the api key, if present, into the query (not recommended)
+        if ( $options['api_key'] ) {
+          $query['api_key'] = $options['api_key'];
+        }
+    }else{
+      // Otherwise use the cURL basic auth parameters for the api key (recommended)
+      if ( $options['api_key'] ) {
+        $curl_upass = $options['api_key'] . ":";
+      }
+    }
+
+    $fields_string = http_build_query($query);
+
+    if($curl_upass){
+      curl_setopt($ch, CURLOPT_USERPWD, $curl_upass);
     }
 
     curl_setopt($ch,CURLOPT_URL, $url . '?' .$fields_string);

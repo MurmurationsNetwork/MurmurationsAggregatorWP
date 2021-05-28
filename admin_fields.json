@@ -95,6 +95,18 @@
     "inputAs" : "checkbox",
     "group" : "api_settings"
   },
+  "api_basic_auth_user" : {
+    "type" :  "text",
+    "title" :  "User name for Basic Auth protected data sources",
+    "inputAs" : "text",
+    "group" : "api_settings"
+  },
+  "api_basic_auth_pass" : {
+    "type" :  "text",
+    "title" :  "Password for Basic Auth protected data sources",
+    "inputAs" : "text",
+    "group" : "api_settings"
+  },
   "index_2_url" : {
     "type" :  "string",
     "maxLength" : 1000,

@@ -492,8 +492,14 @@ class Murmurations_Aggregator_WP{
 
     $options = array();
 
-    if($settings['api_key']){
+    if( isset( $settings['api_key'] ) ){
       $options['api_key'] = $settings['api_key'];
+    }
+    if( isset( $settings['api_basic_auth_user'] ) ){
+      $options['api_basic_auth_user'] = $settings['api_basic_auth_user'];
+    }
+    if( isset( $settings['api_basic_auth_pass'] ) ){
+      $options['api_basic_auth_pass'] = $settings['api_basic_auth_pass'];
     }
 
     $index_nodes = Murmurations_API::getIndexJson($settings['index_url'],$query,$options);
@@ -549,8 +555,16 @@ class Murmurations_Aggregator_WP{
 
       $options = array();
 
-      if($settings['use_api_key_for_nodes'] == 'true'){
-        $options['api_key'] = $settings['api_key'];
+      if( isset( $settings['use_api_key_for_nodes'] ) && isset( $settings['api_key'] ) ){
+        if ( $settings['use_api_key_for_nodes'] == 'true' ){
+          $options['api_key'] = $settings['api_key'];
+        }
+      }
+      if( isset( $settings['api_basic_auth_user'] ) ){
+        $options['api_basic_auth_user'] = $settings['api_basic_auth_user'];
+      }
+      if( isset( $settings['api_basic_auth_pass'] ) ){
+        $options['api_basic_auth_pass'] = $settings['api_basic_auth_pass'];
       }
 
       $node_data = Murmurations_API::getNodeJson($url,$options);
