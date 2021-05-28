@@ -2,17 +2,8 @@
 
 
 class Murmurations_API{
-  var $settings = array();
 
-  // This needs to replaced with pulling the base schema (or add on schemas) and determining which fields can be queried to the index. Queries that include non-index fields don't match nodes.
-
-  var $index_fields = array('url','nodeTypes','updated');
-
-
-  public function __construct(){
-
-
-  }
+  public static $logging_handler = false;
 
   public static function checkNodeCondition($node,$condition){
 
@@ -68,7 +59,7 @@ class Murmurations_API{
     $result = curl_exec($ch);
 
     if($result === false){
-      self::logError("No result returned from cURL request to node. cURL error: ".curl_error($ch));
+      self::log("No result returned from cURL request to node. cURL error: ".curl_error($ch));
       return false;
     }
 
@@ -108,7 +99,7 @@ class Murmurations_API{
     $result = curl_exec($ch);
 
     if($result === false){
-      self::logError("No result returned from cURL request to index. cURL error: ".curl_error($ch));
+      self::log("No result returned from cURL request to index. cURL error: ".curl_error($ch));
       return false;
     }else{
       return $result;
@@ -123,14 +114,19 @@ class Murmurations_API{
       $rss = Feed::loadRss($url);
     } catch (\Exception $e) {
       self::setNotice("Error connecting to feed URL: ".$url,'warning');
-      self::logError("Couldn't load feed");
+      self::log("Couldn't load feed");
     }
 
     $ar = xml2array($rss);
 
-    llog($ar,"Feed array");
-
     return $ar;
+  }
+
+  public static function xml2array($xmlObject, $out = array()){
+    foreach ((array) $xmlObject as $index => $node ){
+      $out[$index] = (is_object($node) || is_array($node)) ? xml2array($node) : $node;
+    }
+    return $out;
   }
 
 
@@ -152,34 +148,23 @@ class Murmurations_API{
 
 
   }
-  public function logError($error){
-    if(is_callable('llog')){
-      llog($error);
-    }
-  }
 
-}
-
-
-
-function xml2array ( $xmlObject, $out = array () )
-{
-        foreach ( (array) $xmlObject as $index => $node )
-            $out[$index] = ( is_object ( $node ) ||  is_array ( $node ) ) ? xml2array ( $node ) : $node;
-
-        return $out;
-}
-
-/* Count an array that might not be an array */
-if(!function_exists('safe_count')){
-  function safe_count($a){
-    if(is_array($a)){
-      return count($a);
+  private static function log($content, $meta = null, $type = 'notice'){
+    if(is_callable(self::$logging_handler)){
+      call_user_func(self::$logging_handler, $content, $meta, $type = 'notice');
     }else{
-      return false;
+      echo '<pre>';
+      echo $meta ? $meta . ': ' : '';
+      echo ( is_array( $content ) || is_object( $content ) ) ? print_r( (array) $content, true ) : $content;
+      echo '</pre>';
     }
   }
 }
+
+
+
+
+
 
 
  ?>
