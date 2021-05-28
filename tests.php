@@ -16,7 +16,7 @@ if($_GET['t']){
     }else{
       $result = MurmsAggregatorTests::$f();
     }
-    echo llog($result,$f.'('.$p.')');
+    MurmsAggregatorTests::print($result,$f.'('.$p.')');
   }
 }
 
@@ -24,13 +24,13 @@ class MurmsAggregatorTests{
 
   public static function showNodes(){
     $config =  array(
-      'schema_file' => plugin_dir_path(__FILE__).'schemas/gen_ecovillages_v0.0.1.json',
-      'field_map_file' => plugin_dir_path(__FILE__).'schemas/gen_ecovillages_field_map.json',
+      'schema_file' => plugin_dir_path(__FILE__).'schemas/default.json',
+      'field_map_file' => plugin_dir_path(__FILE__).'schemas/field_map.json',
     );
 
     $ag = new Murmurations_Aggregator_WP($config);
 
-    $ag->load_nodes();
+    $result = $ag->load_nodes();
 
     $out = array();
 
@@ -45,19 +45,17 @@ class MurmsAggregatorTests{
   public static function updateNode(){
 
     $config =  array(
-      'schema_file' => plugin_dir_path(__FILE__).'schemas/gen_ecovillages_v0.0.1.json',
-      'field_map_file' => plugin_dir_path(__FILE__).'schemas/gen_ecovillages_field_map.json',
+      'schema_file' => plugin_dir_path(__FILE__).'schemas/default.json',
+      'field_map_file' => plugin_dir_path(__FILE__).'schemas/field_map.json',
     );
 
     $ag = new Murmurations_Aggregator_WP($config);
 
-    $url = 'http://localhost/TestPress4/wp-json/ecovillages/v1/get/index/Canada';
+    $url = 'https://test-index.murmurations.network/v1/nodes';
 
-    $options['api_key'] = 'JD%2js9#dflj';
+    $options['api_key'] = 'test_api_key';
 
     $json = Murmurations_API::getIndexJson($url,array(),$options);
-
-    //echo llog($json,"Index JSON");
 
     $index = json_decode($json,true);
 
@@ -67,13 +65,11 @@ class MurmsAggregatorTests{
 
     $json = Murmurations_API::getNodeJson($profile_url,$options);
 
-    //echo llog($json,"Node JSON");
-
     $node = new Murmurations_Node($ag->schema,$ag->field_map,$ag->settings);
 
     $build_result = $node->buildFromJson($json);
 
-    //echo llog($node,"Node after building from JSON");
+    echo llog($node,"Node after building from JSON");
 
     $id = $node->save();
 
@@ -96,26 +92,34 @@ class MurmsAggregatorTests{
 
   public static function getIndexJson(){
 
-    $url = 'http://localhost/TestPress4/wp-json/ecovillages/v1/get/index';
+    Murmurations_API::$logging_handler = array('MurmsAggregatorTests','print');
 
-    $options['api_key'] = 'JD%2js9#dflj';
+    $url = 'https://test-index.murmurations.network/v1/nodes';
+
+    $options['api_key'] = 'test_api_key';
+    $options['api_basic_auth_user'] = 'user';
+    $options['api_basic_auth_pass'] = 'pass';
 
     $query = array(
-     // 'country' => 'Germany',
-      'gen_region' => 'GENOA'
+      //'country' => 'Germany',
+      //'last_validated' => 1541779342
     );
+
+    self::print($url,"URL");
+    self::print($options,"Options");
+    self::print($query,"Query");
 
     $json = Murmurations_API::getIndexJson($url,$query,$options);
 
-    return json_decode($json,true);
+    self::print($json,"Index result");
 
   }
 
-  public static function getNodeJson(){
+  public static function getNodeJson($value = "node-identifier"){
 
-    $url = 'http://localhost/TestPress4/wp-json/ecovillages/v1/get/project/cohabitat-quebec';
+    $url = 'https://node/path'.$value;
 
-    $options['api_key'] = 'JD%2js9#dflj';
+    $options['api_key'] = 'test_api_key';
 
     $json = Murmurations_API::getNodeJson($url,$options);
 
@@ -124,9 +128,9 @@ class MurmsAggregatorTests{
   }
 
   public static function keyedApiRequest(){
-    $url = 'http://localhost/TestPress4/wp-json/ecovillages/v1/get/project/selba';
+    $url = 'https://test-index.murmurations.network/v1/nodes';
 
-    $user = 'JD%2js9#dflj';
+    $user = 'api_key';
     $pass = null;
 
     $ch = curl_init();
@@ -153,19 +157,48 @@ class MurmsAggregatorTests{
 
   }
 
-  public static function indexRequest(){
-    //$url = 'https://index.murmurations.tech/v1/nodes';
-    $url = 'http://localhost/TestPress4/wp-json/ecovillages/v1/get/index/Canada';
+  public static function basicAuthTest(){
 
-    $query = array(
-      'test_param' => 'test_value'
-    );
+    $url = 'https://test-index.murmurations.network/v1/nodes';
+
+    $ch = curl_init();
+
+    curl_setopt($ch, CURLOPT_USERPWD, "user:pass");
+
+    curl_setopt($ch,CURLOPT_URL, $url);
+    curl_setopt($ch,CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch,CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch,CURLOPT_FAILONERROR, true);
+
+    $result = curl_exec($ch);
+
+    if($result === false){
+      return "No result returned from cURL request to index. cURL error: ".curl_error($ch);
+    }else{
+      return $result;
+    }
+
+  }
+
+  public static function indexRequest($params = null){
+    $url = 'https://test-index.murmurations.network/v1/nodes';
+
+    $query = array();
+    if(is_array($params)){
+      foreach ($params as $key => $value) {
+        $query[$key] = $value;
+      }
+    }else{
+      $query = array(
+        'test_param' => 'test_value'
+      );
+    }
 
     $fields_string = http_build_query($query);
 
     $ch = curl_init();
 
-    $user = 'JD%2js9#dflj';
+    $user = 'test_api_key';
     $pass = null;
 
     $ch = curl_init();
@@ -173,7 +206,6 @@ class MurmsAggregatorTests{
     curl_setopt($ch, CURLOPT_USERPWD, $user . ":" . $pass);
 
     curl_setopt($ch,CURLOPT_URL, $url);
-    //curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
     curl_setopt($ch,CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch,CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch,CURLOPT_FAILONERROR, true);
@@ -188,6 +220,13 @@ class MurmsAggregatorTests{
 
     echo "<pre>".print_r(json_decode($result,true),true);
 
+  }
+
+  public static function print( $out, $name = null ) {
+    echo '<pre>';
+    echo $name ? $name . ': ' : '';
+    echo ( is_array( $out ) || is_object( $out ) ) ? print_r( (array) $out, true ) : $out;
+    echo '</pre>';
   }
 
 }
