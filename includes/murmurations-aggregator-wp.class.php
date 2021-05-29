@@ -500,7 +500,11 @@ class Murmurations_Aggregator_WP{
   }
 
   public function delete_all_nodes(){
-    $nodes = get_posts( array('post_type'=>'murmurations_node','numberposts'=> -1) );
+    $nodes = get_posts( array(
+        'post_type'=>'murmurations_node',
+        'numberposts'=> -1,
+        'post_status' => 'any'
+    ) );
     $count = 0;
     foreach ($nodes as $node) {
       $result = wp_delete_post($node->ID, true);
