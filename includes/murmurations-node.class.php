@@ -39,7 +39,10 @@ class Murmurations_Node{
 
     $this->url = $this->data['profile_url'];
 
-    $existing_post = $this->getPostFromProfileUrl($this->url);
+    $existing_post = $this->getPostFromProfileUrl(
+      $this->url,
+      array( 'post_status' => 'any' )
+    );
 
     if($existing_post){
       $this->ID = $existing_post->ID;
@@ -168,12 +171,18 @@ class Murmurations_Node{
 
     $post_data['post_type'] = 'murmurations_node';
 
-    $existing_post = $this->getPostFromProfileUrl($node_data['profile_url']);
+    $existing_post = $this->getPostFromProfileUrl(
+      $node_data['profile_url'],
+      array( 'post_status' => 'any' )
+    );
 
 
     if($existing_post){
       $post_data['ID'] = $existing_post->ID;
-      if($this->settings['updated_node_post_status'] != 'no_change'){
+      if($this->settings['updated_node_post_status'] == 'no_change'){
+        // wp_insert_post defaults to 'draft' status, even on existing published posts!
+        $post_data['post_status'] = $existing_post->post_status;
+      } else {
         $post_data['post_status'] = $this->settings['updated_node_post_status'];
       }
     }else{
@@ -199,9 +208,9 @@ class Murmurations_Node{
     }
   }
 
-  public function getPostFromProfileUrl($url){
+  public function getPostFromProfileUrl($url, $args = null){
 
-    $args = array(
+    $defaults = array(
       'post_type' => 'murmurations_node',
        'meta_query' => array(
            array(
@@ -211,6 +220,8 @@ class Murmurations_Node{
            )
         )
     );
+
+    $args = wp_parse_args( $args, $defaults );
 
     $posts = get_posts( $args );
 
