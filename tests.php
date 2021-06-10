@@ -10,18 +10,37 @@ if(!current_user_can('manage_options')) {
 }
 
 if($_GET['t']){
-  if ($_GET['t'] && method_exists('MurmsAggregatorTests',$_GET['t'])){
+  if ($_GET['t'] && method_exists('Murmurations\Aggregator\Tests',$_GET['t'])){
     $f = $_GET['t'];
     if($_GET['p']){
-      $result = MurmsAggregatorTests::$f($_GET['p']);
+      $result = Tests::$f($_GET['p']);
     }else{
-      $result = MurmsAggregatorTests::$f();
+      $result = Tests::$f();
     }
-    MurmsAggregatorTests::print($result,$f.'('.$p.')');
+    Tests::print($result,$f.'('.$p.')');
   }
 }
 
-class MurmsAggregatorTests{
+
+class Tests{
+  public static function test(){
+    echo "Testing test";
+    return "Testing test";
+  }
+
+  public static function debug($message = "Test debug message"){
+    echo "Testing debug";
+    echo debug($message);
+  }
+
+  public static function log($message = "Test log message"){
+    $file = Config::get('log_file');
+    Config::set('log_append',false);
+    log($message);
+    log("Message 2");
+    $log_content = file_get_contents($file);
+    echo '<textarea style="width: 100%; height: 500px;">'.$log_content."</textarea>";
+  }
 
   public static function showNodes(){
     $config =  array(

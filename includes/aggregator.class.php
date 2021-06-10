@@ -25,7 +25,9 @@ class Aggregator{
       'meta_prefix' => 'murmurations_',
       'node_single_url_field' => false,
       'node_single' => true,
-      'enable_feeds' => false
+      'enable_feeds' => false,
+      'log_file' => MURMAG_ROOT_PATH.'logs/murmurations_aggregator.log',
+      'log_append' => true
     );
 
     $this->config = wp_parse_args($config, $default_config);
@@ -35,19 +37,6 @@ class Aggregator{
     $this->load_includes();
 
     Config::$config = $this->config;
-
-    /* Development logging fallbacks */
-
-    if(is_callable('murms_flush_log')){
-      add_action('wp_footer', 'murms_flush_log');
-      add_action('admin_footer', 'murms_flush_log');
-    }
-
-    if(!is_callable('llog')){
-      function llog(){
-        return false;
-      }
-    }
 
     $this->load_settings();
     $this->load_schema();
@@ -762,6 +751,7 @@ class Aggregator{
     require_once $include_path.'geocode.class.php';
     require_once $include_path.'settings.class.php';
     require_once $include_path.'config.class.php';
+    require_once $include_path.'logging.php';
     if($this->config['enable_feeds']){
       require_once $include_path.'feeds.class.php';
     }
