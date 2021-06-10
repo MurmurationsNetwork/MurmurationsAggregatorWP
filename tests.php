@@ -1,4 +1,5 @@
 <?php
+namespace Murmurations\Aggregator;
 error_reporting (E_ALL);
 ini_set('dispay_errors', true);
 define('WP_USE_THEMES', false);
@@ -28,7 +29,7 @@ class MurmsAggregatorTests{
       'field_map_file' => plugin_dir_path(__FILE__).'schemas/field_map.json',
     );
 
-    $ag = new Murmurations_Aggregator_WP($config);
+    $ag = new Aggregator($config);
 
     $result = $ag->load_nodes();
 
@@ -49,13 +50,13 @@ class MurmsAggregatorTests{
       'field_map_file' => plugin_dir_path(__FILE__).'schemas/field_map.json',
     );
 
-    $ag = new Murmurations_Aggregator_WP($config);
+    $ag = new Aggregator($config);
 
     $url = 'https://test-index.murmurations.network/v1/nodes';
 
     $options['api_key'] = 'test_api_key';
 
-    $json = Murmurations_API::getIndexJson($url,array(),$options);
+    $json = API::getIndexJson($url,array(),$options);
 
     $index = json_decode($json,true);
 
@@ -63,9 +64,9 @@ class MurmsAggregatorTests{
 
     $profile_url = $node['profile_url'];
 
-    $json = Murmurations_API::getNodeJson($profile_url,$options);
+    $json = API::getNodeJson($profile_url,$options);
 
-    $node = new Murmurations_Node($ag->schema,$ag->field_map,$ag->settings);
+    $node = new Node($ag->schema,$ag->field_map);
 
     $build_result = $node->buildFromJson($json);
 
@@ -77,7 +78,7 @@ class MurmsAggregatorTests{
 
     $profile_url = $node->data['profile_url'];
 
-    $db_node = new Murmurations_Node($ag->schema,$ag->field_map,$ag->settings);
+    $db_node = new Node($ag->schema,$ag->field_map);
 
     $post = $db_node->getPostFromProfileUrl($profile_url);
 
@@ -92,7 +93,7 @@ class MurmsAggregatorTests{
 
   public static function getIndexJson(){
 
-    Murmurations_API::$logging_handler = array('MurmsAggregatorTests','print');
+    API::$logging_handler = array('MurmsAggregatorTests','print');
 
     $url = 'https://test-index.murmurations.network/v1/nodes';
 
@@ -109,7 +110,7 @@ class MurmsAggregatorTests{
     self::print($options,"Options");
     self::print($query,"Query");
 
-    $json = Murmurations_API::getIndexJson($url,$query,$options);
+    $json = API::getIndexJson($url,$query,$options);
 
     self::print($json,"Index result");
 
@@ -121,7 +122,7 @@ class MurmsAggregatorTests{
 
     $options['api_key'] = 'test_api_key';
 
-    $json = Murmurations_API::getNodeJson($url,$options);
+    $json = API::getNodeJson($url,$options);
 
     return json_decode($json,true);
 
