@@ -76,8 +76,6 @@ class Feeds {
 
     if($image['src']){
       $item_data['image'] = $image['src'];
-    }else if ($item_data['node_info']['logo']){
-      $item_data['image'] = $item_data['node_info']['logo'];
     }
 
     $post_data['post_excerpt'] = substr(strip_tags($item_data['description']),0,300)."...";
@@ -96,8 +94,9 @@ class Feeds {
 
     if($existing_post){
       $post_data['ID'] = $existing_post->ID;
+      $post_data['post_status'] = $existing_post->post_status;
     }else{
-      $post_data['post_status'] = $falsethis->load_setting('default_feed_item_status');
+      $post_data['post_status'] = Settings::get('default_feed_item_status');
       echo llog($post_data['post_status'],"Saving with post status");
     }
 
@@ -123,6 +122,7 @@ class Feeds {
 
     $args = array(
       'post_type' => 'murms_feed_item',
+      'post_status' => 'all',
       'posts_per_page' => -1
     );
 
@@ -160,6 +160,18 @@ class Feeds {
     }
   }
 
+  public static function update_node_feed_url($node){
+    if(!isset($node->data['feed_url']) && isset($node->data['url'])){
+      $feed_url = self::get_feed_url($node->data['url']);
+      if(!$feed_url){
+        $feed_url = 'not_found';
+      }
+      $node->setProperty('feed_url',$feed_url);
+      $node->save();
+    }
+    return $node;
+  }
+
   public static function update_feed_urls(){
     $nodes = self::$wpagg->load_nodes();
     foreach ($nodes as $id => $node) {
@@ -177,7 +189,7 @@ class Feeds {
 
   public static function get_feed_url($node_url){
     if(@file_get_contents($node_url)){
-      preg_match_all('/<link\srel\=\"alternate\"\stype\=\"application\/(?:rss|atom)\+xml\"\stitle\=\".*href\=\"(.*)\"\s\/\>/', file_get_contents($url), $matches);
+      preg_match_all('/<link\srel\=\"alternate\"\stype\=\"application\/(?:rss|atom)\+xml\"\stitle\=\".*href\=\"(.*)\"\s\/\>/', file_get_contents($node_url), $matches);
       return $matches[1][0];
     }
     return false;
@@ -188,13 +200,11 @@ class Feeds {
       self::delete_all_feed_items();
 
       $feed_items = array();
-      //$since_time = $this->env->load_setting('feed_update_time');
-
-      $max_feed_items = $this->settings['max_feed_items'];
-      $max_feed_items_per_node = $this->settings['max_feed_items_per_node'];
 
       // Get the locally stored nodes
-      $nodes = $this->env->load_nodes();
+      self::$wpagg->load_nodes();
+
+      $nodes = self::$wpagg->nodes;
 
       $results = array(
         'nodes_with_feeds' => 0,
@@ -204,43 +214,24 @@ class Feeds {
 
       foreach ($nodes as $node) {
 
+        if(!$node->data['feed_url']){
+          $node = self::update_node_feed_url($node);
+        }
+
         if($node->data['feed_url']){
-          $feed_url = $node->data['feed_url'];
+          $node_feed_items = self::get_remote_feed_items($node->data['feed_url']);
 
-          $feed = $this->feedRequest($feed_url);
-
-          // For some reason this comes with an *xml key that misbehaves...
-          $feed = array_shift($feed);
-
-          if(is_array($feed)){
-            $node_item_count = 0;
-
+          if(count($node_feed_items) > 0){
             $results['nodes_with_feeds']++;
 
-            /* RSS includes multiple <item> elements. The RSS parser adds a single ['item'],
-            with numerically indexed elements for each item from the RSS. But, if there is only one item in the feed, it doesn't do this, and ['item'] is an array of item properties, not items */
+            foreach ($node_feed_items as $key => $item) {
 
-            if(!$feed['item'][0]){
-              $temp = $feed['item'];
-              unset($feed['item']);
-              $feed['item'][0] = $temp;
+              $item['node_name'] = $node->data['name'];
+              $item['node_url'] = $node->data['url'];
+
+              $feed_items[] = $item;
+
             }
-
-            foreach ($feed['item'] as $item) {
-              if(is_array($item)){
-                $node_item_count++;
-                // Add the info about the node to each item
-                $item['node_info'] = $node->murmurations;
-                $feed_items[] = $item;
-                if($node_item_count == $max_feed_items_per_node) break;
-
-              }else{
-                echo llog($feed,"Strange non-array feed item.");
-              }
-            }
-          }else{
-            $results['broken_feeds']++;
-            $this->setNotice("This feed could not be parsed: $feed_url",'warning');
           }
         }
       }
@@ -252,35 +243,80 @@ class Feeds {
 
       $results['feed_items_fetched'] = count($feed_items);
 
-      $count = 0;
-
       foreach ($feed_items as $key => $item) {
 
         $result = self::save_feed_item($item);
 
         $results['feed_items_saved']++;
-        if($results['feed_items_saved'] == $max_feed_items){
+        if($results['feed_items_saved'] == Settings::get('max_feed_items')){
           break;
         }
       }
 
-      $this->setNotice("Feeds updated. ".$results['feed_items_fetched']." feed items fetched from ".$results['nodes_with_feeds']." nodes. ".$results['feed_items_saved']." feed items saved.",'success');
+      set_notice("Feeds updated. ".$results['feed_items_fetched']." feed items fetched from ".$results['nodes_with_feeds']." nodes. ".$results['feed_items_saved']." feed items saved.",'success');
+
+      return $results;
 
     }
 
-  private function feed_request($url,$since_time = null){
+  public static function get_remote_feed_items($feed_url){
+
+    $feed = self::feed_request($feed_url);
+
+    $items = array();
+
+
+    if(is_array($feed)){
+
+      // This comes with an *xml key
+      $feed = array_shift($feed);
+
+
+      /* RSS includes multiple <item> elements. The RSS parser adds a single ['item'],
+      with numerically indexed elements for each item from the RSS. But, if there is only one item in the feed, it doesn't do this, and ['item'] is an array of item properties, not items */
+
+      if(!$feed['item'][0]){
+        $temp = $feed['item'];
+        unset($feed['item']);
+        $feed['item'][0] = $temp;
+      }
+
+      foreach ($feed['item'] as $item) {
+        if(is_array($item)){
+          $items[] = $item;
+          if(count($items) == Settings::get('max_feed_items_per_node')) break;
+
+        }else{
+          llog($feed,"Strange non-array feed item.");
+        }
+      }
+    }else{
+      llog("This feed could not be parsed: $feed_url");
+      set_notice("This feed could not be parsed: $feed_url",'warning');
+    }
+
+    return $items;
+
+  }
+
+  public static function feed_request($url){
 
     // Get simpleXML of feed
     try {
-      $rss = Feed::loadRss($url);
+      $rss = \Feed::loadRss($url);
+      return self::xml_to_array($rss);
     } catch (\Exception $e) {
-      log("Error connecting to feed URL: ".$url,'warning');
+      llog($e,'Error loading feed');
       error("Couldn't load feed");
+      return false;
     }
+  }
 
-    $ar = xml2array($rss);
-
-    return $ar;
+  public static function xml_to_array( $xmlObj, $out = array () ){
+    foreach ( (array) $xmlObj as $index => $node ){
+      $out[$index] = ( is_object ( $node ) ||  is_array ( $node ) ) ? self::xml_to_array ( $node ) : $node;
+    }
+    return $out;
   }
 
 }

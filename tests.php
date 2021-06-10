@@ -23,6 +23,27 @@ if($_GET['t']){
 
 
 class Tests{
+
+  public static function update_feeds(){
+    return Feeds::update_feeds();
+  }
+
+  public static function get_remote_feed_items($url = 'https://murmurations.network/feed'){
+    return Feeds::get_remote_feed_items($url);
+  }
+
+  public static function get_feed($url = 'https://murmurations.network/feed'){
+    return Feeds::feed_request($url);
+  }
+
+  public static function get_feed_url($url = 'https://murmurations.network'){
+    return Feeds::get_feed_url($url);
+  }
+
+  public static function delete_all_feed_items(){
+    return Feeds::delete_all_feed_items();
+  }
+
   public static function test(){
     echo "Testing test";
     return "Testing test";
@@ -36,8 +57,8 @@ class Tests{
   public static function log($message = "Test log message"){
     $file = Config::get('log_file');
     Config::set('log_append',false);
-    log($message);
-    log("Message 2");
+    llog($message);
+    llog("Message 2");
     $log_content = file_get_contents($file);
     echo '<textarea style="width: 100%; height: 500px;">'.$log_content."</textarea>";
   }

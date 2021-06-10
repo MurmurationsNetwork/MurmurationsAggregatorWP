@@ -155,7 +155,7 @@ class Aggregator{
       if($_POST['action']){
         check_admin_referer( 'murmurations_ag_actions_form');
         if($_POST['action'] == 'update_murms_feed_items'){
-          $this->update_feeds();
+          Feeds::update_feeds();
         }
         if($_POST['action'] == 'update_nodes'){
           $this->update_nodes();
@@ -172,7 +172,13 @@ class Aggregator{
      wp_nonce_field( 'murmurations_ag_actions_form' );
      ?>
      <button type="submit" name="action" class="murms-update murms-has-icon" value="update_nodes"><i class="murms-icon murms-icon-update"></i>Update nodes</button>
-     <button type="submit" name="action" class="murms-update murms-has-icon" value="update_murms_feed_items"><i class="murms-icon murms-icon-update"></i>Update feeds</button>
+     <?php
+     if(Config::get('enable_feeds')):
+       ?>
+       <button type="submit" name="action" class="murms-update murms-has-icon" value="update_murms_feed_items"><i class="murms-icon murms-icon-update"></i>Update feeds</button>
+       <?php
+     endif;
+     ?>
 
      <button type="submit" name="action" class="murms-delete murms-has-icon" value="delete_all_nodes"><i class="murms-icon murms-icon-delete"></i>Delete all stored nodes</button>
 
@@ -491,7 +497,7 @@ class Aggregator{
 
       }
     }else{
-      llog("No node posts found in load_nodes using args: ".print_r($args,true));
+      log("No node posts found in load_nodes using args: ".print_r($args,true));
     }
   }
 

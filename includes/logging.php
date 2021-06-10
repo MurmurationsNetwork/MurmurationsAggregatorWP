@@ -3,7 +3,7 @@ namespace Murmurations\Aggregator;
 
 $murmurations_log_buffer = '';
 
-function log( $content , $meta = null ) {
+function llog( $content , $meta = null ) {
 
   global $murmurations_log_buffer;
 
@@ -36,7 +36,7 @@ function debug( $content , $meta = null ){
   $out .= "</pre>";
 
   if ( Config::get('debug_to_log') ){
-    log( $content, $meta );
+    llog( $content, $meta );
   }
 
   return $out;
@@ -44,7 +44,7 @@ function debug( $content , $meta = null ){
 }
 
 function error( $message, $severity = 'warn' ){
-  log( $message, 'error' );
+  llog( $message, 'error' );
   set_notice( $message, $severity );
   if($severity == 'fatal'){
     exit($message);
@@ -53,15 +53,20 @@ function error( $message, $severity = 'warn' ){
 
 function set_notice($message, $type = 'notice'){
 
-  $this->notices[] = array('message'=>$message,'type'=>$type);
-  $_SESSION['murmurations_notices'] = $this->notices;
+  global $murmurations_agg_notices;
+
+  $notices = $murmurations_agg_notices;
+
+  $notices[] = array('message'=>$message,'type'=>$type);
+  $_SESSION['murmurations_notices'] = $notices;
 
 }
 
 function get_notices(){
+  global $murmurations_agg_notices;
   $notices = array();
-  if(count($this->notices) > 0){
-    $notices = $this->notices;
+  if(count($murmurations_agg_notices) > 0){
+    $notices = $murmurations_agg_notices;
   }else if(isset($_SESSION['murmurations_notices'])){
     $notices = $_SESSION['murmurations_notices'];
   }
