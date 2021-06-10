@@ -6,51 +6,53 @@ class Murmurations_Feeds {
 
   public static function init(){
 
-      add_action( 'murmurations_feed_update', array(self, 'update_feeds' ) );
+    require_once MURMAG_ROOT_PATH .'libraries/Feed.php';
 
-      add_shortcode(self::$wpagg->config['plugin_slug'].'-feeds', array(self, 'show_feeds'));
+    add_action( 'murmurations_feed_update', array(self, 'update_feeds' ) );
 
-      register_post_type('murms_feed_item',
-         array(
-             'labels'      => array(
-                 'name'          => self::$wpagg->config['plugin_name'].' Feed Items',
-                 'singular_name' => self::$wpagg->config['plugin_name'].' Feed Item',
-             ),
-             'public'      => true,
-             'has_archive' => true,
-             'menu_icon'   => 'dashicons-rss',
-             //'show_in_menu' => 'murmurations-aggregator-settings',
-             'show_in_menu' => true,
-             'menu_position' => 21,
-             'rewrite'     => array( 'slug' => 'murmurations-feed-item' )
-         )
-      );
+    add_shortcode(self::$wpagg->config['plugin_slug'].'-feeds', array(self, 'show_feeds'));
 
-      register_taxonomy('murms_feed_item_tag','murms_feed_item');
+    register_post_type('murms_feed_item',
+       array(
+           'labels'      => array(
+               'name'          => self::$wpagg->config['plugin_name'].' Feed Items',
+               'singular_name' => self::$wpagg->config['plugin_name'].' Feed Item',
+           ),
+           'public'      => true,
+           'has_archive' => true,
+           'menu_icon'   => 'dashicons-rss',
+           //'show_in_menu' => 'murmurations-aggregator-settings',
+           'show_in_menu' => true,
+           'menu_position' => 21,
+           'rewrite'     => array( 'slug' => 'murmurations-feed-item' )
+       )
+    );
+
+    register_taxonomy('murms_feed_item_tag','murms_feed_item');
 
 
-      register_taxonomy(
-        'murms_feed_item_node_type',
-        'murms_feed_item',
-        array(
-          'labels'  => array(
-            'name'  => __( 'Types' ),
-            'singular_name' => __( 'Type' ),
-          ),
-          'show_admin_column' => true
-        )
-      );
-      register_taxonomy(
-        'murms_feed_item_network',
-        'murms_feed_item',
-        array(
-          'labels'  => array(
-            'name'  => __( 'Networks' ),
-            'singular_name' => __( 'Network' ),
-          ),
-          'show_admin_column' => true
-        )
-      );
+    register_taxonomy(
+      'murms_feed_item_node_type',
+      'murms_feed_item',
+      array(
+        'labels'  => array(
+          'name'  => __( 'Types' ),
+          'singular_name' => __( 'Type' ),
+        ),
+        'show_admin_column' => true
+      )
+    );
+    register_taxonomy(
+      'murms_feed_item_network',
+      'murms_feed_item',
+      array(
+        'labels'  => array(
+          'name'  => __( 'Networks' ),
+          'singular_name' => __( 'Network' ),
+        ),
+        'show_admin_column' => true
+      )
+    );
 
   }
 
@@ -88,9 +90,6 @@ class Murmurations_Feeds {
 
     $tags = $item_data['category'];
 
-    $networks = explode(',',$item_data['node_info']['networks']);
-    $node_types = explode(',',$item_data['node_info']['nodeTypes']);
-
     // Check if node exists. If yes, update using existing post ID
     $existing_post = self::load_feed_item($item_data['url']);
 
@@ -101,11 +100,6 @@ class Murmurations_Feeds {
       echo llog($post_data['post_status'],"Saving with post status");
     }
 
-    //echo llog($item_data,"RSS item data");
-
-    //echo llog($post_data,"Feed item data before insert");
-
-    // Insert the post
     $result = wp_insert_post($post_data,true);
 
     if($result === false){
@@ -116,16 +110,12 @@ class Murmurations_Feeds {
 
       // Add terms directly
       $tresult = wp_set_object_terms($id, $tags, 'murms_feed_item_tag');
-      $tresult1 = wp_set_object_terms($id, $node_types, 'murms_feed_item_node_type');
-      $tresult2 = wp_set_object_terms($id, $networks, 'murms_feed_item_network');
 
       // And use the ID to update meta
       update_post_meta($id,'murmurations_feed_item_url',$item_data['url']);
       update_post_meta($id,'murmurations_feed_item_data',$item_data);
 
     }
-
-
   }
 
   public function delete_all_feed_items(){
@@ -169,6 +159,29 @@ class Murmurations_Feeds {
     }
   }
 
+  public static function update_feed_urls(){
+    $nodes = self::$wpagg->load_nodes();
+    foreach ($nodes as $id => $node) {
+      if(!isset($node->data['feed_url']) && isset($node->data['url']){
+        $feed_url = self::get_feed_url($node->data['url']);
+        if(!$feed_url){
+          $feed_url = 'not_found';
+        }
+        $node->setProperty('feed_url',$feed_url);
+        $node->save();
+      }
+    }
+  }
+
+
+  public static function get_feed_url($node_url){
+    if(@file_get_contents($node_url)){
+      preg_match_all('/<link\srel\=\"alternate\"\stype\=\"application\/(?:rss|atom)\+xml\"\stitle\=\".*href\=\"(.*)\"\s\/\>/', file_get_contents($url), $matches);
+      return $matches[1][0];
+    }
+    return false;
+  }
+
   public static function update_feeds(){
 
       self::delete_all_feed_items();
@@ -190,10 +203,8 @@ class Murmurations_Feeds {
 
       foreach ($nodes as $node) {
 
-        //echo llog($node,"Node for fetching feed");
-
-        if($node->murmurations['feed']){
-          $feed_url = $node->murmurations['feed'];
+        if($node->data['feed_url']){
+          $feed_url = $node->data['feed_url'];
 
           $feed = $this->feedRequest($feed_url);
 
@@ -204,10 +215,6 @@ class Murmurations_Feeds {
             $node_item_count = 0;
 
             $results['nodes_with_feeds']++;
-
-            //echo llog($feed);
-
-            //exit();
 
             /* RSS includes multiple <item> elements. The RSS parser adds a single ['item'],
             with numerically indexed elements for each item from the RSS. But, if there is only one item in the feed, it doesn't do this, and ['item'] is an array of item properties, not items */
@@ -248,7 +255,7 @@ class Murmurations_Feeds {
 
       foreach ($feed_items as $key => $item) {
 
-        $result = $this->env->save_feed_item($item);
+        $result = self::save_feed_item($item);
 
         $results['feed_items_saved']++;
         if($results['feed_items_saved'] == $max_feed_items){
@@ -259,6 +266,21 @@ class Murmurations_Feeds {
       $this->setNotice("Feeds updated. ".$results['feed_items_fetched']." feed items fetched from ".$results['nodes_with_feeds']." nodes. ".$results['feed_items_saved']." feed items saved.",'success');
 
     }
+
+  private function feed_request($url,$since_time = null){
+
+    // Get simpleXML of feed
+    try {
+      $rss = Feed::loadRss($url);
+    } catch (\Exception $e) {
+      self::$wpagg->set_notice("Error connecting to feed URL: ".$url,'warning');
+      self::$wpagg->error("Couldn't load feed");
+    }
+
+    $ar = xml2array($rss);
+
+    return $ar;
+  }
 
 }
 ?>
