@@ -1,7 +1,7 @@
 <?php
 namespace Murmurations\Aggregator;
 
-class Murmurations_Feeds {
+class Feeds {
 
   public $wpagg;
 

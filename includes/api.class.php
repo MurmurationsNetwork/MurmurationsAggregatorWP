@@ -2,7 +2,7 @@
 namespace Murmurations\Aggregator;
 
 
-class Murmurations_API{
+class API{
 
   public static $logging_handler = false;
 

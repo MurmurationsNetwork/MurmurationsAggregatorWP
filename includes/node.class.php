@@ -1,7 +1,7 @@
 <?php
 namespace Murmurations\Aggregator;
 
-class Murmurations_Node{
+class Node{
 
   private $errors = array();
 

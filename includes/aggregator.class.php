@@ -1,7 +1,7 @@
 <?php
 namespace Murmurations\Aggregator;
 
-class Murmurations_Aggregator_WP{
+class Aggregator{
 
   public $notices = array();
   public $nodes = array();
@@ -52,8 +52,8 @@ class Murmurations_Aggregator_WP{
     $this->register_hooks();
 
     if($this->config['enable_feeds']){
-      Murmurations_Feeds::$wpagg = $this;
-      Murmurations_Feeds::init();
+      Feeds::$wpagg = $this;
+      Feeds::init();
     }
 
   }
@@ -490,7 +490,7 @@ class Murmurations_Aggregator_WP{
 
     if(count($posts) > 0){
       foreach ($posts as $key => $post) {
-        $this->nodes[$post->ID] = new Murmurations_Node($this->schema,$this->field_map,$this->settings);
+        $this->nodes[$post->ID] = new Node($this->schema,$this->field_map,$this->settings);
 
         $this->nodes[$post->ID]->buildFromWPPost($post);
 
@@ -556,7 +556,7 @@ class Murmurations_Aggregator_WP{
       $options['api_basic_auth_pass'] = $settings['api_basic_auth_pass'];
     }
 
-    $index_nodes = Murmurations_API::getIndexJson($settings['index_url'],$query,$options);
+    $index_nodes = API::getIndexJson($settings['index_url'],$query,$options);
 
     $index_nodes = json_decode($index_nodes,true);
 
@@ -621,7 +621,7 @@ class Murmurations_Aggregator_WP{
         $options['api_basic_auth_pass'] = $settings['api_basic_auth_pass'];
       }
 
-      $node_data = Murmurations_API::getNodeJson($url,$options);
+      $node_data = API::getNodeJson($url,$options);
 
       if(!$node_data){
         $results['failed_nodes'][] = $url;
@@ -629,7 +629,7 @@ class Murmurations_Aggregator_WP{
 
         $results['fetched_nodes'][] = $url;
 
-        $node = new Murmurations_Node($this->schema,$this->field_map,$this->settings);
+        $node = new Node($this->schema,$this->field_map,$this->settings);
 
         $build_result = $node->buildFromJson($node_data);
 
@@ -751,11 +751,11 @@ class Murmurations_Aggregator_WP{
 
   public function load_includes(){
     $include_path = plugin_dir_path( __FILE__ );
-    require_once $include_path.'murmurations-api.class.php';
-    require_once $include_path.'murmurations-node.class.php';
-    require_once $include_path.'murmurations-geocode.class.php';
+    require_once $include_path.'api.class.php';
+    require_once $include_path.'node.class.php';
+    require_once $include_path.'geocode.class.php';
     if($this->config['enable_feeds']){
-      require_once $include_path.'murmurations-feeds.class.php';
+      require_once $include_path.'feeds.class.php';
     }
   }
 
