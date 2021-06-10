@@ -1,4 +1,5 @@
 <?php
+namespace Murmurations\Aggregator;
 /*
 * Geocode addresses and other location information
 */
