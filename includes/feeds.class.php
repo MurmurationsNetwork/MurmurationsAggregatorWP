@@ -1,6 +1,7 @@
 <?php
+namespace Murmurations\Aggregator;
 
-class Murmurations_Feeds {
+class Feeds {
 
   public $wpagg;
 
@@ -10,13 +11,13 @@ class Murmurations_Feeds {
 
     add_action( 'murmurations_feed_update', array(self, 'update_feeds' ) );
 
-    add_shortcode(self::$wpagg->config['plugin_slug'].'-feeds', array(self, 'show_feeds'));
+    add_shortcode(Config::get('plugin_slug').'-feeds', array(self, 'show_feeds'));
 
     register_post_type('murms_feed_item',
        array(
            'labels'      => array(
-               'name'          => self::$wpagg->config['plugin_name'].' Feed Items',
-               'singular_name' => self::$wpagg->config['plugin_name'].' Feed Item',
+               'name'          => Config::get('plugin_name').' Feed Items',
+               'singular_name' => Config::get('plugin_name').' Feed Item',
            ),
            'public'      => true,
            'has_archive' => true,
@@ -273,8 +274,8 @@ class Murmurations_Feeds {
     try {
       $rss = Feed::loadRss($url);
     } catch (\Exception $e) {
-      self::$wpagg->set_notice("Error connecting to feed URL: ".$url,'warning');
-      self::$wpagg->error("Couldn't load feed");
+      log("Error connecting to feed URL: ".$url,'warning');
+      error("Couldn't load feed");
     }
 
     $ar = xml2array($rss);

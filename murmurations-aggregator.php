@@ -12,17 +12,19 @@
  * Text Domain:       murmurations
  */
 
+namespace Murmurations\Aggregator;
+
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-require plugin_dir_path( __FILE__ ) . 'includes/murmurations-aggregator-wp.class.php';
+require plugin_dir_path( __FILE__ ) . 'includes/aggregator.class.php';
 
 define("MURMAG_ROOT_PATH",plugin_dir_path(__FILE__));
 
 add_action('plugins_loaded', function(){
-  $mawp = new Murmurations_Aggregator_WP();
+  $mawp = new Aggregator();
 });
 
 ?>

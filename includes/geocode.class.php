@@ -1,9 +1,10 @@
 <?php
+namespace Murmurations\Aggregator;
 /*
 * Geocode addresses and other location information
 */
 
-class Murmurations_Geocode {
+class Geocode {
 
   private $location_hash; // Hash of the location input, used as identifier for caching
   private $geo; // Array that holds results

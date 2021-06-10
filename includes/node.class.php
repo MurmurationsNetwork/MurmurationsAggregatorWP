@@ -1,13 +1,13 @@
 <?php
+namespace Murmurations\Aggregator;
 
-class Murmurations_Node{
+class Node{
 
   private $errors = array();
 
-  public function __construct($schema,$field_map,$settings){
+  public function __construct($schema,$field_map){
     $this->schema = $schema;
     $this->field_map = $field_map;
-    $this->settings = $settings;
 
     /*
     if(is_numeric($data)){
@@ -179,14 +179,14 @@ class Murmurations_Node{
 
     if($existing_post){
       $post_data['ID'] = $existing_post->ID;
-      if($this->settings['updated_node_post_status'] == 'no_change'){
+      if(Settings::get('updated_node_post_status') == 'no_change'){
         // wp_insert_post defaults to 'draft' status, even on existing published posts!
         $post_data['post_status'] = $existing_post->post_status;
       } else {
-        $post_data['post_status'] = $this->settings['updated_node_post_status'];
+        $post_data['post_status'] = Settings::get('updated_node_post_status');
       }
     }else{
-      $post_data['post_status'] = $this->settings['new_node_post_status'];
+      $post_data['post_status'] = Settings::get('new_node_post_status');
     }
 
     $result = wp_insert_post($post_data,true);
