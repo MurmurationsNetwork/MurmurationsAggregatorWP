@@ -3,15 +3,30 @@ namespace Murmurations\Aggregator;
 
 class Feeds {
 
-  public $wpagg;
+  public static $wpagg;
 
   public static function init(){
 
     require_once MURMAG_ROOT_PATH .'libraries/Feed.php';
 
-    add_action( 'murmurations_feed_update', array(self, 'update_feeds' ) );
+    add_action(
+      'murmurations_feed_update',
+      array( 'Murmurations\Aggregator\Feeds', 'update_feeds' )
+    );
 
-    add_shortcode(Config::get('plugin_slug').'-feeds', array(self, 'show_feeds'));
+    add_action(
+      'init',
+      array( 'Murmurations\Aggregator\Feeds', 'register_type_taxes' )
+    );
+
+    add_shortcode(
+      Config::get('plugin_slug').'-feeds', array('Murmurations\Aggregator\Feeds', 'show_feeds')
+    );
+
+
+  }
+
+  public static function register_type_taxes(){
 
     register_post_type('murms_feed_item',
        array(
@@ -29,32 +44,17 @@ class Feeds {
        )
     );
 
-    register_taxonomy('murms_feed_item_tag','murms_feed_item');
-
-
     register_taxonomy(
-      'murms_feed_item_node_type',
+      'murms_feed_item_tag',
       'murms_feed_item',
       array(
         'labels'  => array(
-          'name'  => __( 'Types' ),
-          'singular_name' => __( 'Type' ),
+          'name'  => __( 'Tags' ),
+          'singular_name' => __( 'Tag' ),
         ),
         'show_admin_column' => true
       )
     );
-    register_taxonomy(
-      'murms_feed_item_network',
-      'murms_feed_item',
-      array(
-        'labels'  => array(
-          'name'  => __( 'Networks' ),
-          'singular_name' => __( 'Network' ),
-        ),
-        'show_admin_column' => true
-      )
-    );
-
   }
 
   public static function save_feed_item($item_data){
@@ -97,7 +97,7 @@ class Feeds {
     if($existing_post){
       $post_data['ID'] = $existing_post->ID;
     }else{
-      $post_data['post_status'] = $this->load_setting('default_feed_item_status');
+      $post_data['post_status'] = $falsethis->load_setting('default_feed_item_status');
       echo llog($post_data['post_status'],"Saving with post status");
     }
 
@@ -163,7 +163,7 @@ class Feeds {
   public static function update_feed_urls(){
     $nodes = self::$wpagg->load_nodes();
     foreach ($nodes as $id => $node) {
-      if(!isset($node->data['feed_url']) && isset($node->data['url']){
+      if(!isset($node->data['feed_url']) && isset($node->data['url'])){
         $feed_url = self::get_feed_url($node->data['url']);
         if(!$feed_url){
           $feed_url = 'not_found';
