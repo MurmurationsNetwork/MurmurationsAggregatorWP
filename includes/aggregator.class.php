@@ -27,7 +27,7 @@ class Aggregator{
       'node_single' => true,
       'enable_feeds' => false,
       'log_file' => MURMAG_ROOT_PATH.'logs/murmurations_aggregator.log',
-      'log_append' => true
+      'log_append' => false
     );
 
     $this->config = wp_parse_args($config, $default_config);
