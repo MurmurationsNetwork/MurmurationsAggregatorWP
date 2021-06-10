@@ -32,6 +32,8 @@ class Aggregator{
 
     $this->config = apply_filters( 'murmurations-aggregator-config', $this->config );
 
+    Config::$config = $this->config;
+
     /* Development logging fallbacks */
 
     if(is_callable('murms_flush_log')){
@@ -64,6 +66,9 @@ class Aggregator{
 
   public function load_settings(){
     $this->settings = get_option('murmurations_aggregator_settings');
+
+    Settings::$settings = $this->settings;
+
     return $this->settings;
   }
 
@@ -490,7 +495,7 @@ class Aggregator{
 
     if(count($posts) > 0){
       foreach ($posts as $key => $post) {
-        $this->nodes[$post->ID] = new Node($this->schema,$this->field_map,$this->settings);
+        $this->nodes[$post->ID] = new Node($this->schema,$this->field_map);
 
         $this->nodes[$post->ID]->buildFromWPPost($post);
 
@@ -629,7 +634,7 @@ class Aggregator{
 
         $results['fetched_nodes'][] = $url;
 
-        $node = new Node($this->schema,$this->field_map,$this->settings);
+        $node = new Node($this->schema,$this->field_map);
 
         $build_result = $node->buildFromJson($node_data);
 
@@ -754,6 +759,8 @@ class Aggregator{
     require_once $include_path.'api.class.php';
     require_once $include_path.'node.class.php';
     require_once $include_path.'geocode.class.php';
+    require_once $include_path.'settings.class.php';
+    require_once $include_path.'config.class.php';
     if($this->config['enable_feeds']){
       require_once $include_path.'feeds.class.php';
     }
