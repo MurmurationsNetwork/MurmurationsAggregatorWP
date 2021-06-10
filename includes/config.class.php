@@ -6,7 +6,7 @@ namespace Murmurations\Aggregator;
 
 class Config {
 
-  public $config;
+  public static $config;
 
   public static function get($var = null){
     if($var){

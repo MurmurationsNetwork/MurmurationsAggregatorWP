@@ -32,6 +32,8 @@ class Aggregator{
 
     $this->config = apply_filters( 'murmurations-aggregator-config', $this->config );
 
+    $this->load_includes();
+
     Config::$config = $this->config;
 
     /* Development logging fallbacks */
@@ -47,7 +49,6 @@ class Aggregator{
       }
     }
 
-    $this->load_includes();
     $this->load_settings();
     $this->load_schema();
     $this->load_field_map();
