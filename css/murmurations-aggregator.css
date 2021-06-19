@@ -15,10 +15,10 @@
 .murmurations-node-image {
   vertical-align: top;
   width: 150px;
-    /*width: 28.7%;*/
-    /*float: left;*/
-    margin: 0;
-    /*position: relative;*/
+	/*width: 28.7%;*/
+	/*float: left;*/
+	margin: 0;
+	/*position: relative;*/
 }
 .murmurations-node-table td {
   word-break:break-word;
@@ -98,15 +98,15 @@
  }
 
  button.murms-update i.murms-icon::before{
-    content: "\f463";
+	content: "\f463";
  }
 
 i.murms-icon-update::before{
-    content: "\f463";
+	content: "\f463";
 }
 
 i.murms-icon-delete::before{
-    content: "\f182";
+	content: "\f182";
 }
 
  .murms-icon{
@@ -116,8 +116,8 @@ i.murms-icon-delete::before{
  }
 
   .murms-admin-form-section {
-    margin-top: 2em;
-    margin-bottom: 2em;
+	margin-top: 2em;
+	margin-bottom: 2em;
   }
 
  .murms-admin-form-section h2{

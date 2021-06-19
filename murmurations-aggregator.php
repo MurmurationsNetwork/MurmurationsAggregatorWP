@@ -21,10 +21,13 @@ if ( ! defined( 'WPINC' ) ) {
 
 require plugin_dir_path( __FILE__ ) . 'includes/aggregator.class.php';
 
-define("MURMAG_ROOT_PATH",plugin_dir_path(__FILE__));
+define( 'MURMAG_ROOT_PATH', plugin_dir_path( __FILE__ ) );
 
-add_action('plugins_loaded', function(){
-  $mawp = new Aggregator();
-});
+add_action(
+	'plugins_loaded',
+	function() {
+		$mawp = new Aggregator();
+	}
+);
 
-?>
+
