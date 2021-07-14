@@ -49,7 +49,10 @@ class Aggregator {
 		}
 
     /* Temporary arrangement... */
-    Admin::$wpagg = $this;
+    if( is_admin() ){
+      Admin::$wpagg = $this;
+    }
+
 
 	}
 
@@ -476,6 +479,8 @@ class Aggregator {
 		require_once $include_path . 'admin.class.php';
 		require_once $include_path . 'geocode.class.php';
 		require_once $include_path . 'settings.class.php';
+		require_once $include_path . 'notices.class.php';
+		require_once $include_path . 'schema.class.php';
 		require_once $include_path . 'config.class.php';
 		require_once $include_path . 'logging.php';
 		if ( $this->config['enable_feeds'] ) {
@@ -510,7 +515,7 @@ class Aggregator {
 			'menu_title' => $this->config['plugin_name'],
 			'capability' => 'manage_options',
 			'menu_slug'  => $this->config['plugin_slug'] . '-settings',
-			'function'   => array( $this, 'show_admin_settings_page' ),
+			'function'   => array( 'Murmurations\Aggregator\Admin', 'show_admin_settings_page' ),
 			'icon'       => 'dashicons-admin-site-alt',
 			'position'   => 20,
 		);

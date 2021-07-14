@@ -207,7 +207,7 @@ class Admin {
 
 		$subject_options = array( '' => '' );
 
-		foreach ( Schema::get() as $field => $attributes ) {
+		foreach ( Schema::get_fields() as $field => $attributes ) {
 			$subject_options[ $field ] = $attributes['title'];
 		}
 
