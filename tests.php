@@ -25,6 +25,10 @@ if ( $_GET['t'] ) {
 
 class Tests {
 
+  public static function schema(){
+    return Schema::get();
+  }
+
 	public static function update_feeds() {
 		return Feeds::update_feeds();
 	}
@@ -275,8 +279,3 @@ class Tests {
 	}
 
 }
-
-
-
-
-

@@ -495,7 +495,16 @@ class Aggregator {
 		add_shortcode( $this->config['plugin_slug'] . '-directory', array( $this, 'show_directory' ) );
 		add_shortcode( $this->config['plugin_slug'] . '-map', array( $this, 'show_map' ) );
 
-		add_action( 'admin_menu', array( $this, 'add_settings_page' ) );
+    if( is_admin() ){
+      add_action(
+        'admin_menu',
+        array(
+          'Murmurations\Aggregator\Admin',
+          'add_settings_page'
+        )
+      );
+    }
+
 
 		register_activation_hook( __FILE__, array( $this, 'activate' ) );
 		register_deactivation_hook( __FILE__, array( $this, 'deactivate' ) );
@@ -505,30 +514,6 @@ class Aggregator {
 		add_action( 'rest_api_init', array( $this, 'register_api_routes' ) );
 
 		add_action( 'murmurations_node_update', array( $this, 'update_nodes' ) );
-
-	}
-
-	public function add_settings_page() {
-
-		$args = array(
-			'page_title' => $this->config['plugin_name'] . ' Settings',
-			'menu_title' => $this->config['plugin_name'],
-			'capability' => 'manage_options',
-			'menu_slug'  => $this->config['plugin_slug'] . '-settings',
-			'function'   => array( 'Murmurations\Aggregator\Admin', 'show_admin_settings_page' ),
-			'icon'       => 'dashicons-admin-site-alt',
-			'position'   => 20,
-		);
-
-		add_menu_page(
-			$args['page_title'],
-			$args['menu_title'],
-			$args['capability'],
-			$args['menu_slug'],
-			$args['function'],
-			$args['icon'],
-			$args['position']
-		);
 
 	}
 

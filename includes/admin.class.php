@@ -70,9 +70,82 @@ class Admin {
 
 		*/
 
-		self::show_admin_form( $murm_post_data );
+		//self::show_admin_form( $murm_post_data );
+
+    self::show_rjsf_admin_form();
 
 	}
+
+  public static function show_rjsf_admin_form(){
+
+    $admin_schema_json  = file_get_contents( MURMAG_ROOT_PATH . 'admin_fields_jschema.json' );
+    //$schema = json_decode( $admin_schema_json, true );
+
+    $current_values = json_encode(Settings::get());
+
+    ?>
+<div id="murmagg-admin-form"></div>
+
+<!-- link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css" rel="stylesheet">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" -->
+
+<script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-jsonschema-form/dist/react-jsonschema-form.js"></script>
+<script src="https://unpkg.com/react-jsonschema-form-extras"></script>
+
+<script>
+
+  const Form = JSONSchemaForm.default;
+
+  const schema = <?= $admin_schema_json ?>;
+
+  const uiSchema = {
+    filters : {
+      "ui:field" : "table"
+    }
+  }
+
+/*
+  const schema = {
+    title: "Todo",
+    type: "object",
+    required: ["title"],
+    properties: {
+      name: {type: "string", title: "Name", default: "A new task"},
+      done: {type: "boolean", title: "Done?", default: false},
+      booya: {type: "string", enum: ["Yes","No","Maybe"], title: "SayWhat?"}
+    }
+  };
+  */
+
+  const formData = <?= $current_values ?>;
+
+/*
+  const formData = {
+    name: "Faulty but beautiful",
+    done: "true",
+    booya: "Maybe"
+  }
+  */
+
+  const log = (type) => console.log.bind(console, type);
+  const element = React.createElement(
+    Form,
+    {
+      schema,
+      formData,
+      onChange: log("changed"),
+      onSubmit: log("submitted"),
+      onError: log("errors")
+    }
+  )
+  ReactDOM.render(element, document.getElementById("murmagg-admin-form"));
+</script>
+<?php
+
+  }
 
 	public function load_admin_fields() {
 		return json_decode( file_get_contents( dirname( __FILE__ ) . '/../admin_fields.json' ), true );
@@ -295,17 +368,26 @@ class Admin {
 	}
 
 
+  public static function ajax_save_settings(){
+    // Your response in array
+    $array_result = array(
+        'data' => 'your data',
+        'message' => 'your message'
+    );
 
+    // Make your array as json
+    wp_send_json($array_result);
+  }
 
 
 	public function add_settings_page() {
 
 		$args = array(
-			'page_title' => $this->config['plugin_name'] . ' Settings',
-			'menu_title' => $this->config['plugin_name'],
+			'page_title' => Config::get('plugin_name') . ' Settings',
+			'menu_title' => Config::get('plugin_name'),
 			'capability' => 'manage_options',
-			'menu_slug'  => $this->config['plugin_slug'] . '-settings',
-			'function'   => array( $this, 'show_admin_settings_page' ),
+			'menu_slug'  => Config::get('plugin_slug') . '-settings',
+			'function'   => array( 'Murmurations\Aggregator\Admin', 'show_admin_settings_page' ),
 			'icon'       => 'dashicons-admin-site-alt',
 			'position'   => 20,
 		);
@@ -319,6 +401,14 @@ class Admin {
 			$args['icon'],
 			$args['position']
 		);
+
+    add_action(
+      'wp_ajax_save_settings',
+      array(
+        'Murmurations\Aggregator\Admin',
+        'ajax_save_settings'
+      )
+    );
 
 	}
 

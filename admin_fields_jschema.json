@@ -1,0 +1,231 @@
+{
+  "properties": {
+  "node_update_interval" : {
+    "type" :  "string",
+    "title" :  "Node update interval",
+    "description" :  "Node update interval",
+    "enum" : [
+      "hourly",
+      "daily",
+      "weekly",
+      "manual"
+    ],
+    "enumNames" : [
+      "Hourly",
+      "Daily",
+      "Weekly",
+      "Manual only"
+    ],
+    "default" : "weekly",
+    "description" : "How often should locally stored nodes be updated from the network?",
+    "group" : "node_settings"
+  },
+  "filters" : {
+    "type" :  "array",
+    "items" : {
+      "type" : "object",
+      "properties" : {
+        "subject" : {
+          "type" : "string",
+          "title" : "Field"
+        },
+        "predicate" : {
+          "type" : "string",
+          "title" : "Comparison",
+          "enum" : [
+            "equals",
+            "includes",
+            "isGreaterThan",
+            "isLessThan",
+            "isIn"
+          ],
+          "enumNames" : [
+            "equals",
+            "includes",
+            "isGreaterThan",
+            "isLessThan",
+            "isIn"
+          ]
+        },
+        "object" : {
+          "type" : "string",
+          "title" : "Value"
+        }
+      }
+
+    },
+    "title" :  "Filters",
+    "format" : "table"
+  },
+  "index_url" : {
+    "type" :  "string",
+    "maxLength" : 1000,
+    "title" :  "Index URL",
+    "inputAs" : "text",
+    "validateAs" : "url",
+    "default" : "https://murmurations.network/api/index",
+    "comment" : "",
+    "group" : "api_settings"
+  },
+  "directory_template" : {
+    "type" :  "string",
+    "title" :  "Directory template",
+    "inputAs" : "template_selector",
+    "validateAs" : "text",
+    "default" : "default",
+    "comment" : "",
+    "group" : "node_settings"
+  },
+  "ignore_date" : {
+    "type" :  "boolean",
+    "title" :  "Ignore date",
+    "inputAs" : "checkbox",
+    "validateAs" : "text",
+    "description" : "Include nodes that haven't changed since the last update",
+    "group" : "node_settings"
+  },
+  "feed_update_interval" : {
+    "type" :  "string",
+    "title" :  "Feed update interval",
+    "inputAs" : "select",
+    "enum" : [
+      "hourly",
+      "daily",
+      "weekly",
+      "manual"
+    ],
+    "enumNames" : [
+      "Hourly",
+      "Daily",
+      "Weekly",
+      "Manual only"
+    ],
+    "validateAs" : "text",
+    "default" : "daily",
+    "description" : "How often should locally stored feed items be updated?",
+    "group" : "feed_settings"
+  },
+  "max_feed_items" : {
+    "type" :  "integer",
+    "title" :  "Max number of feed items total",
+    "inputAs" : "text",
+    "validateAs" : "int",
+    "default" : 30,
+    "description" : "Maximum number of feed items to fetch from node sites",
+    "group" : "feed_settings"
+  },
+  "max_feed_items_per_node" : {
+    "type" :  "integer",
+    "title" :  "Max number of feed items per node",
+    "inputAs" : "text",
+    "validateAs" : "int",
+    "default" : 4,
+    "description" : "Use this if some nodes are producing a lot of posts and you want ot include more sources",
+    "group" : "feed_settings"
+  },
+  "default_feed_item_status" : {
+    "type" :  "string",
+    "title" :  "Default feed item status",
+    "enum" : [
+      "publish",
+      "draft"
+    ],
+    "enumNames" : [
+      "Publish",
+      "Draft"
+    ],
+    "validateAs" : "text",
+    "default" : "publish",
+    "group" : "feed_settings"
+  },
+  "api_key" : {
+    "type" :  "string",
+    "title" :  "API key",
+    "inputAs" : "text",
+    "group" : "api_settings"
+  },
+  "use_api_key_for_nodes" : {
+    "type" :  "boolean",
+    "title" :  "Include API key in node requests",
+    "inputAs" : "checkbox",
+    "group" : "api_settings"
+  },
+  "api_basic_auth_user" : {
+    "type" :  "string",
+    "title" :  "User name for Basic Auth protected data sources",
+    "inputAs" : "text",
+    "group" : "api_settings"
+  },
+  "api_basic_auth_pass" : {
+    "type" :  "string",
+    "title" :  "Password for Basic Auth protected data sources",
+    "inputAs" : "text",
+    "group" : "api_settings"
+  },
+  "index_2_url" : {
+    "type" :  "string",
+    "maxLength" : 1000,
+    "title" :  "Secondary Index URL",
+    "inputAs" : "text",
+    "validateAs" : "url",
+    "default" : "https://murmurations.network/api/index",
+    "comment" : "",
+    "group" : "api_settings"
+  },
+  "index_2_api_key" : {
+    "type" :  "string",
+    "title" :  "Secondary API key",
+    "inputAs" : "text",
+    "group" : "api_settings"
+  },
+  "map_origin" : {
+    "type" :  "string",
+    "title" :  "Map origin coordinates",
+    "inputAs" : "text",
+    "group" : "map_settings",
+    "default" : "49.505, -29.09"
+  },
+  "map_scale" : {
+    "type" :  "string",
+    "title" :  "Map scale",
+    "inputAs" : "text",
+    "group" : "map_settings",
+    "default" : "1.7"
+  },
+  "mapbox_token" : {
+    "type" :  "string",
+    "title" :  "API key for Mapbox, tile provider for Leaflet. https://www.mapbox.com/studio/account/tokens/",
+    "inputAs" : "text",
+    "group" : "map_settings"
+  },
+  "updated_node_post_status" : {
+    "type" :  "string",
+    "title" :  "Updated node post status",
+    "enum" : [
+      "no_change",
+      "draft"
+    ],
+    "enumNames" : [
+      "No change",
+      "Draft"
+    ],
+    "default" : "no_change",
+    "group" : "node_settings"
+  },
+  "new_node_post_status" : {
+    "type" :  "string",
+    "title" :  "New node post status",
+    "inputAs" : "select",
+    "enum" : [
+      "publish",
+      "draft"
+    ],
+    "enumNames" : [
+      "Publish",
+      "Draft"
+    ],
+    "default" : "publish",
+    "group" : "node_settings"
+  }
+}
+}
