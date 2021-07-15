@@ -20,7 +20,7 @@ class Aggregator {
 			'feed_storage_path'     => MURMAG_ROOT_PATH . 'feeds/feeds.json',
 			'schema_file'           => MURMAG_ROOT_PATH . 'schemas/default.json',
 			'field_map_file'        => MURMAG_ROOT_PATH . 'schemas/field_map.json',
-			'css_directory'         => '/wp-content/plugins/murmurations-aggregator/css/',
+			'css_directory'         => MURMAG_ROOT_URL . 'css/',
 			'template_directory'    => MURMAG_ROOT_PATH . 'templates/',
 			'meta_prefix'           => 'murmurations_',
 			'node_single_url_field' => false,
@@ -780,7 +780,7 @@ class Aggregator {
 		register_activation_hook( __FILE__, array( $this, 'activate' ) );
 		register_deactivation_hook( __FILE__, array( $this, 'deactivate' ) );
 
-		wp_enqueue_style( 'murmurations-agg-css', $this->config['css_directory'] . 'murmurations-aggregator.css' );
+		wp_enqueue_style( 'murmurations-agg-css', MURMAG_ROOT_URL . 'css/murmurations-aggregator.css' );
 
 		add_action( 'rest_api_init', array( $this, 'register_api_routes' ) );
 
