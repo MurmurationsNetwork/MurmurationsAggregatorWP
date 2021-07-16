@@ -69,15 +69,93 @@
 }
 
 /* Admin styles (should be moved to admin-specific CSS) */
-  .murmurations-ag-admin-field{
+  .murmurations-ag-admin-field {
    padding: 1.5em;
  }
 
+ #murmagg-admin-form {
+  margin-left: 2em;
+ }
 
- .murmurations-ag-admin-field label{
+ #murmagg-admin-form fieldset.field-array{
+  border-top: 1px solid black;
+  border-bottom: 1px solid black;
+ }
+
+ #murmagg-admin-form fieldset.field-array legend{
+  padding: 5px 0.5em 10px 0.5em;
+  margin-left: 2em;
+  font-weight: bold;
+ }
+
+  #murmagg-admin-form .field {
+   margin-bottom: 3em;
+   margin-top: 3em;
+  }
+
+  #murmagg-admin-form .field label{
+    font-weight: bold;
+    display: block;
+    margin-bottom: 1em;
+  }
+
+  #murmagg-admin-form .field select{
+    width: 100%;
+    max-width: 200px;
+  }
+
+  #murmagg-admin-form .field input[type=text] {
+    width: 100%;
+    max-width: 500px;
+  }
+
+  #murmagg-admin-form .array-item .field-object fieldset {
+    display: flex;
+  }
+
+  #murmagg-admin-form .array-item .field-object fieldset .field{
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  #murmagg-admin-form .array-item .array-item-move-up,
+  #murmagg-admin-form .array-item .array-item-move-down
+  {
+    display: none;
+  }
+
+  #murmagg-admin-form .array-item .array-item-toolbox
+  {
+    margin-top: 5.6em;
+    margin-left: 1em;
+  }
+
+  #murmagg-admin-form .array-item-list .array-item
+  {
+    display: flex;
+  }
+
+  #murmagg-admin-form .field-array .array-item-add button::before {
+    content: "Add new";
+  }
+
+  #murmagg-admin-form .field-array button.array-item-remove::before {
+    content: "Delete";
+    font-weight: normal;
+  }
+
+
+
+
+ .murmurations-ag-admin-field label {
    width: 50%;
-   max-width: 150px;
+   max-width: 200px;
    float:left;
+ }
+
+ .murmurations-ag-admin-field label, #murmagg-admin-form .field-boolean label{
+   width: 50%;
+   max-width: 500px;
  }
 
  .murmurations-ag-admin-field input[type=text],  .murmurations-ag-admin-field textarea,  .murmurations-ag-admin-field div.awesomeplete{
