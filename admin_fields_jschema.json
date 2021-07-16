@@ -3,7 +3,6 @@
   "node_update_interval" : {
     "type" :  "string",
     "title" :  "Node update interval",
-    "description" :  "Node update interval",
     "enum" : [
       "hourly",
       "daily",
@@ -40,11 +39,11 @@
             "isIn"
           ],
           "enumNames" : [
-            "equals",
-            "includes",
-            "isGreaterThan",
-            "isLessThan",
-            "isIn"
+            "Equals",
+            "Includes",
+            "Is greater than",
+            "Is less than",
+            "Is in"
           ]
         },
         "object" : {
@@ -55,7 +54,7 @@
 
     },
     "title" :  "Filters",
-    "format" : "table"
+    "description" : "Set parameters to limit the nodes that will be fetched and saved."
   },
   "index_url" : {
     "type" :  "string",
@@ -73,15 +72,15 @@
     "inputAs" : "template_selector",
     "validateAs" : "text",
     "default" : "default",
-    "comment" : "",
+    "description" : "Template file to use for directory shortcode display.",
     "group" : "node_settings"
   },
   "ignore_date" : {
     "type" :  "boolean",
-    "title" :  "Ignore date",
+    "title" :  "Ignore node update date when fetching nodes",
     "inputAs" : "checkbox",
     "validateAs" : "text",
-    "description" : "Include nodes that haven't changed since the last update",
+    "description" : "If unchecked, only nodes that have been updated since they were last requested will be fetched.",
     "group" : "node_settings"
   },
   "feed_update_interval" : {
@@ -120,7 +119,7 @@
     "inputAs" : "text",
     "validateAs" : "int",
     "default" : 4,
-    "description" : "Use this if some nodes are producing a lot of posts and you want ot include more sources",
+    "description" : "Use this if some nodes are producing a lot of posts and you want to include more sources.",
     "group" : "feed_settings"
   },
   "default_feed_item_status" : {
@@ -148,19 +147,22 @@
     "type" :  "boolean",
     "title" :  "Include API key in node requests",
     "inputAs" : "checkbox",
-    "group" : "api_settings"
+    "group" : "api_settings",
+    "description" : "If checked, the API key will also be sent when requesting individual nodes. This should only be used for centralized providers of node data!"
   },
   "api_basic_auth_user" : {
     "type" :  "string",
-    "title" :  "User name for Basic Auth protected data sources",
+    "title" :  "Basic Auth user name",
     "inputAs" : "text",
-    "group" : "api_settings"
+    "group" : "api_settings",
+    "description" : "User name for data sources that are protected by Basic Authentication."
   },
   "api_basic_auth_pass" : {
     "type" :  "string",
-    "title" :  "Password for Basic Auth protected data sources",
+    "title" :  "Basic Auth password",
     "inputAs" : "text",
-    "group" : "api_settings"
+    "group" : "api_settings",
+    "description" : "Password for data sources that are protected by Basic Authentication."
   },
   "index_2_url" : {
     "type" :  "string",
@@ -183,20 +185,23 @@
     "title" :  "Map origin coordinates",
     "inputAs" : "text",
     "group" : "map_settings",
-    "default" : "49.505, -29.09"
+    "default" : "49.505, -29.09",
+    "description" : "Location for the center of the map. Latitude and longitude (as signed floating point numbers), separated by a comma."
   },
   "map_scale" : {
     "type" :  "string",
     "title" :  "Map scale",
     "inputAs" : "text",
     "group" : "map_settings",
-    "default" : "1.7"
+    "default" : "4",
+    "description" : "How zoomed in/zoomed out the map should be at initial display. 1 = whole planet shown at the height of the map display."
   },
   "mapbox_token" : {
     "type" :  "string",
-    "title" :  "API key for Mapbox, tile provider for Leaflet. https://www.mapbox.com/studio/account/tokens/",
+    "title" :  "Mapbox API key",
     "inputAs" : "text",
-    "group" : "map_settings"
+    "group" : "map_settings",
+    "description" : "API key for Mapbox, tile provider for Leaflet. See https://www.mapbox.com/studio/account/tokens/"
   },
   "updated_node_post_status" : {
     "type" :  "string",
@@ -210,7 +215,8 @@
       "Draft"
     ],
     "default" : "no_change",
-    "group" : "node_settings"
+    "group" : "node_settings",
+    "description" : "Post status for nodes that have been updated from the network. Set to 'Draft' if updated nodes should be reviewed before they are publicly viewable."
   },
   "new_node_post_status" : {
     "type" :  "string",
@@ -225,7 +231,8 @@
       "Draft"
     ],
     "default" : "publish",
-    "group" : "node_settings"
+    "group" : "node_settings",
+    "description" : "Post status for new nodes from the network. Set to 'Draft' if nodes should be reviewed before they are publicly viewable."
   }
 }
 }
