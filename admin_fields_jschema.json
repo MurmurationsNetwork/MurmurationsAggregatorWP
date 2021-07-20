@@ -19,16 +19,47 @@
     "description" : "How often should locally stored nodes be updated from the network?",
     "group" : "node_settings"
   },
+  "updated_node_post_status" : {
+    "type" :  "string",
+    "title" :  "Updated node post status",
+    "enum" : [
+      "no_change",
+      "draft"
+    ],
+    "enumNames" : [
+      "No change",
+      "Draft"
+    ],
+    "default" : "no_change",
+    "group" : "node_settings",
+    "description" : "Post status for nodes that have been updated from the network. Set to 'Draft' if updated nodes should be reviewed before they are publicly viewable."
+  },
+  "new_node_post_status" : {
+    "type" :  "string",
+    "title" :  "New node post status",
+    "inputAs" : "select",
+    "enum" : [
+      "publish",
+      "draft"
+    ],
+    "enumNames" : [
+      "Publish",
+      "Draft"
+    ],
+    "default" : "publish",
+    "group" : "node_settings",
+    "description" : "Post status for new nodes from the network. Set to 'Draft' if nodes should be reviewed before they are publicly viewable."
+  },
   "filters" : {
     "type" :  "array",
     "items" : {
       "type" : "object",
       "properties" : {
-        "subject" : {
+        "field" : {
           "type" : "string",
           "title" : "Field"
         },
-        "predicate" : {
+        "comparison" : {
           "type" : "string",
           "title" : "Comparison",
           "enum" : [
@@ -46,25 +77,49 @@
             "Is in"
           ]
         },
-        "object" : {
+        "value" : {
           "type" : "string",
           "title" : "Value"
         }
       }
-
     },
     "title" :  "Filters",
     "description" : "Set parameters to limit the nodes that will be fetched and saved."
   },
-  "index_url" : {
-    "type" :  "string",
-    "maxLength" : 1000,
-    "title" :  "Index URL",
-    "inputAs" : "text",
-    "validateAs" : "url",
-    "default" : "https://murmurations.network/api/index",
-    "comment" : "",
-    "group" : "api_settings"
+  "indices" : {
+    "type" :  "array",
+    "items" : {
+      "type" : "object",
+      "properties" : {
+        "url" : {
+          "type" : "string",
+          "title" : "URL"
+        },
+        "api_key" : {
+          "type" :  "string",
+          "title" :  "API key",
+          "inputAs" : "text"
+        },
+        "use_api_key_for_nodes" : {
+          "type" :  "boolean",
+          "title" :  "Include API key in node requests",
+          "description" : "If checked, the API key will also be sent when requesting individual nodes. This should only be used for centralized providers of node data!"
+        },
+        "api_basic_auth_user" : {
+          "type" :  "string",
+          "title" :  "Basic Auth user name",
+          "description" : "User name for data sources that are protected by Basic Authentication."
+        },
+        "api_basic_auth_pass" : {
+          "type" :  "string",
+          "title" :  "Basic Auth password",
+          "description" : "Password for data sources that are protected by Basic Authentication."
+        }
+      }
+    },
+    "title" :  "Data sources",
+    "description" : "Parameters for the data sources from which to fetch node data.",
+    "required" : ["url"]
   },
   "directory_template" : {
     "type" :  "string",
@@ -137,49 +192,6 @@
     "default" : "publish",
     "group" : "feed_settings"
   },
-  "api_key" : {
-    "type" :  "string",
-    "title" :  "API key",
-    "inputAs" : "text",
-    "group" : "api_settings"
-  },
-  "use_api_key_for_nodes" : {
-    "type" :  "boolean",
-    "title" :  "Include API key in node requests",
-    "inputAs" : "checkbox",
-    "group" : "api_settings",
-    "description" : "If checked, the API key will also be sent when requesting individual nodes. This should only be used for centralized providers of node data!"
-  },
-  "api_basic_auth_user" : {
-    "type" :  "string",
-    "title" :  "Basic Auth user name",
-    "inputAs" : "text",
-    "group" : "api_settings",
-    "description" : "User name for data sources that are protected by Basic Authentication."
-  },
-  "api_basic_auth_pass" : {
-    "type" :  "string",
-    "title" :  "Basic Auth password",
-    "inputAs" : "text",
-    "group" : "api_settings",
-    "description" : "Password for data sources that are protected by Basic Authentication."
-  },
-  "index_2_url" : {
-    "type" :  "string",
-    "maxLength" : 1000,
-    "title" :  "Secondary Index URL",
-    "inputAs" : "text",
-    "validateAs" : "url",
-    "default" : "https://murmurations.network/api/index",
-    "comment" : "",
-    "group" : "api_settings"
-  },
-  "index_2_api_key" : {
-    "type" :  "string",
-    "title" :  "Secondary API key",
-    "inputAs" : "text",
-    "group" : "api_settings"
-  },
   "map_origin" : {
     "type" :  "string",
     "title" :  "Map origin coordinates",
@@ -202,37 +214,6 @@
     "inputAs" : "text",
     "group" : "map_settings",
     "description" : "API key for Mapbox, tile provider for Leaflet. See https://www.mapbox.com/studio/account/tokens/"
-  },
-  "updated_node_post_status" : {
-    "type" :  "string",
-    "title" :  "Updated node post status",
-    "enum" : [
-      "no_change",
-      "draft"
-    ],
-    "enumNames" : [
-      "No change",
-      "Draft"
-    ],
-    "default" : "no_change",
-    "group" : "node_settings",
-    "description" : "Post status for nodes that have been updated from the network. Set to 'Draft' if updated nodes should be reviewed before they are publicly viewable."
-  },
-  "new_node_post_status" : {
-    "type" :  "string",
-    "title" :  "New node post status",
-    "inputAs" : "select",
-    "enum" : [
-      "publish",
-      "draft"
-    ],
-    "enumNames" : [
-      "Publish",
-      "Draft"
-    ],
-    "default" : "publish",
-    "group" : "node_settings",
-    "description" : "Post status for new nodes from the network. Set to 'Draft' if nodes should be reviewed before they are publicly viewable."
   }
 }
 }
