@@ -245,50 +245,41 @@ class Aggregator {
 			$query[ $filter[0] ] = $filter[2];
 		}
 
-		$options = array();
+    $all_index_nodes = array();
 
-		if ( isset( $settings['api_key'] ) ) {
-			$options['api_key'] = $settings['api_key'];
-		}
-		if ( isset( $settings['api_basic_auth_user'] ) ) {
-			$options['api_basic_auth_user'] = $settings['api_basic_auth_user'];
-		}
-		if ( isset( $settings['api_basic_auth_pass'] ) ) {
-			$options['api_basic_auth_pass'] = $settings['api_basic_auth_pass'];
-		}
 
-		$index_nodes = API::getIndexJson( $settings['index_url'], $query, $options );
 
-		$index_nodes = json_decode( $index_nodes, true );
+    foreach ($settings['indices'] as $index) {
 
-		$index_nodes = $index_nodes['data'];
+  		$options = array();
 
-		/*
-		 FUTURE
-		foreach ($settings['indices'] as $index){
+  		if ( isset( $index['api_key'] ) ) {
+  			$options['api_key'] = $index['api_key'];
+  		}
+  		if ( isset( $index['api_basic_auth_user'] ) ) {
+  			$options['api_basic_auth_user'] = $index['api_basic_auth_user'];
+  		}
+  		if ( isset( $index['api_basic_auth_pass'] ) ) {
+  			$options['api_basic_auth_pass'] = $index['api_basic_auth_pass'];
+  		}
 
-		$url = $index['url'];
+  		$index_nodes = API::getIndexJson( $index['url'], $query, $options );
 
-		if($index['api_key']){
-		$options['api_key'] = $index['api_key'];
-		}
+  		$index_nodes = json_decode( $index_nodes, true );
 
-		$queried_nodes = Murmurations_API::getIndexJson($url,$query,$options);
+  		$index_nodes = $index_nodes['data'];
 
-		if($index_nodes){
-		$index_nodes = array_merge($index_nodes,$queried_nodes);
-		}else{
-		$index_nodes = $queried_nodes;
-		}
+      if ( ! $index_nodes ) {
+        Notices::set( 'Could not connect to index: ' . $index['url'], 'error' );
+      } else {
+        Notices::set( 'Fetched node info from index at ' . $index['url'], 'success' );
+        $all_index_nodes = array_merge( $all_index_nodes, $index_nodes );
+      }
 
-		}
-		*/
 
-		if ( ! $index_nodes ) {
-			$this->set_notice( 'Could not connect to the index', 'error' );
-			return false;
-			/* TODO: Even if the index is out, could still query from stored nodes */
-		}
+    }
+
+    $index_nodes = $all_index_nodes;
 
 		$failed_nodes  = array();
 		$fetched_nodes = array();
