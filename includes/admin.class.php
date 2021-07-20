@@ -6,11 +6,6 @@ class Admin {
   public static $wpagg;
 
 	public static function show_admin_settings_page() {
-    if($_POST){
-      echo "<pre>".print_r($_POST,true);
-
-      exit();
-    }
 
 		if ( $_POST['action'] ) {
 			check_admin_referer( 'murmurations_ag_actions_form' );
@@ -51,49 +46,49 @@ class Admin {
 
 		echo Notices::show();
 
-		/*
-		TODO: Separate sections into their own JS-toggled tabs
-
-		$admin_tabs = array(
-		'network-settings' => 'Network Settings',
-		'feeds' => 'Feeds'
-		);
-
-		$tab = $_GET['tab'];
-
-		if($tab === null) $tab = 'network-settings';
-
-
-		echo '<nav class="nav-tab-wrapper">';
-		foreach ($admin_tabs as $key => $name) {
-		echo "<a href=\"?page=murmurations-aggregator-settings&tab=$key\" class=\"nav-tab ";
-		if($tab === $key) echo 'nav-tab-active';
-		echo "\">$name</a>";
-		}
-
-		echo "</nav>";
-
-		*/
-
-		//self::show_admin_form( $murm_post_data );
-
     self::show_rjsf_admin_form();
 
 	}
 
-  public static function show_rjsf_admin_form(){
+  public static function fix_rjsf_data_types( $schema, $values ){
+    foreach ($schema['properties'] as $field => $attribs ) {
+      $value = $values[$field];
+      if(is_array($value)){
+        foreach ($value as $key => $item) {
+          $value[ $key ] = self::fix_rjsf_data_types( $attribs['items'], $item );
+        }
+      } else if( $attribs['type'] === 'boolean' && is_string($value)){
+        if($value === 'true'){
+          $value = true;
+        }else{
+          $value = false;
+        }
+      } else if( $attribs['type'] === 'integer' && is_string($value)){
+        $value = (int) $value;
+      }
 
-    //$admin_schema_json  = file_get_contents( MURMAG_ROOT_PATH . 'admin_fields_jschema.json' );
-    //$schema = json_decode( $admin_schema_json, true );
+      $values[$field] = $value;
+    }
+    return $values;
+  }
+
+  public static function show_rjsf_admin_form(){
 
     $admin_schema = Settings::get_schema_array();
 
     $current_values = Settings::get();
 
+    /* Preprocess for certain special fields */
+
     foreach ($admin_schema['properties'] as $field => $attribs) {
 
+      /* Load the template files list into enum options */
+
       if($field === 'directory_template'){
-        $files = array_diff( scandir( Config::get('template_directory') ), array( '..', '.' ) );
+        $files = array_diff(
+          scandir( Config::get( 'template_directory' ) ),
+          array( '..', '.' )
+        );
 
         $attribs['enum'] = array();
 
@@ -102,7 +97,10 @@ class Admin {
             $attribs['enum'][] = substr( $fn, 0, -4 );
           }
         }
-      }else if($field === 'filters'){
+
+      /* Build filter field select from data schema */
+
+      } else if( $field === 'filters' ){
 
         $enum = array();
         $enumNames = array();
@@ -117,31 +115,14 @@ class Admin {
 
       }
 
-      if( $attribs['type'] === 'boolean' && is_string($current_values[$field])){
-        if($current_values[$field] === 'true'){
-          $current_values[$field] = true;
-        }else{
-          $current_values[$field] = false;
-        }
-      }
-
-      if( $attribs['type'] === 'integer' && is_string($current_values[$field])){
-        $current_values[$field] = (int) $current_values[$field];
-      }
-
-      if($attribs['callback']){
-        if( is_callable($attribs['callback']) ){
-          $attribs = $attribs['callback']( $field, $attribs );
-        }
-      }
-
       $admin_schema['properties'][$field] = $attribs;
-
     }
 
-    $admin_schema_json = json_encode($admin_schema);
+    $current_values = self::fix_rjsf_data_types( $admin_schema, $current_values );
 
-    $current_values_json = json_encode($current_values);
+    $admin_schema_json = json_encode( $admin_schema );
+
+    $current_values_json = json_encode( $current_values );
 
     $nonce_field = wp_nonce_field( 'murmurations_ag_admin_form' , 'murmurations_ag_admin_form_nonce', true, false);
 
@@ -178,6 +159,8 @@ class Admin {
   }
 
   const formData = <?= $current_values_json ?>;
+
+  console.log("Current values", formData);
 
   const log = (type) => console.log.bind(console, type);
 
