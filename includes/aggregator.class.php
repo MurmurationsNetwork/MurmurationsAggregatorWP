@@ -38,7 +38,8 @@ class Aggregator {
 
 		Config::$config = $this->config;
 
-		$this->load_settings();
+    Settings::load();
+
 		$this->load_schema();
 		$this->load_field_map();
 		$this->register_hooks();
@@ -56,26 +57,7 @@ class Aggregator {
 
 	}
 
-	public function get_setting( $setting ) {
-		return $this->settings[ $setting ];
-	}
 
-	public function load_settings() {
-		$this->settings = get_option( 'murmurations_aggregator_settings' );
-
-		Settings::$settings = $this->settings;
-
-		return $this->settings;
-	}
-
-	public function save_settings() {
-		return update_option( 'murmurations_aggregator_settings', $this->settings );
-	}
-
-	public function save_setting( $setting, $value ) {
-		$this->settings[ $setting ] = $value;
-		$this->save_settings();
-	}
 
 	public function load_schema() {
 		if ( file_exists( $this->config['schema_file'] ) ) {
@@ -97,19 +79,15 @@ class Aggregator {
 
 	public function activate() {
 
-		$fields = json_decode( file_get_contents( dirname( __FILE__ ) . '/admin_fields.json' ), true );
+    $admin_fields = Settings::get_fields();
 
-		$default_settings = array();
-
-		foreach ( $fields as $name => $field ) {
+		foreach ( $admin_fields as $name => $field ) {
 			if ( $field['default'] ) {
-				$default_settings[ $name ] = $field['default'];
+        Settings::set( $name, $field['default'] );
 			}
 		}
 
-		$this->settings = $default_settings;
-
-		$this->save_settings();
+		Settings::save();
 
 	}
 
@@ -242,7 +220,7 @@ class Aggregator {
 
 	public function update_nodes() {
 
-		$settings = $this->settings;
+		$settings = Settings::get();
 
 		$filters = $settings['filters'];
 
@@ -436,8 +414,8 @@ class Aggregator {
 
 		$html = $this->leaflet_scripts();
 
-		$map_origin = $this->settings['map_origin'];
-		$map_scale  = $this->settings['map_scale'];
+		$map_origin = Settings::get('map_origin');
+		$map_scale  = Settings::get('map_scale');
 
 		$html .= '<div id="murmurations-map" class="murmurations-map"></div>' . "\n";
 		$html .= '<script type="text/javascript">' . "\n";
@@ -449,7 +427,7 @@ class Aggregator {
     maxZoom: 18,
     zoomOffset: -1,
     id: 'mapbox/streets-v11',
-    accessToken: '" . $this->settings['mapbox_token'] . "'
+    accessToken: '" . Settings::get('mapbox_token') . "'
 }).addTo(murmurations_map);\n";
 
 		foreach ( $this->nodes as $key => $node ) {
