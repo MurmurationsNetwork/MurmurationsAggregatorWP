@@ -6,6 +6,11 @@ class Admin {
   public static $wpagg;
 
 	public static function show_admin_settings_page() {
+    if($_POST){
+      echo "<pre>".print_r($_POST,true);
+
+      exit();
+    }
 
 		if ( $_POST['action'] ) {
 			check_admin_referer( 'murmurations_ag_actions_form' );
@@ -78,10 +83,67 @@ class Admin {
 
   public static function show_rjsf_admin_form(){
 
-    $admin_schema_json  = file_get_contents( MURMAG_ROOT_PATH . 'admin_fields_jschema.json' );
+    //$admin_schema_json  = file_get_contents( MURMAG_ROOT_PATH . 'admin_fields_jschema.json' );
     //$schema = json_decode( $admin_schema_json, true );
 
-    $current_values = json_encode(Settings::get());
+    $admin_schema = Settings::get_schema_array();
+
+    $current_values = Settings::get();
+
+    foreach ($admin_schema['properties'] as $field => $attribs) {
+
+      if($field === 'directory_template'){
+        $files = array_diff( scandir( Config::get('template_directory') ), array( '..', '.' ) );
+
+        $attribs['enum'] = array();
+
+        foreach ( $files as $key => $fn ) {
+          if ( substr( $fn, -4 ) == '.php' ) {
+            $attribs['enum'][] = substr( $fn, 0, -4 );
+          }
+        }
+      }else if($field === 'filters'){
+
+        $enum = array();
+        $enumNames = array();
+
+        foreach ( Schema::get_fields() as $schema_field => $schema_field_attribs ) {
+          $enum[] = $schema_field;
+          $enumNames[] = $schema_field_attribs['title'];
+        }
+
+        $attribs['items']['properties']['field']['enum'] = $enum;
+        $attribs['items']['properties']['field']['enumNames'] = $enumNames;
+
+      }
+
+      if( $attribs['type'] === 'boolean' && is_string($current_values[$field])){
+        if($current_values[$field] === 'true'){
+          $current_values[$field] = true;
+        }else{
+          $current_values[$field] = false;
+        }
+      }
+
+      if( $attribs['type'] === 'integer' && is_string($current_values[$field])){
+        $current_values[$field] = (int) $current_values[$field];
+      }
+
+      if($attribs['callback']){
+        if( is_callable($attribs['callback']) ){
+          $attribs = $attribs['callback']( $field, $attribs );
+        }
+      }
+
+      $admin_schema['properties'][$field] = $attribs;
+
+    }
+
+    $admin_schema_json = json_encode($admin_schema);
+
+    $current_values_json = json_encode($current_values);
+
+    $nonce_field = wp_nonce_field( 'murmurations_ag_admin_form' , 'murmurations_ag_admin_form_nonce', true, false);
 
     ?>
 <div id="murmagg-admin-form"></div>
@@ -89,9 +151,21 @@ class Admin {
 <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
 <script src="https://unpkg.com/react-jsonschema-form/dist/react-jsonschema-form.js"></script>
-<script src="https://unpkg.com/react-jsonschema-form-extras"></script>
 
 <script>
+
+  const murmagAdminFormSubmit = (Form, e) => {
+
+    var data = {
+      'action': 'save_settings',
+      'formData': Form.formData
+    };
+
+    jQuery.post(ajaxurl, data, function(response) {
+      console.log(response);
+    });
+
+  }
 
   const Form = JSONSchemaForm.default;
 
@@ -103,41 +177,22 @@ class Admin {
     }
   }
 
-/*
-  const schema = {
-    title: "Todo",
-    type: "object",
-    required: ["title"],
-    properties: {
-      name: {type: "string", title: "Name", default: "A new task"},
-      done: {type: "boolean", title: "Done?", default: false},
-      booya: {type: "string", enum: ["Yes","No","Maybe"], title: "SayWhat?"}
-    }
-  };
-  */
-
-  const formData = <?= $current_values ?>;
-
-/*
-  const formData = {
-    name: "Faulty but beautiful",
-    done: "true",
-    booya: "Maybe"
-  }
-  */
+  const formData = <?= $current_values_json ?>;
 
   const log = (type) => console.log.bind(console, type);
+
   const element = React.createElement(
     Form,
     {
       schema,
       formData,
       onChange: log("changed"),
-      onSubmit: log("submitted"),
+      onSubmit: murmagAdminFormSubmit,
       onError: log("errors")
     }
   )
   ReactDOM.render(element, document.getElementById("murmagg-admin-form"));
+
 </script>
 <?php
 
@@ -319,7 +374,8 @@ class Admin {
 
 		$murm_post_data = $_POST['murmurations_ag'];
 
-		check_admin_referer( 'murmurations_ag_admin_form' );
+		check_admin_referer( 'murmurations_ag_admin_form', 'murmurations_ag_admin_form_nonce' );
+
 
 		if ( is_array( $_POST['filters'] ) ) {
 			foreach ( $_POST['filters'] as $key => $filter ) {
@@ -365,14 +421,46 @@ class Admin {
 
 
   public static function ajax_save_settings(){
-    // Your response in array
-    $array_result = array(
-        'data' => 'your data',
-        'message' => 'your message'
+
+    $data = $_POST['formData'];
+
+    if ( $data['node_update_interval'] != Settings::get('node_update_interval') ) {
+      $new_interval = $data['node_update_interval'];
+      $timestamp    = wp_next_scheduled( 'murmurations_node_update' );
+      wp_unschedule_event( $timestamp, 'murmurations_node_update' );
+      if ( $new_interval != 'manual' ) {
+        wp_schedule_event( time(), $new_interval, 'murmurations_node_update' );
+      }
+    }
+
+    if ( Config::get('enable_feeds') ) {
+      if ( $data['feed_update_interval'] != Settings::get('feed_update_interval') ) {
+        $new_interval = $data['feed_update_interval'];
+        $timestamp    = wp_next_scheduled( 'murmurations_feed_update' );
+        wp_unschedule_event( $timestamp, 'murmurations_feed_update' );
+        if ( $new_interval != 'manual' ) {
+          wp_schedule_event( time(), $new_interval, 'murmurations_feed_update' );
+        }
+      }
+    }
+
+    $admin_fields = Settings::get_fields();
+
+    foreach ( $admin_fields as $key => $f ) {
+      if(isset($data[ $key ])){
+        Settings::set( $key, $data[ $key ] );
+      }
+    }
+
+    Settings::save();
+
+    $result = array(
+        'data' => $data,
+        'dataStr' => print_r($data, true),
+        'message' => 'Settings saved'
     );
 
-    // Make your array as json
-    wp_send_json($array_result);
+    wp_send_json($result);
   }
 
 
@@ -398,13 +486,7 @@ class Admin {
 			$args['position']
 		);
 
-    add_action(
-      'wp_ajax_save_settings',
-      array(
-        'Murmurations\Aggregator\Admin',
-        'ajax_save_settings'
-      )
-    );
+
 
 	}
 
