@@ -135,7 +135,7 @@ class Aggregator {
 	}
 
 	public function error( $message, $type = 'notice' ) {
-		$this->set_notice( $message, $type );
+		Notices::set( $message, $type );
 		if ( $type == 'fatal' ) {
 			exit( $message );
 		}
@@ -150,31 +150,6 @@ class Aggregator {
 		$_SESSION['murmurations_notices'] = $this->notices;
 
 	}
-
-	function get_notices() {
-		$notices = array();
-		if ( count( $this->notices ) > 0 ) {
-			$notices = $this->notices;
-		} elseif ( isset( $_SESSION['murmurations_notices'] ) ) {
-			$notices = $_SESSION['murmurations_notices'];
-		}
-		unset( $_SESSION['murmurations_notices'] );
-		return $notices;
-	}
-
-	function show_notices() {
-		$notices = $this->get_notices();
-		foreach ( $notices as $notice ) {
-			?>
-	  <div class="notice notice-<?php echo $notice['type']; ?>">
-					<p><?php echo $notice['message']; ?></p>
-			</div>
-
-			<?php
-		}
-	}
-
-
 
 	public function load_nodes( $args = null ) {
 
@@ -214,7 +189,7 @@ class Aggregator {
 				$count++;
 			}
 		}
-		$this->set_notice( "$count nodes deleted" );
+		Notices::set( "$count nodes deleted" );
 		return $count;
 	}
 
@@ -225,9 +200,9 @@ class Aggregator {
 		$filters = $settings['filters'];
 
 		if ( is_array( $filters ) ) {
-			foreach ( $filters as $key => $condition ) {
-				if ( in_array( $condition[0], $this->config['index_fields'] ) ) {
-					$index_filters[] = $condition;
+			foreach ( $filters as $key => $f ) {
+				if ( in_array( $f['field'], Config::get('index_fields') ) ) {
+					$index_filters[] = [$f['field'], $f['comparison'], $f['value']];
 				}
 			}
 		} else {
@@ -327,7 +302,7 @@ class Aggregator {
 				$build_result = $node->buildFromJson( $node_data );
 
 				if ( ! $build_result ) {
-					$this->set_notice( $node->getErrorsText(), 'error' );
+					Notices::set( $node->getErrorsText(), 'error' );
 					$results['failed_nodes'][] = $url;
 					break;
 				}
@@ -342,7 +317,7 @@ class Aggregator {
 					if ( $result ) {
 						$results['saved_nodes'][] = $url;
 					} else {
-						$this->set_notice( 'Failed to save node: ' . $url, 'error' );
+						Notices::set( 'Failed to save node: ' . $url, 'error' );
 					}
 				} else {
 					if ( $settings['unmatching_local_nodes_action'] == 'delete' ) {
@@ -362,9 +337,10 @@ class Aggregator {
 			$class = 'notice';
 		}
 
-		$this->set_notice( $message, $class );
+		Notices::set( $message, $class );
 
-		$this->save_setting( 'update_time', time() );
+    Settings::set( 'update_time', time() );
+    Settings::save();
 
 	}
 
