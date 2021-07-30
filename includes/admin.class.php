@@ -75,9 +75,17 @@ class Admin {
        ?>
     </nav>
 
+    <div class="murmag-admin-form-group-container" id="murmag-admin-group-<?= $tab ?>">
+
     <?php
 
     self::show_rjsf_admin_form($tab);
+
+    ?>
+
+    </div>
+
+    <?php
 
 	}
 
@@ -208,10 +216,19 @@ class Admin {
   const schema = <?= $admin_schema_json ?>;
 
   const uiSchema = {
-    filters : {
-      "ui:field" : "table"
+    filters: {
+      classNames: "murmag-filter-field"
+    },
+
+    schemas: {
+      classNames: "murmag-schemas-field"
+    },
+
+    indices: {
+      classNames: "murmag-indices-field"
     }
-  }
+  };
+
 
   const formData = <?= $current_values_json ?>;
 
@@ -232,6 +249,7 @@ class Admin {
     Form,
     {
       schema,
+      uiSchema,
       formData,
       onChange: log("changed"),
       onSubmit: murmagAdminFormSubmit,

@@ -74,7 +74,8 @@
  }
 
  #murmagg-admin-form-container {
-  padding: 2em;
+  padding: 1em;
+  padding-left: 2em;
   position: relative;
  }
 
@@ -100,8 +101,10 @@
 
 
  #murmagg-admin-form fieldset.field-array{
-  border-top: 1px solid black;
-  border-bottom: 1px solid black;
+   border-top: 1px solid #ccc;
+   border-bottom: 1px solid #ccc;
+   background-color: #f8f8f8;
+   padding: 1em;
  }
 
  #murmagg-admin-form fieldset.field-array legend{
@@ -111,14 +114,15 @@
  }
 
   #murmagg-admin-form .field {
-   margin-bottom: 3em;
-   margin-top: 3em;
+   padding-bottom: 1em;
+   padding-top: 1em;
   }
 
   #murmagg-admin-form .field label{
     font-weight: bold;
+    font-size: 1.1em;
     display: block;
-    margin-bottom: 1em;
+    margin-bottom: 0.3em;
   }
 
   #murmagg-admin-form .field select{
@@ -131,11 +135,8 @@
     max-width: 500px;
   }
 
-  #murmagg-admin-form .array-item .field-object fieldset {
-    display: flex;
-  }
 
-  #murmagg-admin-form .array-item .field-object fieldset .field{
+  #murmagg-adm--in-form .array-item .field-object fieldset .field{
     margin-top: 0;
     margin-bottom: 0;
   }
@@ -148,13 +149,28 @@
 
   #murmagg-admin-form .array-item .array-item-toolbox
   {
-    margin-top: 5.6em;
-    margin-left: 1em;
+    position: absolute;
+    height: 100%;
+    right: 0;
+    min-width: 80px;
+    top: 0;
   }
 
+  #murmagg-admin-form .array-item .array-item-toolbox .btn-group
+  {
+    position: absolute;
+    right: 15px;
+    bottom: 15px;
+  }
   #murmagg-admin-form .array-item-list .array-item
   {
     display: flex;
+    border: 1px solid #ccc;
+    padding-left: 1em;
+    margin-bottom: 1em;
+    box-shadow: 2px 2px 5px #ddd;
+    background-color: rgba(255,255,255,0.5);
+    position:relative;
   }
 
   #murmagg-admin-form .field-array .array-item-add button::before {
@@ -164,6 +180,15 @@
   #murmagg-admin-form .field-array button.array-item-remove::before {
     content: "Delete";
     font-weight: normal;
+  }
+
+ /* Field-specific styles */
+
+ /* Filters and schemas (horizontal array inputs) */
+
+  #murmagg-admin-form .murmag-filter-field .array-item fieldset
+  {
+    display: flex;
   }
 
 
