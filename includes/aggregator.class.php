@@ -141,16 +141,6 @@ class Aggregator {
 		}
 	}
 
-	public function set_notice( $message, $type = 'notice' ) {
-
-		$this->notices[]                  = array(
-			'message' => $message,
-			'type'    => $type,
-		);
-		$_SESSION['murmurations_notices'] = $this->notices;
-
-	}
-
 	public function load_nodes( $args = null ) {
 
 		$default_args = array(

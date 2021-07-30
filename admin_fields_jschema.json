@@ -236,7 +236,25 @@
     "type" :  "boolean",
     "title" :  "Enable feeds",
     "group" : "config",
+    "default" : false,
     "description" : "Enable collecting feed data from nodes."
+  },
+  "logging_mode" : {
+    "type" :  "string",
+    "enum" : [
+      "none",
+      "single",
+      "append"
+    ],
+    "enumNames" : [
+      "None (don't write to log file)",
+      "Single (overwrite log with each request)",
+      "Append (add logs for each request to log file)"
+    ],
+    "title" :  "Logging mode",
+    "group" : "config",
+    "default" : "none",
+    "description" : "Set whether and how log files are written"
   }
 }
 }

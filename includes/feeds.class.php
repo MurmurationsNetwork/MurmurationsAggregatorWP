@@ -257,7 +257,7 @@ class Feeds {
 			}
 		}
 
-		set_notice( 'Feeds updated. ' . $results['feed_items_fetched'] . ' feed items fetched from ' . $results['nodes_with_feeds'] . ' nodes. ' . $results['feed_items_saved'] . ' feed items saved.', 'success' );
+		Notices::set( 'Feeds updated. ' . $results['feed_items_fetched'] . ' feed items fetched from ' . $results['nodes_with_feeds'] . ' nodes. ' . $results['feed_items_saved'] . ' feed items saved.', 'success' );
 
 		return $results;
 
@@ -296,7 +296,7 @@ class Feeds {
 			}
 		} else {
 			llog( "This feed could not be parsed: $feed_url" );
-			set_notice( "This feed could not be parsed: $feed_url", 'warning' );
+			Notices::set( "This feed could not be parsed: $feed_url", 'warning' );
 		}
 
 		return $items;
@@ -324,4 +324,3 @@ class Feeds {
 	}
 
 }
-
