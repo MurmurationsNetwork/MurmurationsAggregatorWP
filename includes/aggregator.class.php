@@ -44,7 +44,7 @@ class Aggregator {
 		$this->load_field_map();
 		$this->register_hooks();
 
-		if ( $this->config['enable_feeds'] ) {
+		if ( Settings::get('enable_feeds') === 'true' ) {
 			Feeds::$wpagg = $this;
 			Feeds::init();
 		}
@@ -418,9 +418,7 @@ class Aggregator {
 		require_once $include_path . 'schema.class.php';
 		require_once $include_path . 'config.class.php';
 		require_once $include_path . 'logging.php';
-		if ( $this->config['enable_feeds'] ) {
-			require_once $include_path . 'feeds.class.php';
-		}
+		require_once $include_path . 'feeds.class.php';
 	}
 
 	public function register_hooks() {

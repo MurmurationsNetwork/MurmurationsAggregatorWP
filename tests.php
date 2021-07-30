@@ -29,6 +29,18 @@ class Tests {
     return Schema::get();
   }
 
+
+  public static function fetch_schema(){
+    return Schema::fetch('https://cdn.murmurations.network/schemas/murmurations_map-v1.json');
+  }
+
+  public static function dereference_schema(){
+    $schema = Schema::fetch('https://cdn.murmurations.network/schemas/test_schema-v1.json');
+    $a = array('include' => array('https://cdn.murmurations.network/schemas/murmurations_map-v1.json'));
+    $s = array_replace_recursive($a, json_decode($schema, true) );
+    return Schema::dereference( $s );
+  }
+
 	public static function update_feeds() {
 		return Feeds::update_feeds();
 	}
@@ -140,14 +152,14 @@ class Tests {
 
 		API::$logging_handler = array( 'MurmsAggregatorTests', 'print' );
 
-		$url = 'https://test-index.murmurations.network/v1/nodes';
+		$url = 'https://index.murmurations.network/v1/nodes';
 
-		$options['api_key']             = 'test_api_key';
-		$options['api_basic_auth_user'] = 'user';
-		$options['api_basic_auth_pass'] = 'pass';
+		//$options['api_key']             = 'hello';
+		$options['api_basic_auth_user'] = 'sdf';
+		$options['api_basic_auth_pass'] = 'sdf';
 
 		$query = array(
-		// 'country' => 'Germany',
+		 'country' => 'GB',
 		// 'last_validated' => 1541779342
 		);
 
@@ -156,6 +168,7 @@ class Tests {
 		self::print( $query, 'Query' );
 
 		$json = API::getIndexJson( $url, $query, $options );
+    //$json = API::getIndexJson( $url, array(), null);
 
 		self::print( $json, 'Index result' );
 

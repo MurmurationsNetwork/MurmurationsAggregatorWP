@@ -84,7 +84,7 @@
       }
     },
     "title" :  "Filters",
-    "description" : "Set parameters to limit the nodes that will be fetched and saved.",
+    "description" : "Set parameters to limit the nodes that will be fetched and saved. Nodes must match all the conditions defined  here to be included.",
     "group" : "general"
   },
   "indices" : {

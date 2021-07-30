@@ -28,7 +28,7 @@ class Admin {
 		?>
 	 <button type="submit" name="action" class="murms-update murms-has-icon" value="update_nodes"><i class="murms-icon murms-icon-update"></i>Update nodes</button>
 		<?php
-		if ( Config::get( 'enable_feeds' ) ) :
+		if ( Settings::get( 'enable_feeds' ) === 'true' ) :
 			?>
 	   <button type="submit" name="action" class="murms-update murms-has-icon" value="update_murms_feed_items"><i class="murms-icon murms-icon-update"></i>Update feeds</button>
 			<?php
@@ -464,7 +464,7 @@ class Admin {
 			}
 		}
 
-		if ( Config::get('enable_feeds') ) {
+		if ( Settings::get('enable_feeds') === 'true' ) {
 			if ( $murm_post_data['feed_update_interval'] != Settings::get('feed_update_interval') ) {
 				$new_interval = $murm_post_data['feed_update_interval'];
 				$timestamp    = wp_next_scheduled( 'murmurations_feed_update' );
@@ -514,7 +514,7 @@ class Admin {
 
     }
 
-    if ( Config::get('enable_feeds') ) {
+    if ( Settings::get('enable_feeds') === 'true' ) {
       if ( $data['feed_update_interval'] != Settings::get('feed_update_interval') ) {
         $new_interval = $data['feed_update_interval'];
         $timestamp    = wp_next_scheduled( 'murmurations_feed_update' );
