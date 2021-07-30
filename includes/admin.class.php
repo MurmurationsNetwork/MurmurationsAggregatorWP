@@ -46,7 +46,38 @@ class Admin {
 
 		echo Notices::show();
 
-    self::show_rjsf_admin_form();
+    $tabs = [
+      'general' => "General",
+      'node_settings' => "Nodes",
+      'map_settings' => "Map",
+      'feed_settings' => "Feeds",
+      'data_sources' => "Data Sources",
+      'config' => "Advanced"
+    ];
+
+    $tabs = apply_filters( 'murmurations-aggregator-admin-tabs', $tabs );
+
+    $tab = 'general';
+
+    if(isset($_GET['tab']) && isset($tabs[$_GET['tab']])){
+      $tab = $_GET['tab'];
+    }
+
+    ?>
+
+    <nav class="nav-tab-wrapper">
+      <?php
+        foreach ($tabs as $slug => $title) {
+          $class = $slug == $tab ? 'nav-tab-active' : "";
+          echo '<a href="?page='.Config::get('plugin_slug').'-settings&tab='.$slug.'" class="nav-tab '. $class .'">'.$title.' </a>';
+
+        }
+       ?>
+    </nav>
+
+    <?php
+
+    self::show_rjsf_admin_form($tab);
 
 	}
 
@@ -72,50 +103,59 @@ class Admin {
     return $values;
   }
 
-  public static function show_rjsf_admin_form(){
+  public static function show_rjsf_admin_form($group = null){
 
-    $admin_schema = Settings::get_schema_array();
+    $raw_admin_schema = Settings::get_schema_array();
 
     $current_values = Settings::get();
 
     /* Preprocess for certain special fields */
 
-    foreach ($admin_schema['properties'] as $field => $attribs) {
+    $admin_schema = array();
 
-      /* Load the template files list into enum options */
+    foreach ($raw_admin_schema['properties'] as $field => $attribs) {
 
-      if($field === 'directory_template'){
-        $files = array_diff(
-          scandir( Config::get( 'template_directory' ) ),
-          array( '..', '.' )
-        );
+      if( !$group || ($attribs['group'] == $group ) ) {
 
-        $attribs['enum'] = array();
+        if($attribs['type'] === 'array' && ! is_array( $current_values[$field] ) ){
+          $current_values[$field] = array();
+        }
 
-        foreach ( $files as $key => $fn ) {
-          if ( substr( $fn, -4 ) == '.php' ) {
-            $attribs['enum'][] = substr( $fn, 0, -4 );
+        /* Load the template files list into enum options */
+
+        if($field === 'directory_template'){
+          $files = array_diff(
+            scandir( Config::get( 'template_directory' ) ),
+            array( '..', '.' )
+          );
+
+          $attribs['enum'] = array();
+
+          foreach ( $files as $key => $fn ) {
+            if ( substr( $fn, -4 ) == '.php' ) {
+              $attribs['enum'][] = substr( $fn, 0, -4 );
+            }
           }
+
+        /* Build filter field select from data schema */
+
+        } else if( $field === 'filters' ){
+
+          $enum = array();
+          $enumNames = array();
+
+          foreach ( Schema::get_fields() as $schema_field => $schema_field_attribs ) {
+            $enum[] = $schema_field;
+            $enumNames[] = $schema_field_attribs['title'];
+          }
+
+          $attribs['items']['properties']['field']['enum'] = $enum;
+          $attribs['items']['properties']['field']['enumNames'] = $enumNames;
+
         }
 
-      /* Build filter field select from data schema */
-
-      } else if( $field === 'filters' ){
-
-        $enum = array();
-        $enumNames = array();
-
-        foreach ( Schema::get_fields() as $schema_field => $schema_field_attribs ) {
-          $enum[] = $schema_field;
-          $enumNames[] = $schema_field_attribs['title'];
-        }
-
-        $attribs['items']['properties']['field']['enum'] = $enum;
-        $attribs['items']['properties']['field']['enumNames'] = $enumNames;
-
+        $admin_schema['properties'][$field] = $attribs;
       }
-
-      $admin_schema['properties'][$field] = $attribs;
     }
 
     $current_values = self::fix_rjsf_data_types( $admin_schema, $current_values );
@@ -127,7 +167,13 @@ class Admin {
     $nonce_field = wp_nonce_field( 'murmurations_ag_admin_form' , 'murmurations_ag_admin_form_nonce', true, false);
 
     ?>
-<div id="murmagg-admin-form"></div>
+<div id="murmagg-admin-form-container">
+  <div id="murmagg-admin-form-overlay"></div>
+  <div id="murmagg-admin-form-notice"></div>
+  <div id="murmagg-admin-form"></div>
+</div>
+
+
 
 <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
@@ -137,6 +183,10 @@ class Admin {
 
   const murmagAdminFormSubmit = (Form, e) => {
 
+    formOverlay = document.getElementById('murmagg-admin-form-overlay');
+
+    formOverlay.style.visibility = "visible";
+
     var data = {
       'action': 'save_settings',
       'formData': Form.formData
@@ -144,6 +194,11 @@ class Admin {
 
     jQuery.post(ajaxurl, data, function(response) {
       console.log(response);
+      formOverlay.style.visibility = "hidden";
+      var notice = document.getElementById('murmagg-admin-form-notice');
+      notice.style.display = "block";
+      notice.innerHTML = response.message;
+      notice.className = "notice notice-"+response.status;
     });
 
   }
@@ -164,6 +219,15 @@ class Admin {
 
   const log = (type) => console.log.bind(console, type);
 
+  const saveButton = React.createElement(
+    'button',
+    {
+      type:"submit",
+      className : "button button-primary button-large"
+    },
+    'Save Settings'
+  );
+
   const element = React.createElement(
     Form,
     {
@@ -172,7 +236,8 @@ class Admin {
       onChange: log("changed"),
       onSubmit: murmagAdminFormSubmit,
       onError: log("errors")
-    }
+    },
+    saveButton
   )
   ReactDOM.render(element, document.getElementById("murmagg-admin-form"));
 
@@ -416,6 +481,21 @@ class Admin {
       }
     }
 
+    $schemas = array();
+
+    if ( $data['schemas'] != Settings::get('schemas') ) {
+      foreach ( $data['schemas'] as $key => $url ) {
+        $schema = Schema::fetch($url);
+        $schema = Schema::dereference($schema);
+        $schemas[] = $schema;
+      }
+
+      $master_schema = Schema::merge($schemas);
+
+      update_option( 'murmurations_aggregator_master_schema', $master_schema );
+
+    }
+
     if ( Config::get('enable_feeds') ) {
       if ( $data['feed_update_interval'] != Settings::get('feed_update_interval') ) {
         $new_interval = $data['feed_update_interval'];
@@ -440,6 +520,7 @@ class Admin {
     $result = array(
         'data' => $data,
         'dataStr' => print_r($data, true),
+        'status' => 'success',
         'message' => 'Settings saved'
     );
 

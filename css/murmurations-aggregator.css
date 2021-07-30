@@ -73,9 +73,31 @@
    padding: 1.5em;
  }
 
- #murmagg-admin-form {
-  margin-left: 2em;
+ #murmagg-admin-form-container {
+  padding: 2em;
+  position: relative;
  }
+
+ #murmagg-admin-form-overlay {
+   position: absolute;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   background-color:rgba(200, 200, 200, 0.8);
+   z-index: 10000;
+   visibility: hidden;
+ }
+
+ #murmagg-admin-form-overlay::before {
+   position: absolute;
+   content: "Saving settings...";
+   top: 50%;
+   left: 45%;
+   font-size: 20px;
+   color: #000;
+ }
+
 
  #murmagg-admin-form fieldset.field-array{
   border-top: 1px solid black;
@@ -143,7 +165,6 @@
     content: "Delete";
     font-weight: normal;
   }
-
 
 
 
