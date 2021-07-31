@@ -8,19 +8,6 @@ class Node {
 	public function __construct( $schema, $field_map ) {
 		$this->schema    = $schema;
 		$this->field_map = $field_map;
-
-		/*
-		if(is_numeric($data)){
-		$this->ID = $data;
-		}else if(is_array($data)){
-		$this->data = $data;
-		if($data['ID']){
-		$this->ID = $data['ID'];
-		}
-		}else if(is_string($data)){
-		$this->url = $data;
-		}
-		*/
 	}
 
 	public function buildFromJson( $json ) {
@@ -91,9 +78,6 @@ class Node {
 		foreach ( $filters as $condition ) {
 			if ( ! $this->checkCondition( $condition ) ) {
 				$matched = false;
-				// llog("Failed condition.</b> Node: ".print_r($node_data_ar,true)." \n Cond:".print_r($condition,true));
-			} else {
-				// llog("Matched condition. Node: ".print_r($node_data_ar,true)." \n Cond:".print_r($condition,true));
 			}
 		}
 
@@ -102,35 +86,35 @@ class Node {
 
 	private function checkCondition( array $condition ) {
 
-		list($subject, $predicate, $object) = $condition;
+    extract($condition);
 
-		if ( ! isset( $this->data[ $subject ] ) ) {
+		if ( ! isset( $this->data[ $field ] ) ) {
 			return false;
 		}
 
-		switch ( $predicate ) {
+		switch ( $comparison ) {
 			case 'equals':
-				if ( $this->data[ $subject ] == $object ) {
+				if ( $this->data[ $field ] == $value ) {
 					return true;
 				}
 				break;
 			case 'isGreaterThan':
-				if ( $this->data[ $subject ] > $object ) {
+				if ( $this->data[ $field ] > $value ) {
 					return true;
 				}
 				break;
 			case 'isLessThan':
-				if ( $this->data[ $subject ] < $object ) {
+				if ( $this->data[ $field ] < $value ) {
 					return true;
 				}
 				break;
 			case 'isIn':
-				if ( strpos( $object, $this->data[ $subject ] ) !== false ) {
+				if ( strpos( $value, $this->data[ $field ] ) !== false ) {
 					return true;
 				}
 				break;
 			case 'includes':
-				if ( strpos( $this->data[ $subject ], $object ) !== false ) {
+				if ( strpos( $this->data[ $field ], $value ) !== false ) {
 					return true;
 				}
 				break;
@@ -293,4 +277,3 @@ class Node {
 		$this->data[ $property ] = $value;
 	}
 }
-
