@@ -72,7 +72,7 @@ class API {
 		$result = curl_exec( $ch );
 
 		if ( $result === false ) {
-			self::log( 'No result returned from cURL request to node. cURL error: ' . curl_error( $ch ) );
+			Notices::set( 'No result returned from cURL request to node. cURL error: ' . curl_error( $ch ) );
 			return false;
 		}
 
@@ -112,7 +112,7 @@ class API {
 		$result = curl_exec( $ch );
 
 		if ( $result === false ) {
-			self::log( 'No result returned from cURL request to index. cURL error: ' . curl_error( $ch ) );
+			Notices::set( 'No result returned from cURL request to index. cURL error: ' . curl_error( $ch ) );
 			return false;
 		} else {
 			return $result;
@@ -126,8 +126,8 @@ class API {
 		try {
 			$rss = Feed::loadRss( $url );
 		} catch ( \Exception $e ) {
-			self::setNotice( 'Error connecting to feed URL: ' . $url, 'warning' );
-			self::log( "Couldn't load feed" );
+			Notices::set( 'Error connecting to feed URL: ' . $url, 'warning' );
+			llog( "Couldn't load feed" );
 		}
 
 		$ar = xml2array( $rss );
@@ -160,16 +160,5 @@ class API {
 
 			*/
 
-	}
-
-	private static function log( $content, $meta = null, $type = 'notice' ) {
-		if ( is_callable( self::$logging_handler ) ) {
-			call_user_func( self::$logging_handler, $content, $meta, $type = 'notice' );
-		} else {
-			echo '<pre>';
-			echo $meta ? $meta . ': ' : '';
-			echo ( is_array( $content ) || is_object( $content ) ) ? print_r( (array) $content, true ) : $content;
-			echo '</pre>';
-		}
 	}
 }
