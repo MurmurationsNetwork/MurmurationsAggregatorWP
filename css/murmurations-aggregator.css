@@ -69,15 +69,139 @@
 }
 
 /* Admin styles (should be moved to admin-specific CSS) */
-  .murmurations-ag-admin-field{
+  .murmurations-ag-admin-field {
    padding: 1.5em;
  }
 
+ #murmagg-admin-form-container {
+  padding: 1em;
+  padding-left: 2em;
+  position: relative;
+ }
 
- .murmurations-ag-admin-field label{
+ #murmagg-admin-form-overlay {
+   position: absolute;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   background-color:rgba(200, 200, 200, 0.8);
+   z-index: 10000;
+   visibility: hidden;
+ }
+
+ #murmagg-admin-form-overlay::before {
+   position: absolute;
+   content: "Saving settings...";
+   top: 50%;
+   left: 45%;
+   font-size: 20px;
+   color: #000;
+ }
+
+
+ #murmagg-admin-form fieldset.field-array{
+   border-top: 1px solid #ccc;
+   border-bottom: 1px solid #ccc;
+   background-color: #f8f8f8;
+   padding: 1em;
+ }
+
+ #murmagg-admin-form fieldset.field-array legend{
+  padding: 5px 0.5em 10px 0.5em;
+  margin-left: 2em;
+  font-weight: bold;
+ }
+
+  #murmagg-admin-form .field {
+   padding-bottom: 1em;
+   padding-top: 1em;
+  }
+
+  #murmagg-admin-form .field label{
+    font-weight: bold;
+    font-size: 1.1em;
+    display: block;
+    margin-bottom: 0.3em;
+  }
+
+  #murmagg-admin-form .field select{
+    width: 100%;
+    max-width: 200px;
+  }
+
+  #murmagg-admin-form .field input[type=text] {
+    width: 100%;
+    max-width: 500px;
+  }
+
+
+  #murmagg-adm--in-form .array-item .field-object fieldset .field{
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  #murmagg-admin-form .array-item .array-item-move-up,
+  #murmagg-admin-form .array-item .array-item-move-down
+  {
+    display: none;
+  }
+
+  #murmagg-admin-form .array-item .array-item-toolbox
+  {
+    position: absolute;
+    height: 100%;
+    right: 0;
+    min-width: 80px;
+    top: 0;
+  }
+
+  #murmagg-admin-form .array-item .array-item-toolbox .btn-group
+  {
+    position: absolute;
+    right: 15px;
+    bottom: 15px;
+  }
+  #murmagg-admin-form .array-item-list .array-item
+  {
+    display: flex;
+    border: 1px solid #ccc;
+    padding-left: 1em;
+    margin-bottom: 1em;
+    box-shadow: 2px 2px 5px #ddd;
+    background-color: rgba(255,255,255,0.5);
+    position:relative;
+  }
+
+  #murmagg-admin-form .field-array .array-item-add button::before {
+    content: "Add new";
+  }
+
+  #murmagg-admin-form .field-array button.array-item-remove::before {
+    content: "Delete";
+    font-weight: normal;
+  }
+
+ /* Field-specific styles */
+
+ /* Filters and schemas (horizontal array inputs) */
+
+  #murmagg-admin-form .murmag-filter-field .array-item fieldset
+  {
+    display: flex;
+  }
+
+
+
+ .murmurations-ag-admin-field label {
    width: 50%;
-   max-width: 150px;
+   max-width: 200px;
    float:left;
+ }
+
+ .murmurations-ag-admin-field label, #murmagg-admin-form .field-boolean label{
+   width: 50%;
+   max-width: 500px;
  }
 
  .murmurations-ag-admin-field input[type=text],  .murmurations-ag-admin-field textarea,  .murmurations-ag-admin-field div.awesomeplete{

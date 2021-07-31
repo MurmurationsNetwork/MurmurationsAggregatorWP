@@ -38,38 +38,26 @@ class Aggregator {
 
 		Config::$config = $this->config;
 
-		$this->load_settings();
+    Settings::load();
+
 		$this->load_schema();
 		$this->load_field_map();
 		$this->register_hooks();
 
-		if ( $this->config['enable_feeds'] ) {
+		if ( Settings::get('enable_feeds') === 'true' ) {
 			Feeds::$wpagg = $this;
 			Feeds::init();
 		}
 
+    /* Temporary arrangement... */
+    if( is_admin() ){
+      Admin::$wpagg = $this;
+    }
+
+
 	}
 
-	public function get_setting( $setting ) {
-		return $this->settings[ $setting ];
-	}
 
-	public function load_settings() {
-		$this->settings = get_option( 'murmurations_aggregator_settings' );
-
-		Settings::$settings = $this->settings;
-
-		return $this->settings;
-	}
-
-	public function save_settings() {
-		return update_option( 'murmurations_aggregator_settings', $this->settings );
-	}
-
-	public function save_setting( $setting, $value ) {
-		$this->settings[ $setting ] = $value;
-		$this->save_settings();
-	}
 
 	public function load_schema() {
 		if ( file_exists( $this->config['schema_file'] ) ) {
@@ -91,19 +79,15 @@ class Aggregator {
 
 	public function activate() {
 
-		$fields = json_decode( file_get_contents( dirname( __FILE__ ) . '/admin_fields.json' ), true );
+    $admin_fields = Settings::get_fields();
 
-		$default_settings = array();
-
-		foreach ( $fields as $name => $field ) {
+		foreach ( $admin_fields as $name => $field ) {
 			if ( $field['default'] ) {
-				$default_settings[ $name ] = $field['default'];
+        Settings::set( $name, $field['default'] );
 			}
 		}
 
-		$this->settings = $default_settings;
-
-		$this->save_settings();
+		Settings::save();
 
 	}
 
@@ -150,336 +134,12 @@ class Aggregator {
 		<?php
 	}
 
-	public function show_admin_settings_page() {
-
-		if ( $_POST['action'] ) {
-			check_admin_referer( 'murmurations_ag_actions_form' );
-			if ( $_POST['action'] == 'update_murms_feed_items' ) {
-				Feeds::update_feeds();
-			}
-			if ( $_POST['action'] == 'update_nodes' ) {
-				$this->update_nodes();
-			}
-			if ( $_POST['action'] == 'delete_all_nodes' ) {
-				$this->delete_all_nodes();
-			}
-		}
-
-		?>
-	 <h1><?php echo $this->config['plugin_name']; ?> Settings</h1>
-	 <form method="POST">
-		<?php
-		wp_nonce_field( 'murmurations_ag_actions_form' );
-		?>
-	 <button type="submit" name="action" class="murms-update murms-has-icon" value="update_nodes"><i class="murms-icon murms-icon-update"></i>Update nodes</button>
-		<?php
-		if ( Config::get( 'enable_feeds' ) ) :
-			?>
-	   <button type="submit" name="action" class="murms-update murms-has-icon" value="update_murms_feed_items"><i class="murms-icon murms-icon-update"></i>Update feeds</button>
-			<?php
-	   endif;
-		?>
-
-	 <button type="submit" name="action" class="murms-delete murms-has-icon" value="delete_all_nodes"><i class="murms-icon murms-icon-delete"></i>Delete all stored nodes</button>
-
-   </form>
-		<?php
-
-		if ( isset( $_POST['murmurations_ag'] ) ) {
-			$this->process_admin_form();
-		}
-
-		echo $this->show_notices();
-
-		/*
-		TODO: Separate sections into their own JS-toggled tabs
-
-		$admin_tabs = array(
-		'network-settings' => 'Network Settings',
-		'feeds' => 'Feeds'
-		);
-
-		$tab = $_GET['tab'];
-
-		if($tab === null) $tab = 'network-settings';
-
-
-		echo '<nav class="nav-tab-wrapper">';
-		foreach ($admin_tabs as $key => $name) {
-		echo "<a href=\"?page=murmurations-aggregator-settings&tab=$key\" class=\"nav-tab ";
-		if($tab === $key) echo 'nav-tab-active';
-		echo "\">$name</a>";
-		}
-
-		echo "</nav>";
-
-		*/
-
-		$this->show_admin_form( $murm_post_data );
-
-	}
-
-	public function load_admin_fields() {
-		return json_decode( file_get_contents( dirname( __FILE__ ) . '/../admin_fields.json' ), true );
-	}
-
-
-	public function show_admin_form( $post_data = false ) {
-		$current = $this->settings;
-
-		$fields = json_decode( file_get_contents( dirname( __FILE__ ) . '/../admin_fields.json' ), true );
-
-		$field_groups = array();
-
-		// Reorganize into sections
-		foreach ( $fields as $name => $field_info ) {
-			$field_groups[ $field_info['group'] ][ $name ] = $field_info;
-		}
-
-		?>
-	<form method="POST">
-		<?php
-		wp_nonce_field( 'murmurations_ag_admin_form' );
-
-		foreach ( $field_groups as $group => $fields ) {
-			$name = ucfirst( str_replace( '_', ' ', $group ) );
-			?>
-	  <div id="murms-admin-form-section-<?php echo $group; ?>" class="murms-admin-form-section">
-		<h2><?php echo $name; ?></h2>
-			<?php
-
-			foreach ( $fields as $key => $f ) {
-				$f['name']          = "murmurations_ag[$key]";
-				$f['current_value'] = $current[ $key ];
-
-				?>
-		<div class="murmurations-ag-admin-field">
-		  <label for="<?php echo $f['name']; ?>"><?php echo $f['title']; ?></label>
-				<?php
-				echo $this->admin_field( $f );
-				?>
-		</div>
-
-				<?php
-			}
-
-			echo '</div>';
-
-		}
-
-		?>
-	<input type="submit" value="Save" class="button button-primary button-large">
-</form>
-		<?php
-
-	}
-
-	public function admin_field( $f ) {
-
-		// This is very rudimentary now. Possibly should be replaced with a field class
-		if ( $f['inputAs'] == 'text' ) {
-
-			$out = '<input type="text" class="" name="' . $f['name'] . '" id="' . $f['name'] . '" value="' . $f['current_value'] . '" />';
-
-		} elseif ( $f['inputAs'] == 'checkbox' ) {
-
-			if ( $f['current_value'] == 'true' ) {
-				$checked = 'checked';
-			} else {
-				$checked = '';
-			}
-			$out = '<input type="checkbox" class="checkbox" name="' . $f['name'] . '" id="' . $f['name'] . '" value="true" ' . $checked . '/>';
-
-		} elseif ( $f['inputAs'] == 'select' ) {
-			$options = $f['options'];
-			$out     = '<select name="' . $f['name'] . '" id="' . $f['name'] . '">';
-			$out    .= $this->show_select_options( $options, $f['current_value'] );
-			$out    .= '</select>';
-
-		} elseif ( $f['inputAs'] == 'template_selector' ) {
-			// This should be updated to find templates in the css directory
-			// (It's overridable as is, but only by files of the same name)
-
-			$files = array_diff( scandir( $this->config['template_directory'] ), array( '..', '.' ) );
-
-			$options = array();
-
-			foreach ( $files as $key => $fn ) {
-				if ( substr( $fn, -4 ) == '.php' ) {
-					$name             = substr( $fn, 0, -4 );
-					$options[ $name ] = $name;
-				}
-			}
-
-			$out  = '<select name="' . $f['name'] . '" id="' . $f['name'] . '">';
-			$out .= $this->show_select_options( $options, $f['current_value'] );
-			$out .= '</select>';
-
-		} elseif ( $f['inputAs'] == 'multiple_array' ) {
-
-			$filters = $f['current_value'];
-
-			$out          = '<div class="murmurations_ag_filter_field_set">';
-			$out         .= '<table><tr><th>Field</th><th>Match type</th><th>Value</th></tr>';
-			$filter_count = 0;
-
-			if ( is_array( $filters ) ) {
-				foreach ( $filters as $key => $value ) {
-					$out .= $this->show_filter_field( $filter_count, $value );
-					$filter_count++;
-				}
-			}
-
-			while ( $filter_count < 5 ) {
-				$out .= $this->show_filter_field( $filter_count );
-				$filter_count++;
-			}
-
-			$out .= '</table></div>';
-		}
-		return $out;
-	}
-
-	public function show_filter_field( $id, $current_value = false ) {
-
-		$keys = array( 'subject', 'predicate', 'object' );
-
-		if ( ! $current_value ) {
-			$current_value = array( '', '', '' );
-		}
-
-		$current_value = array_combine( $keys, $current_value );
-
-		$subject_options = array( '' => '' );
-
-		foreach ( $this->schema['properties'] as $field => $attributes ) {
-			$subject_options[ $field ] = $attributes['title'];
-		}
-
-		$match_options = array(
-			''              => '',
-			'includes'      => 'Includes',
-			'equals'        => 'Equals',
-			'isGreaterThan' => 'Is greater than',
-			'isIn'          => 'Is in',
-		);
-
-		$out  = '<tr><td><select name="filters[' . $id . '][subject]">';
-		$out .= $this->show_select_options( $subject_options, $current_value['subject'] );
-		$out .= '</select></td><td>';
-		$out .= '<select name="filters[' . $id . '][predicate]">';
-		$out .= $this->show_select_options( $match_options, $current_value['predicate'] );
-		$out .= '</select></td><td>';
-		$out .= '<input type="text" class="" name="filters[' . $id . '][object]" value="' . $current_value['object'] . '" />';
-		$out .= '</select></td></tr>';
-
-		return $out;
-	}
-
-	public function show_select_options( $options, $current = false ) {
-		$out = '';
-		foreach ( $options as $key => $value ) {
-			if ( $current && $key == $current ) {
-				$selected = 'selected';
-			}
-			$out     .= '<option ' . $selected . ' value="' . $key . '">' . $value . '</option>' . "\n";
-			$selected = '';
-		}
-		return $out;
-	}
-
-
-	public function process_admin_form() {
-
-		$fields = $this->load_admin_fields();
-
-		$murm_post_data = $_POST['murmurations_ag'];
-
-		check_admin_referer( 'murmurations_ag_admin_form' );
-
-		if ( is_array( $_POST['filters'] ) ) {
-			foreach ( $_POST['filters'] as $key => $filter ) {
-				if ( $filter['subject'] && $filter['predicate'] && $filter['object'] ) {
-					$murm_post_data['filters'][] = array(
-						$filter['subject'],
-						$filter['predicate'],
-						$filter['object'],
-					);
-				}
-			}
-		}
-
-		if ( $murm_post_data['node_update_interval'] != $this->settings['node_update_interval'] ) {
-			$new_interval = $murm_post_data['node_update_interval'];
-			$timestamp    = wp_next_scheduled( 'murmurations_node_update' );
-			wp_unschedule_event( $timestamp, 'murmurations_node_update' );
-			if ( $new_interval != 'manual' ) {
-				wp_schedule_event( time(), $new_interval, 'murmurations_node_update' );
-			}
-		}
-
-		if ( $this->config['enable_feeds'] ) {
-			if ( $murm_post_data['feed_update_interval'] != $this->settings['feed_update_interval'] ) {
-				$new_interval = $murm_post_data['feed_update_interval'];
-				$timestamp    = wp_next_scheduled( 'murmurations_feed_update' );
-				wp_unschedule_event( $timestamp, 'murmurations_feed_update' );
-				if ( $new_interval != 'manual' ) {
-					wp_schedule_event( time(), $new_interval, 'murmurations_feed_update' );
-				}
-			}
-		}
-
-		foreach ( $fields as $key => $f ) {
-			$this->settings[ $key ] = $murm_post_data[ $key ];
-		}
-
-		$this->save_settings();
-
-		$this->set_notice( 'Data saved', 'success' );
-
-	}
-
 	public function error( $message, $type = 'notice' ) {
-		$this->set_notice( $message, $type );
+		Notices::set( $message, $type );
 		if ( $type == 'fatal' ) {
 			exit( $message );
 		}
 	}
-
-	public function set_notice( $message, $type = 'notice' ) {
-
-		$this->notices[]                  = array(
-			'message' => $message,
-			'type'    => $type,
-		);
-		$_SESSION['murmurations_notices'] = $this->notices;
-
-	}
-
-	function get_notices() {
-		$notices = array();
-		if ( count( $this->notices ) > 0 ) {
-			$notices = $this->notices;
-		} elseif ( isset( $_SESSION['murmurations_notices'] ) ) {
-			$notices = $_SESSION['murmurations_notices'];
-		}
-		unset( $_SESSION['murmurations_notices'] );
-		return $notices;
-	}
-
-	function show_notices() {
-		$notices = $this->get_notices();
-		foreach ( $notices as $notice ) {
-			?>
-	  <div class="notice notice-<?php echo $notice['type']; ?>">
-					<p><?php echo $notice['message']; ?></p>
-			</div>
-
-			<?php
-		}
-	}
-
-
 
 	public function load_nodes( $args = null ) {
 
@@ -519,20 +179,20 @@ class Aggregator {
 				$count++;
 			}
 		}
-		$this->set_notice( "$count nodes deleted" );
+		Notices::set( "$count nodes deleted" );
 		return $count;
 	}
 
 	public function update_nodes() {
 
-		$settings = $this->settings;
+		$settings = Settings::get();
 
 		$filters = $settings['filters'];
 
 		if ( is_array( $filters ) ) {
-			foreach ( $filters as $key => $condition ) {
-				if ( in_array( $condition[0], $this->config['index_fields'] ) ) {
-					$index_filters[] = $condition;
+			foreach ( $filters as $key => $f ) {
+				if ( in_array( $f['field'], Config::get('index_fields') ) ) {
+					$index_filters[] = [$f['field'], $f['comparison'], $f['value']];
 				}
 			}
 		} else {
@@ -550,50 +210,41 @@ class Aggregator {
 			$query[ $filter[0] ] = $filter[2];
 		}
 
-		$options = array();
+    $all_index_nodes = array();
 
-		if ( isset( $settings['api_key'] ) ) {
-			$options['api_key'] = $settings['api_key'];
-		}
-		if ( isset( $settings['api_basic_auth_user'] ) ) {
-			$options['api_basic_auth_user'] = $settings['api_basic_auth_user'];
-		}
-		if ( isset( $settings['api_basic_auth_pass'] ) ) {
-			$options['api_basic_auth_pass'] = $settings['api_basic_auth_pass'];
-		}
 
-		$index_nodes = API::getIndexJson( $settings['index_url'], $query, $options );
 
-		$index_nodes = json_decode( $index_nodes, true );
+    foreach ($settings['indices'] as $index) {
 
-		$index_nodes = $index_nodes['data'];
+  		$options = array();
 
-		/*
-		 FUTURE
-		foreach ($settings['indices'] as $index){
+  		if ( isset( $index['api_key'] ) ) {
+  			$options['api_key'] = $index['api_key'];
+  		}
+  		if ( isset( $index['api_basic_auth_user'] ) ) {
+  			$options['api_basic_auth_user'] = $index['api_basic_auth_user'];
+  		}
+  		if ( isset( $index['api_basic_auth_pass'] ) ) {
+  			$options['api_basic_auth_pass'] = $index['api_basic_auth_pass'];
+  		}
 
-		$url = $index['url'];
+  		$index_nodes = API::getIndexJson( $index['url'], $query, $options );
 
-		if($index['api_key']){
-		$options['api_key'] = $index['api_key'];
-		}
+  		$index_nodes = json_decode( $index_nodes, true );
 
-		$queried_nodes = Murmurations_API::getIndexJson($url,$query,$options);
+  		$index_nodes = $index_nodes['data'];
 
-		if($index_nodes){
-		$index_nodes = array_merge($index_nodes,$queried_nodes);
-		}else{
-		$index_nodes = $queried_nodes;
-		}
+      if ( ! $index_nodes ) {
+        Notices::set( 'Could not connect to index: ' . $index['url'], 'error' );
+      } else {
+        Notices::set( 'Fetched node info from index at ' . $index['url'], 'success' );
+        $all_index_nodes = array_merge( $all_index_nodes, $index_nodes );
+      }
 
-		}
-		*/
 
-		if ( ! $index_nodes ) {
-			$this->set_notice( 'Could not connect to the index', 'error' );
-			return false;
-			/* TODO: Even if the index is out, could still query from stored nodes */
-		}
+    }
+
+    $index_nodes = $all_index_nodes;
 
 		$failed_nodes  = array();
 		$fetched_nodes = array();
@@ -641,7 +292,7 @@ class Aggregator {
 				$build_result = $node->buildFromJson( $node_data );
 
 				if ( ! $build_result ) {
-					$this->set_notice( $node->getErrorsText(), 'error' );
+					Notices::set( $node->getErrorsText(), 'error' );
 					$results['failed_nodes'][] = $url;
 					break;
 				}
@@ -656,7 +307,7 @@ class Aggregator {
 					if ( $result ) {
 						$results['saved_nodes'][] = $url;
 					} else {
-						$this->set_notice( 'Failed to save node: ' . $url, 'error' );
+						Notices::set( 'Failed to save node: ' . $url, 'error' );
 					}
 				} else {
 					if ( $settings['unmatching_local_nodes_action'] == 'delete' ) {
@@ -676,9 +327,10 @@ class Aggregator {
 			$class = 'notice';
 		}
 
-		$this->set_notice( $message, $class );
+		Notices::set( $message, $class );
 
-		$this->save_setting( 'update_time', time() );
+    Settings::set( 'update_time', time() );
+    Settings::save();
 
 	}
 
@@ -719,8 +371,8 @@ class Aggregator {
 
 		$html = $this->leaflet_scripts();
 
-		$map_origin = $this->settings['map_origin'];
-		$map_scale  = $this->settings['map_scale'];
+		$map_origin = Settings::get('map_origin');
+		$map_scale  = Settings::get('map_scale');
 
 		$html .= '<div id="murmurations-map" class="murmurations-map"></div>' . "\n";
 		$html .= '<script type="text/javascript">' . "\n";
@@ -732,7 +384,7 @@ class Aggregator {
     maxZoom: 18,
     zoomOffset: -1,
     id: 'mapbox/streets-v11',
-    accessToken: '" . $this->settings['mapbox_token'] . "'
+    accessToken: '" . Settings::get('mapbox_token') . "'
 }).addTo(murmurations_map);\n";
 
 		foreach ( $this->nodes as $key => $node ) {
@@ -759,13 +411,14 @@ class Aggregator {
 		$include_path = plugin_dir_path( __FILE__ );
 		require_once $include_path . 'api.class.php';
 		require_once $include_path . 'node.class.php';
+		require_once $include_path . 'admin.class.php';
 		require_once $include_path . 'geocode.class.php';
 		require_once $include_path . 'settings.class.php';
+		require_once $include_path . 'notices.class.php';
+		require_once $include_path . 'schema.class.php';
 		require_once $include_path . 'config.class.php';
 		require_once $include_path . 'logging.php';
-		if ( $this->config['enable_feeds'] ) {
-			require_once $include_path . 'feeds.class.php';
-		}
+		require_once $include_path . 'feeds.class.php';
 	}
 
 	public function register_hooks() {
@@ -775,7 +428,16 @@ class Aggregator {
 		add_shortcode( $this->config['plugin_slug'] . '-directory', array( $this, 'show_directory' ) );
 		add_shortcode( $this->config['plugin_slug'] . '-map', array( $this, 'show_map' ) );
 
-		add_action( 'admin_menu', array( $this, 'add_settings_page' ) );
+    if( is_admin() ){
+      add_action(
+        'admin_menu',
+        array(
+          'Murmurations\Aggregator\Admin',
+          'add_settings_page'
+        )
+      );
+    }
+
 
 		register_activation_hook( __FILE__, array( $this, 'activate' ) );
 		register_deactivation_hook( __FILE__, array( $this, 'deactivate' ) );
@@ -785,30 +447,6 @@ class Aggregator {
 		add_action( 'rest_api_init', array( $this, 'register_api_routes' ) );
 
 		add_action( 'murmurations_node_update', array( $this, 'update_nodes' ) );
-
-	}
-
-	public function add_settings_page() {
-
-		$args = array(
-			'page_title' => $this->config['plugin_name'] . ' Settings',
-			'menu_title' => $this->config['plugin_name'],
-			'capability' => 'manage_options',
-			'menu_slug'  => $this->config['plugin_slug'] . '-settings',
-			'function'   => array( $this, 'show_admin_settings_page' ),
-			'icon'       => 'dashicons-admin-site-alt',
-			'position'   => 20,
-		);
-
-		add_menu_page(
-			$args['page_title'],
-			$args['menu_title'],
-			$args['capability'],
-			$args['menu_slug'],
-			$args['function'],
-			$args['icon'],
-			$args['position']
-		);
 
 	}
 
