@@ -31,6 +31,7 @@ class Tests {
 
 
   public static function fetch_schema(){
+    return Schema::fetch('http://localhost/projects/murmurations/wordpress-dev/wp-content/plugins/gen-region/schemas/gen_ecovillages_v0.0.1.json');
     return Schema::fetch('https://cdn.murmurations.network/schemas/murmurations_map-v1.json');
   }
 

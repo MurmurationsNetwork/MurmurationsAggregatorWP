@@ -113,6 +113,7 @@ class API {
 
 		if ( $result === false ) {
 			Notices::set( 'No result returned from cURL request to index. cURL error: ' . curl_error( $ch ) );
+      llog(curl_getinfo($ch), "Failed index request.");
 			return false;
 		} else {
 			return $result;

@@ -205,7 +205,7 @@ class Admin {
       formOverlay.style.visibility = "hidden";
       var notice = document.getElementById('murmagg-admin-form-notice');
       notice.style.display = "block";
-      notice.innerHTML = response.message;
+      notice.innerHTML = '<p>'+response.message+'</p>';
       notice.className = "notice notice-"+response.status;
     });
 
@@ -488,6 +488,8 @@ class Admin {
 
   public static function ajax_save_settings(){
 
+    llog("Saving settings");
+
     $data = $_POST['formData'];
 
     if ( $data['node_update_interval'] != Settings::get('node_update_interval') ) {
@@ -501,16 +503,20 @@ class Admin {
 
     $schemas = array();
 
-    if ( $data['schemas'] != Settings::get('schemas') ) {
-      foreach ( $data['schemas'] as $key => $url ) {
-        $schema = Schema::fetch($url);
+  if ( $data['schemas'] != Settings::get('schemas') ) {
+      llog("New schema URLs found");
+      foreach ( $data['schemas'] as $schema_info ) {
+        llog($schema_info['location'], "Fetching schema");
+        $schema = Schema::fetch($schema_info['location']);
         $schema = Schema::dereference($schema);
         $schemas[] = $schema;
       }
 
-      $master_schema = Schema::merge($schemas);
+      $local_schema = Schema::merge($schemas);
 
-      update_option( 'murmurations_aggregator_master_schema', $master_schema );
+      update_option( 'murmurations_aggregator_local_schema', $local_schema );
+
+      Schema::load();
 
     }
 

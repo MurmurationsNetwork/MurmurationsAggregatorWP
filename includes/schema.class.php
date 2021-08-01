@@ -4,9 +4,6 @@ namespace Murmurations\Aggregator;
 /**
 * Handle schemas
 *
-* This needs to be significantly updated, so that it can handle
-*  - Merging of multiple schemas
-*  - Resolving references
 */
 
 class Schema {
@@ -19,6 +16,34 @@ class Schema {
   public static $library_fields_path = "fields/";
 
   public static function load() {
+
+    $local_schema = get_option('murmurations_aggregator_local_schema');
+
+    if( ! $local_schema ){
+      if( is_array( Settings::get('schemas') ) ){
+        $schemas_info = Settings::get('schemas');
+        $schemas = array();
+        foreach ( $schemas_info as $schema_info ) {
+          $schema = self::fetch($schema_info['location']);
+          $schema = self::dereference($schema);
+          $schemas[] = $schema;
+        }
+
+        $local_schema = self::merge($schemas);
+
+        update_option( 'murmurations_aggregator_local_schema', $local_schema );
+
+        self::$schema = $local_schema;
+        self::$fields = $local_schema['properties'];
+
+      }else{
+        error( 'No local schema or input schemas found', 'fatal' );
+      }
+
+    }
+
+
+    /*
     if ( file_exists( Config::get('schema_file') ) ) {
       $schema_json  = file_get_contents( Config::get('schema_file') );
       $schema = json_decode( $schema_json, true );
@@ -31,10 +56,11 @@ class Schema {
     } else {
       error( 'Schema file not found: ' . Config::get('schema_file'), 'fatal' );
     }
+    */
   }
 
 	public static function get( $field = null ) {
-    if ( ! $schema ){
+    if ( ! self::$schema ){
       self::load();
     }
 		if ( $field ) {
@@ -49,7 +75,7 @@ class Schema {
 	}
 
   public static function get_fields() {
-    if ( ! $schema ){
+    if ( ! self::$schema ){
       self::load();
     }
 
@@ -60,7 +86,7 @@ class Schema {
     if( $value && is_string($attrib) ){
       self::$schema[ $field ][ $attrib ] = $value;
     }else{
-  		self::$config[ $field ] = $attrib;
+  		self::$schema[ $field ] = $attrib;
     }
 	}
 
@@ -153,6 +179,7 @@ class Schema {
 
 		if ( $result === false ) {
 			Notices::set( 'Request to fetch schema from '.$url.' failed. cURL error: ' . curl_error( $ch ) );
+      llog('Request to fetch schema from '.$url.' failed. cURL error: ' . curl_error( $ch ));
 		} else {
       $result = json_decode( $result, true );
       if( ! $result ){

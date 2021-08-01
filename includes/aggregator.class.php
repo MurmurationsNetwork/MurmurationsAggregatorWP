@@ -279,6 +279,8 @@ class Aggregator {
 				$options['api_basic_auth_pass'] = $settings['api_basic_auth_pass'];
 			}
 
+      llog( "Fetching node JSON from " . $url );
+
 			$node_data = API::getNodeJson( $url, $options );
 
 			if ( ! $node_data ) {
