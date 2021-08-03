@@ -138,6 +138,12 @@
     "description" : "Schemas to use for local data model and add as options for queries. The schema file location can be local (on this server, for example uploaded to the WP media library), or remote (for example in the Murmurations schema repository or library service).",
     "group" : "data_sources"
   },
+  "field_map_url" : {
+    "title" : "URL for field map file (maps schema fields to WP fields)",
+    "type" :  "string",
+    "description" : "",
+    "group" : "data_sources"
+  },
   "directory_template" : {
     "type" :  "string",
     "title" :  "Directory template",

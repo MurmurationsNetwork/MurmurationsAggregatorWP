@@ -12,6 +12,8 @@ class Schema {
 
   public static $fields;
 
+  public static $field_map;
+
   public static $library_base_uri = "https://cdn.murmurations.network/";
   public static $library_fields_path = "fields/";
 
@@ -40,6 +42,9 @@ class Schema {
         error( 'No local schema or input schemas found', 'fatal' );
       }
 
+    }else{
+      self::$schema = $local_schema;
+      self::$fields = $local_schema['properties'];
     }
 
 
@@ -89,6 +94,26 @@ class Schema {
   		self::$schema[ $field ] = $attrib;
     }
 	}
+
+  /**
+  * Get the field map as an array
+  *
+  */
+
+  public static function get_field_map() {
+    if( ! self::$field_map ){
+      $field_map_url = Settings::get('field_map_url');
+      if( $field_map_url ){
+        $field_map = self::fetch($field_map_url);
+      } else {
+        Notices::set("No field map URL found");
+        llog("Missing field map URL");
+        return false;
+      }
+      self::$field_map = $field_map;
+    }
+    return self::$field_map;
+  }
 
   /**
   * Merge multiple schemas
