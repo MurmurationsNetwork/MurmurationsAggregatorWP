@@ -22,6 +22,7 @@ class Schema {
     $local_schema = get_option('murmurations_aggregator_local_schema');
 
     if( ! $local_schema ){
+      llog( "No local schema foud in options. Fetching.");
       if( is_array( Settings::get('schemas') ) ){
         $schemas_info = Settings::get('schemas');
         $schemas = array();
@@ -39,7 +40,7 @@ class Schema {
         self::$fields = $local_schema['properties'];
 
       }else{
-        error( 'No local schema or input schemas found', 'fatal' );
+        error( 'No local schema or input schemas found', 'warn' );
       }
 
     }else{
@@ -196,6 +197,9 @@ class Schema {
   */
 
   public static function fetch( $url ) {
+
+    llog( "Fetching schema from " . $url );
+
     $ch = curl_init();
 		curl_setopt( $ch, CURLOPT_URL, $url );
 		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
