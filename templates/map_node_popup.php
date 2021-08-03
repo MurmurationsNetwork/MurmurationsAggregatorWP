@@ -1,4 +1,6 @@
 <?php
+namespace Murmurations\Aggregator;
+
 $popup_str  = '<div class="murmurations-map-popup">';
 $popup_str .= '<div><b>' . $data['name'] . '</b></div>';
 if ( $data['url'] ) {
