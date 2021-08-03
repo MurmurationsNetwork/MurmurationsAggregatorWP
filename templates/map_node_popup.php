@@ -6,9 +6,9 @@ if ( $data['url'] ) {
 }
 if ( $data['description'] ) {
 	$popup_str .= '<div class="description">' . wp_trim_words( $data['description'], 60, '...' );
-	if ( $this->config['node_single'] ) {
-		if ( $this->config['node_single_url_field'] ) {
-			$href   = $data[ $this->config['node_single_url_field'] ];
+	if ( Config::get('node_single') ) {
+		if ( Config::get('node_single_url_field') ) {
+			$href   = $data[ Config::get('node_single_url_field') ];
 			$target = ' target="_blank"';
 		} else {
 			$href = $data['guid'];
