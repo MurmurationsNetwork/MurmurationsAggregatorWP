@@ -44,7 +44,7 @@ class Aggregator {
 		$this->load_field_map();
 		$this->register_hooks();
 
-		if ( Settings::get('enable_feeds') === 'true' ) {
+		if ( Settings::get('enable_feeds') == 'true' ) {
 			Feeds::$wpagg = $this;
 			Feeds::init();
 		}
@@ -102,14 +102,14 @@ class Aggregator {
 
 
 	/* Load an overridable template file */
-	public function load_template( $template, $data ) {
+	public static function load_template( $template, $data ) {
 		if ( file_exists( get_stylesheet_directory() . '/murmurations-aggregator-templates/' . $template ) ) {
 			ob_start();
 			include get_stylesheet_directory() . '/murmurations-aggregator-templates/' . $template;
 			$html = ob_get_clean();
-		} elseif ( file_exists( $this->config['template_directory'] . $template ) ) {
+		} elseif ( file_exists( Config::get('template_directory') . $template ) ) {
 			ob_start();
-			include $this->config['template_directory'] . $template;
+			include  Config::get('template_directory') . $template;
 			$html = ob_get_clean();
 		} else {
 			exit( 'Missing template file: ' . $template );
@@ -154,10 +154,7 @@ class Aggregator {
 
 		if ( count( $posts ) > 0 ) {
 			foreach ( $posts as $key => $post ) {
-				$this->nodes[ $post->ID ] = new Node( $this->schema, $this->field_map );
-
-				$this->nodes[ $post->ID ]->buildFromWPPost( $post );
-
+				$this->nodes[ $post->ID ] = new Node( $post );
 			}
 		} else {
 			llog( 'No node posts found in load_nodes using args: ' . print_r( $args, true ) );
@@ -289,11 +286,9 @@ class Aggregator {
 
 				$results['fetched_nodes'][] = $url;
 
-				$node = new Node( $this->schema, $this->field_map );
+				$node = new Node( $node_data );
 
-				$build_result = $node->buildFromJson( $node_data );
-
-				if ( ! $build_result ) {
+				if ( $node->hasErrors() ) {
 					Notices::set( $node->getErrorsText(), 'error' );
 					$results['failed_nodes'][] = $url;
 					break;
@@ -345,7 +340,7 @@ class Aggregator {
 			$html .= 'No records found';
 		} else {
 			foreach ( $this->nodes as $key => $node ) {
-				$html .= $this->load_template( 'node_list_item.php', $node->data );
+				$html .= self::load_template( 'node_list_item.php', $node->data );
 			}
 		}
 
@@ -393,7 +388,7 @@ class Aggregator {
 
 			if ( is_numeric( $node->data['geolocation']['lat'] ) && is_numeric( $node->data['geolocation']['lon'] ) ) {
 
-				$popup = trim( $this->load_template( 'map_node_popup.php', $node->data ) );
+				$popup = trim( self::load_template( 'map_node_popup.php', $node->data ) );
 
 				$lat = $node->data['geolocation']['lat'];
 				$lon = $node->data['geolocation']['lon'];
@@ -423,6 +418,30 @@ class Aggregator {
 		require_once $include_path . 'feeds.class.php';
 	}
 
+  public function load_node_single_template( $template ) {
+
+     if( is_singular('murmurations_node')){
+       $template = locate_template('single-murmurations_node.php', false);
+     if ( ! $template ){
+       $template = MURMAG_ROOT_PATH . 'templates/single-murmurations_node.php';
+     }
+   }
+
+   return $template;
+  }
+
+  public function load_node_archive_template( $template ) {
+    if ( is_post_type_archive('murmurations_node') ) {
+        $template = locate_template('archive-murmurations_node.php', false);
+      if ( ! $template ){
+        $template = MURMAG_ROOT_PATH . 'templates/archive-murmurations_node.php';
+      }
+    }
+
+    return $template;
+  }
+
+
 	public function register_hooks() {
 
 		add_action( 'init', array( $this, 'register_cpts_and_taxes' ) );
@@ -445,10 +464,15 @@ class Aggregator {
 		register_deactivation_hook( __FILE__, array( $this, 'deactivate' ) );
 
 		wp_enqueue_style( 'murmurations-agg-css', MURMAG_ROOT_URL . 'css/murmurations-aggregator.css' );
-
 		add_action( 'rest_api_init', array( $this, 'register_api_routes' ) );
 
 		add_action( 'murmurations_node_update', array( $this, 'update_nodes' ) );
+
+
+    add_filter( 'single_template', array( $this, 'load_node_single_template' ) );
+
+    add_filter( 'single-murmurations_node_template', array( $this, 'load_node_single_template' ) );
+    add_filter( 'archive_template', array( $this, 'load_node_archive_template') );
 
 	}
 
@@ -534,7 +558,7 @@ class Aggregator {
 				'menu_icon'     => 'dashicons-admin-site-alt',
 				'show_in_menu'  => true, // 'admin.php?page=murmurations-aggregator-settings',
 				'menu_position' => 21,
-				'rewrite'       => array( 'slug' => $this->config['node_slug'] ),
+				'rewrite'       => array( 'slug' => Config::get('node_slug') ),
 			)
 		);
 

@@ -25,10 +25,18 @@ if ( $_GET['t'] ) {
 
 class Tests {
 
+  public static function node_from_id(){
+    return new Node(2113);
+  }
+
+
   public static function schema(){
     return Schema::get();
   }
 
+  public static function get_field_map(){
+    return Schema::get_field_map();
+  }
 
   public static function fetch_schema(){
     return Schema::fetch('http://localhost/projects/murmurations/wordpress-dev/wp-content/plugins/gen-region/schemas/gen_ecovillages_v0.0.1.json');
