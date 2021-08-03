@@ -163,6 +163,7 @@ class Schema {
             $output_schema = array_replace_recursive( $output_schema, self::dereference( $array ) );
           } else {
             Notices::set( "Could not fetch included schema from " . $include_url, "warning" );
+            llog( "Could not fetch included schema from " . $include_url );
           }
         }
       }

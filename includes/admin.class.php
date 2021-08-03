@@ -501,28 +501,14 @@ class Admin {
       }
     }
 
-    $schemas = array();
 
-  if ( $data['schemas'] != Settings::get('schemas') ) {
-      llog("New schema URLs found");
-      foreach ( $data['schemas'] as $schema_info ) {
-        llog($schema_info['location'], "Fetching schema");
-        $schema = Schema::fetch($schema_info['location']);
-        $schema = Schema::dereference($schema);
-        $schemas[] = $schema;
-      }
 
-      llog("Merging local schema out of " . count( $schemas ) . "fetched schema(s)");
+    $parse_new_schemas = false;
 
-      $local_schema = Schema::merge($schemas);
-
-      llog( $local_schema, "Local schema" );
-
-      update_option( 'murmurations_aggregator_local_schema', $local_schema );
-
-      Schema::load();
-
+    if ( $data['schemas'] != Settings::get('schemas') ) {
+      $parse_new_schemas = true;
     }
+
 
     if ( Settings::get('enable_feeds') === 'true' ) {
       if ( $data['feed_update_interval'] != Settings::get('feed_update_interval') ) {
@@ -544,6 +530,31 @@ class Admin {
     }
 
     Settings::save();
+
+    if( $parse_new_schemas === true ) {
+
+      $schemas = array();
+      llog("New schema URLs found");
+
+      foreach ( $data['schemas'] as $schema_info ) {
+
+        $schema = Schema::fetch($schema_info['location']);
+
+        $schema = Schema::dereference($schema);
+        $schemas[] = $schema;
+      }
+
+      llog("Merging local schema out of " . count( $schemas ) . " fetched schema(s)");
+
+      $local_schema = Schema::merge($schemas);
+
+      llog( $local_schema, "Local schema" );
+
+      update_option( 'murmurations_aggregator_local_schema', $local_schema );
+
+      Schema::load();
+
+    }
 
     $result = array(
         'data' => $data,
