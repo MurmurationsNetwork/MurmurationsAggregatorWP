@@ -214,11 +214,13 @@ class Schema {
 			Notices::set( 'Request to fetch schema from '.$url.' failed. cURL error: ' . curl_error( $ch ) );
       llog('Request to fetch schema from '.$url.' failed. cURL error: ' . curl_error( $ch ));
 		} else {
-      $result = json_decode( $result, true );
-      if( ! $result ){
+      $result_ar = json_decode( $result, true );
+      if( ! $result_ar ){
         Notices::set( "Could not parse JSON of included schema from " . $url, "warning" );
-        llog( "Failed to parse JSON of fetched schema");
+        llog( "Failed to parse JSON of schema fetched from " . $url);
+        llog( $result, "Fetched JSON" );
       }
+      $result = $result_ar;
     }
 
     curl_close($ch);
