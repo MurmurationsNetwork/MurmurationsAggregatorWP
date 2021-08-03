@@ -5,9 +5,15 @@ class Node {
 
 	private $errors = array();
 
-	public function __construct( $schema, $field_map ) {
-		$this->schema    = $schema;
-		$this->field_map = $field_map;
+	public function __construct( $arg = null ) {
+    if( is_numeric($arg) ){
+      $post = get_post( $arg );
+      $this->buildFromWPPost( $post );
+    } else if ( is_a( $arg, 'WP_Post' ) ) {
+      $this->buildFromWPPost( $arg );
+    } else if ( is_string( $arg ) ){
+      $this->buildFromJson( $arg );
+    }
 	}
 
 	public function buildFromJson( $json ) {
@@ -126,9 +132,9 @@ class Node {
 
 	public function save() {
 
-		$fields = $this->schema['properties'];
+		$fields = Schema::get_fields();
 
-		$map = $this->field_map;
+		$map = Schema::get_field_map();
 
 		$wp_field_fallbacks = array(
 			'post_title'   => array( 'name', 'title', 'url', 'profile_url' ),
@@ -260,6 +266,10 @@ class Node {
 		$this->errors[] = $error;
 		llog( $error, 'Node error' );
 	}
+
+  public function hasErrors() {
+    return count($this->errors) > 0;
+  }
 
 	public function getErrors() {
 		return $this->errors;
