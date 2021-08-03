@@ -56,6 +56,18 @@ class Feeds {
 				'show_admin_column' => true,
 			)
 		);
+
+    register_taxonomy(
+      'murms_feed_item_source',
+      'murms_feed_item',
+      array(
+        'labels'            => array(
+          'name'          => __( 'Sources' ),
+          'singular_name' => __( 'From' ),
+        ),
+        'show_admin_column' => true,
+      )
+    );
 	}
 
 	public static function save_feed_item( $item_data ) {
@@ -98,7 +110,6 @@ class Feeds {
 			$post_data['post_status'] = $existing_post->post_status;
 		} else {
 			$post_data['post_status'] = Settings::get( 'default_feed_item_status' );
-			echo llog( $post_data['post_status'], 'Saving with post status' );
 		}
 
 		$result = wp_insert_post( $post_data, true );
@@ -110,7 +121,8 @@ class Feeds {
 			$result === true ? $id = $post_data['ID'] : $id = $result;
 
 			// Add terms directly
-			$tresult = wp_set_object_terms( $id, $tags, 'murms_feed_item_tag' );
+			wp_set_object_terms( $id, $tags, 'murms_feed_item_tag' );
+      wp_set_object_terms( $id, array($item_data['node_name']), 'murms_feed_item_source' );
 
 			// And use the ID to update meta
 			update_post_meta( $id, 'murmurations_feed_item_url', $item_data['url'] );
