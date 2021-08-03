@@ -22,11 +22,12 @@ class Schema {
     $local_schema = get_option('murmurations_aggregator_local_schema');
 
     if( ! $local_schema ){
-      llog( "No local schema foud in options. Fetching.");
+      llog( "No local schema found in options. Fetching.");
       if( is_array( Settings::get('schemas') ) ){
         $schemas_info = Settings::get('schemas');
         $schemas = array();
         foreach ( $schemas_info as $schema_info ) {
+          llog("Fetching schema from " . $schema_info['location']);
           $schema = self::fetch($schema_info['location']);
           $schema = self::dereference($schema);
           $schemas[] = $schema;
@@ -150,6 +151,8 @@ class Schema {
 
   public static function dereference( $schema ) {
 
+    llog("Dereferencing schema");
+
     $output_schema = array();
 
     if ( isset( $schema['include'] ) ){
@@ -213,6 +216,7 @@ class Schema {
       $result = json_decode( $result, true );
       if( ! $result ){
         Notices::set( "Could not parse JSON of included schema from " . $url, "warning" );
+        llog( "Failed to parse JSON of fetched schema");
       }
     }
 

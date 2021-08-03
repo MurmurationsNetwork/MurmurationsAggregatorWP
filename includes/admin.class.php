@@ -512,7 +512,11 @@ class Admin {
         $schemas[] = $schema;
       }
 
+      llog("Merging local schema out of " . count( $schemas ) . "fetched schema(s)");
+
       $local_schema = Schema::merge($schemas);
+
+      llog( $local_schema, "Local schema" );
 
       update_option( 'murmurations_aggregator_local_schema', $local_schema );
 
