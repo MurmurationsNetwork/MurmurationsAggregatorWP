@@ -160,6 +160,26 @@ class Admin {
           $attribs['items']['properties']['field']['enum'] = $enum;
           $attribs['items']['properties']['field']['enumNames'] = $enumNames;
 
+        } else if( $field === 'filter_fields' ){
+          // Add enum fields to the options for front-end filters
+
+          $enum = array();
+          $enumNames = array();
+
+          foreach ( Schema::get_fields() as $schema_field => $schema_field_attribs ) {
+            if( isset( $schema_field_attribs['enum'] ) ){
+              $enum[] = $schema_field;
+              $enumNames[] = $schema_field_attribs['title'];
+            } else if( $schema_field_attribs['type'] === 'array'
+              && ( $schema_field_attribs['items']['enum'] ) ){
+              $enum[] = $schema_field;
+              $enumNames[] = $schema_field_attribs['title'];
+            }
+          }
+
+          $attribs['items']['enum'] = $enum;
+          $attribs['items']['enumNames'] = $enumNames;
+
         }
 
         $admin_schema['properties'][$field] = $attribs;
@@ -167,6 +187,8 @@ class Admin {
     }
 
     $current_values = self::fix_rjsf_data_types( $admin_schema, $current_values );
+
+    $admin_schema = apply_filters( 'murmurations-aggregator-admin-schema', $admin_schema );
 
     $admin_schema_json = json_encode( $admin_schema );
 

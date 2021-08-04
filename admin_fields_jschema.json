@@ -261,6 +261,15 @@
     "group" : "config",
     "default" : "none",
     "description" : "Set whether and how log files are written"
+  },
+  "filter_fields" : {
+    "type" :  "array",
+    "title" : "Fields for node filters",
+    "items" : {
+      "type" : "string"
+    },
+    "description" : "Fields to show in filters for map and directory",
+    "group" : "config"
   }
 }
 }
