@@ -207,8 +207,10 @@ class Schema {
     llog( "Fetching schema from " . $url );
 
     $ch = curl_init();
+
 		curl_setopt( $ch, CURLOPT_URL, $url );
 		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+    curl_setopt( $ch, CURLOPT_HTTPHEADER, array( "Cache-Control: no-cache" ) );
 
 		$result = curl_exec( $ch );
 
