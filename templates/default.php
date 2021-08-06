@@ -1,34 +1,35 @@
-<div class="murmurations-node <?= $data_classes ?>" id="<?= $node->murmurations['url'] ?>">
+<div class="murmurations-node <?php echo $data_classes; ?>" id="<?php echo $node->murmurations['url']; ?>">
   <table style="border:0;" class="murmurations-node-table">
-    <tr>
-      <td style="border:0; width:100px;">
-  <div class="murmurations-node-image"><img src="<?= $node->murmurations['logo'] ?>"></div>
+	<tr>
+	  <td style="border:0; width:100px;">
+  <div class="murmurations-node-image"><img src="<?php echo $node->murmurations['logo']; ?>"></div>
 </td>
 <td style="border:0;">
 
  <div class="murmurations-node-content">
-  <h3 class="murmurations-node-name"><?= $node->murmurations['name'] ?></h3>
-  <div class="murmurations-node-tagline"><?= $node->murmurations['tagline'] ?></div>
-  <div class="murmurations-node-mission"><?= $node->murmurations['mission'] ?></div>
-  <div class="murmurations-node-description"><?= wp_trim_words($node->murmurations['description'],40,"...") ?></div>
-  <div class="murmurations-node-org-types"><?= $node->murmurations['nodeTypes'] ?></div>
+  <h3 class="murmurations-node-name"><?php echo $node->murmurations['name']; ?></h3>
+  <div class="murmurations-node-tagline"><?php echo $node->murmurations['tagline']; ?></div>
+  <div class="murmurations-node-mission"><?php echo $node->murmurations['mission']; ?></div>
+  <div class="murmurations-node-description"><?php echo wp_trim_words( $node->murmurations['description'], 40, '...' ); ?></div>
+  <div class="murmurations-node-org-types"><?php echo $node->murmurations['nodeTypes']; ?></div>
   <div class="murmurations-node-coordinates">
-    <?php
+	<?php
 
-    $place_components = array();
+	$place_components = array();
 
-    if($node->murmurations['location']['locality']){
-       $place_components[] = $node->murmurations['location']['locality'];
-    }
+	if ( $node->murmurations['location']['locality'] ) {
+		$place_components[] = $node->murmurations['location']['locality'];
+	}
 
-    if($node->murmurations['location']['region']){
-       $place_components[] = $node->murmurations['location']['region'];
-    }
+	if ( $node->murmurations['location']['region'] ) {
+		$place_components[] = $node->murmurations['location']['region'];
+	}
 
-    echo join(', ',$place_components);
+	echo join( ', ', $place_components );
 
-    ?></div>
-  <a class="murmurations-node-url" href="<?= $node->murmurations['url'] ?>"><?= $node->murmurations['url'] ?></a>
+	?>
+	</div>
+  <a class="murmurations-node-url" href="<?php echo $node->murmurations['url']; ?>"><?php echo $node->murmurations['url']; ?></a>
 </div>
 </td>
 </tr>
