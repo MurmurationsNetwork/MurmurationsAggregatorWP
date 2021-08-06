@@ -91,9 +91,26 @@ class Admin {
 
   public static function fix_rjsf_data_types( $schema, $values ){
     foreach ($schema['properties'] as $field => $attribs ) {
+
+      // Make sure there's something there...
+      if( ! isset( $values[$field] ) ){
+        $values[$field] = null;
+      }
       $value = $values[$field];
+
+      // Aggresively set default values
+      if( $attribs['default'] ){
+        if( $value === null || $value === '' || ($value === false && $attribs['type'] !== 'boolean')){
+          $value = $attribs['default'];
+        }
+      }
+
       if(is_array($value)){
         foreach ($value as $key => $item) {
+          // Sometimes array fields have their own "properties" property, and sometimes they don't
+          if( ! isset( $attribs['items']['properties'] ) ){
+            $attribs['items']['properties'] = array( $attribs['items'] );
+          }
           $value[ $key ] = self::fix_rjsf_data_types( $attribs['items'], $item );
         }
       } else if( $attribs['type'] === 'boolean' && is_string($value)){
@@ -113,7 +130,7 @@ class Admin {
 
   public static function show_rjsf_admin_form($group = null){
 
-    $raw_admin_schema = Settings::get_schema_array();
+    $raw_admin_schema = Settings::get_schema();
 
     $current_values = Settings::get();
 
@@ -123,9 +140,14 @@ class Admin {
 
     foreach ($raw_admin_schema['properties'] as $field => $attribs) {
 
-      if( !$group || ($attribs['group'] == $group ) ) {
+      if( ! $group || ( $attribs['group'] == $group ) ) {
 
-        if($attribs['type'] === 'array' && ! is_array( $current_values[$field] ) ){
+        if( $attribs['value'] ){
+          $attribs['readOnly'] = true;
+          $attribs['title'] = isset($attribs['title']) ? $attribs['title'] . " (read only)" : $field . " (read only)";
+        }
+
+        if( $attribs['type'] === 'array' && ! is_array( $current_values[$field] ) ){
           $current_values[$field] = array();
         }
 

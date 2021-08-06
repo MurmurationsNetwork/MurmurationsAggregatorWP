@@ -25,6 +25,9 @@ if ( $_GET['t'] ) {
 
 class Tests {
 
+  public static function get_settings_fields(){
+    return Settings::get_fields();
+  }
   public static function node_from_id(){
     return new Node(2113);
   }
@@ -82,7 +85,6 @@ class Tests {
 
 	public static function log( $message = 'Test log message' ) {
 		$file = Config::get( 'log_file' );
-		Config::set( 'log_append', false );
 		llog( $message );
 		llog( 'Message 2' );
 		$log_content = file_get_contents( $file );

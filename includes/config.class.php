@@ -2,7 +2,7 @@
 namespace Murmurations\Aggregator;
 
 /*
-* Geocode addresses and other location information
+* Config
 */
 
 class Config {
@@ -11,18 +11,9 @@ class Config {
 
 	public static function get( $var = null ) {
 		if ( $var ) {
-			if ( isset( self::$config[ $var ] ) ) {
-				return self::$config[ $var ];
-			} else {
-				return false;
-			}
+			return Settings::get( $var );
 		} else {
-			return self::$config;
+			return Settings::get();
 		}
 	}
-
-	public static function set( $var, $value ) {
-		self::$config[ $var ] = $value;
-	}
-
 }

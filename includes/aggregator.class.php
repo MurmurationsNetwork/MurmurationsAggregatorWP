@@ -8,40 +8,22 @@ class Aggregator {
 	public $config   = array();
 	public $settings = array();
 
-	public function __construct( $config = null ) {
+	public function __construct() {
 
-		$default_config = array(
-			'plugin_name'           => 'Murmurations Aggregator',
-			'node_name'             => 'Murmurations Node',
-			'node_name_plural'      => 'Murmurations Nodes',
-			'node_slug'             => 'murmurations-node',
-			'plugin_slug'           => 'murmurations',
-			'api_route'             => 'murmurations-aggregator/v1',
-			'feed_storage_path'     => MURMAG_ROOT_PATH . 'feeds/feeds.json',
-			'schema_file'           => MURMAG_ROOT_PATH . 'schemas/default.json',
-			'field_map_file'        => MURMAG_ROOT_PATH . 'schemas/field_map.json',
+		$default_settings = array(
+			'schemas'               => array( array( 'location' => MURMAG_ROOT_URL . 'schemas/default.json' ) ),
+			'field_map_file'        => MURMAG_ROOT_URL . 'schemas/field_map.json',
 			'css_directory'         => MURMAG_ROOT_URL . 'css/',
 			'template_directory'    => MURMAG_ROOT_PATH . 'templates/',
-			'meta_prefix'           => 'murmurations_',
-			'node_single_url_field' => false,
-			'node_single'           => true,
-			'enable_feeds'          => false,
 			'log_file'              => MURMAG_ROOT_PATH . 'logs/murmurations_aggregator.log',
-			'log_append'            => false,
 		);
-
-		$this->config = wp_parse_args( $config, $default_config );
-
-		$this->config = apply_filters( 'murmurations-aggregator-config', $this->config );
 
 		$this->load_includes();
 
-		Config::$config = $this->config;
+    Settings::load_schema( $default_settings );
 
     Settings::load();
 
-		$this->load_schema();
-		$this->load_field_map();
 		$this->register_hooks();
 
 		if ( Settings::get('enable_feeds') == 'true' ) {
@@ -57,25 +39,6 @@ class Aggregator {
 
 	}
 
-
-
-	public function load_schema() {
-		if ( file_exists( $this->config['schema_file'] ) ) {
-			$schema_json  = file_get_contents( $this->config['schema_file'] );
-			$this->schema = json_decode( $schema_json, true );
-		} else {
-			$this->error( 'Schema file not found: ' . $this->config['schema_file'], 'fatal' );
-		}
-	}
-
-	public function load_field_map() {
-		if ( file_exists( $this->config['field_map_file'] ) ) {
-			$map_json        = file_get_contents( $this->config['field_map_file'] );
-			$this->field_map = json_decode( $map_json, true );
-		} else {
-			$this->error( 'Field map file not found: ' . $this->config['field_map_file'], 'fatal' );
-		}
-	}
 
 	public function activate() {
 
@@ -446,8 +409,8 @@ class Aggregator {
 
 		add_action( 'init', array( $this, 'register_cpts_and_taxes' ) );
 
-		add_shortcode( $this->config['plugin_slug'] . '-directory', array( $this, 'show_directory' ) );
-		add_shortcode( $this->config['plugin_slug'] . '-map', array( $this, 'show_map' ) );
+		add_shortcode( Settings::get('plugin_slug') . '-directory', array( $this, 'show_directory' ) );
+		add_shortcode( Settings::get('plugin_slug') . '-map', array( $this, 'show_map' ) );
 
     if( is_admin() ){
       add_action(
@@ -489,7 +452,7 @@ class Aggregator {
 
 		$args = array();
 
-		$map = $this->field_map;
+		$map = Schema::get_field_map();
 
 		if ( isset( $req['search'] ) ) {
 			$args['s'] = $req['search'];
@@ -530,7 +493,7 @@ class Aggregator {
 	public function register_api_routes() {
 
 		$result = register_rest_route(
-			$this->config['api_route'],
+			Settings::get('api_route'),
 			'get/nodes',
 			array(
 				'methods'  => 'GET',
@@ -550,15 +513,15 @@ class Aggregator {
 			'murmurations_node',
 			array(
 				'labels'        => array(
-					'name'          => $this->config['node_name_plural'],
-					'singular_name' => $this->config['node_name'],
+					'name'          => Settings::get('node_name_plural'),
+					'singular_name' => Settings::get('node_name'),
 				),
 				'public'        => true,
 				'has_archive'   => true,
 				'menu_icon'     => 'dashicons-admin-site-alt',
 				'show_in_menu'  => true, // 'admin.php?page=murmurations-aggregator-settings',
 				'menu_position' => 21,
-				'rewrite'       => array( 'slug' => Config::get('node_slug') ),
+				'rewrite'       => array( 'slug' => Settings::get('node_slug') ),
 			)
 		);
 
