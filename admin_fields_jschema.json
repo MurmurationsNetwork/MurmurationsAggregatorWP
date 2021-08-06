@@ -19,6 +19,14 @@
       "description" : "How often should locally stored nodes be updated from the network?",
       "group" : "node_settings"
     },
+    "ignore_date" : {
+      "type" :  "boolean",
+      "title" :  "Ignore node update date when fetching nodes",
+      "inputAs" : "checkbox",
+      "validateAs" : "text",
+      "description" : "If unchecked, only nodes that have been updated since they were last requested will be fetched.",
+      "group" : "node_settings"
+    },
     "updated_node_post_status" : {
       "type" :  "string",
       "title" :  "Updated node post status",
@@ -54,7 +62,7 @@
       "type" :  "number",
       "title" :  "Nodes per page",
       "default" : 10,
-      "group" : "config",
+      "group" : "node_settings",
       "description" : "How many nodes to show per page (in client-side interfaces)"
     },
     "filters" : {
@@ -91,7 +99,7 @@
         }
       },
       "title" :  "Filters",
-      "description" : "Set parameters to limit the nodes that will be fetched and saved. Nodes must match all the conditions defined  here to be included.",
+      "description" : "Set parameters to limit the items that will be fetched and saved. Items must match all the conditions defined here to be included.",
       "group" : "general"
     },
     "indices" : {
@@ -157,13 +165,12 @@
       "description" : "Local path to an alternate template directory. This path overrides the normal template hierarchy.",
       "group" : "config"
     },
-    "ignore_date" : {
+    "enable_feeds" : {
       "type" :  "boolean",
-      "title" :  "Ignore node update date when fetching nodes",
-      "inputAs" : "checkbox",
-      "validateAs" : "text",
-      "description" : "If unchecked, only nodes that have been updated since they were last requested will be fetched.",
-      "group" : "node_settings"
+      "title" :  "Enable feeds",
+      "group" : "feed_settings",
+      "default" : false,
+      "description" : "Enable collecting feed data from nodes."
     },
     "feed_update_interval" : {
       "type" :  "string",
@@ -242,13 +249,6 @@
       "group" : "map_settings",
       "description" : "API key for Mapbox, tile provider for Leaflet. See https://www.mapbox.com/studio/account/tokens/"
     },
-    "enable_feeds" : {
-      "type" :  "boolean",
-      "title" :  "Enable feeds",
-      "group" : "config",
-      "default" : false,
-      "description" : "Enable collecting feed data from nodes."
-    },
     "logging_mode" : {
       "type" :  "string",
       "enum" : [
@@ -268,12 +268,12 @@
     },
     "filter_fields" : {
       "type" :  "array",
-      "title" : "Fields for node filters",
+      "title" : "Fields for front-end filters",
       "items" : {
         "type" : "string"
       },
-      "description" : "Fields to show in filters for map and directory",
-      "group" : "config"
+      "description" : "Fields to show in front-end filters for map and directory",
+      "group" : "node_settings"
     },
     "plugin_name" : {
       "default" : "Murmurations Aggregator",
@@ -307,12 +307,13 @@
       "description" : "String used to prefix shortcodes and admin settings pages."
     },
     "list_fields" : {
-      "default" : ["country","community_types","project_types","languages_spoken"],
+      "default" : ["country"],
       "type" :  "array",
+      "title" :  "Fields for directory display",
       "items" : {
         "type" : "string"
       },
-      "group" : "config",
+      "group" : "node_settings",
       "description" : "Array of fields to include in list display (may be irrelevant in custom templates)."
     },
     "node_single_url_field" : {
