@@ -7,7 +7,7 @@ function llog( $content, $meta = null ) {
 
 	global $murmurations_log_buffer;
 
-	$file   = Config::get( 'log_file' );
+	$file = Settings::get( 'log_file' );
 	$mode = Settings::get( 'logging_mode' );
 
   if ( $mode === 'none' ){
@@ -39,7 +39,7 @@ function debug( $content, $meta = null ) {
 	$out .= ( is_array( $content ) || is_object( $content ) ) ? print_r( (array) $content, true ) : $content;
 	$out .= '</pre>';
 
-	if ( Config::get( 'debug_to_log' ) ) {
+	if ( Settings::get( 'debug_to_log' ) ) {
 		llog( $content, $meta );
 	}
 
