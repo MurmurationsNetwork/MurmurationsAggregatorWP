@@ -50,6 +50,13 @@
       "group" : "node_settings",
       "description" : "Post status for new nodes from the network. Set to 'Draft' if nodes should be reviewed before they are publicly viewable."
     },
+    "nodes_per_page" : {
+      "type" :  "number",
+      "title" :  "Nodes per page",
+      "default" : 10,
+      "group" : "config",
+      "description" : "How many nodes to show per page (in client-side interfaces)"
+    },
     "filters" : {
       "type" :  "array",
       "items" : {
