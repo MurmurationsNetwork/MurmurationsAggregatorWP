@@ -247,10 +247,17 @@ class Admin {
     jQuery.post(ajaxurl, data, function(response) {
       console.log(response);
       formOverlay.style.visibility = "hidden";
-      var notice = document.getElementById('murmagg-admin-form-notice');
-      notice.style.display = "block";
-      notice.innerHTML = '<p>'+response.message+'</p>';
-      notice.className = "notice notice-"+response.status;
+      var noticeContainer = document.getElementById('murmagg-admin-form-notice');
+
+      noticeContainer.innerHTML = "";
+
+      for (const message of response.messages){
+        var notice = document.createElement("div");
+        notice.innerHTML = '<p>'+message.message+'</p>';
+        notice.className = "notice notice-"+message.type;
+        noticeContainer.appendChild(notice);
+      }
+      noticeContainer.style.display = "block";
     });
 
   }
@@ -596,15 +603,19 @@ class Admin {
 
       update_option( 'murmurations_aggregator_local_schema', $local_schema );
 
+      Notices::set( "New local schema saved", "success" );
+
       Schema::load();
 
     }
+
+    Notices::set( "Settings saved", "success" );
 
     $result = array(
         'data' => $data,
         'dataStr' => print_r($data, true),
         'status' => 'success',
-        'message' => 'Settings saved'
+        'messages' => Notices::get()
     );
 
     wp_send_json($result);

@@ -37,6 +37,8 @@ class Schema {
 
         update_option( 'murmurations_aggregator_local_schema', $local_schema );
 
+        Notices::set("New local schema saved");
+
         self::$schema = $local_schema;
         self::$fields = $local_schema['properties'];
 
