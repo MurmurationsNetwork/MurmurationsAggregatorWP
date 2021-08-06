@@ -66,18 +66,30 @@ class Aggregator {
 
 	/* Load an overridable template file */
 	public static function load_template( $template, $data ) {
-		if ( file_exists( get_stylesheet_directory() . '/murmurations-aggregator-templates/' . $template ) ) {
-			ob_start();
-			include get_stylesheet_directory() . '/murmurations-aggregator-templates/' . $template;
-			$html = ob_get_clean();
-		} elseif ( file_exists( Config::get('template_directory') . $template ) ) {
-			ob_start();
-			include  Config::get('template_directory') . $template;
-			$html = ob_get_clean();
-		} else {
-			exit( 'Missing template file: ' . $template );
-		}
-		return $html;
+    $sources = array();
+
+    if ( Settings::get('template_override_path') ){
+      $sources[] = Settings::get('template_override_path');
+    }
+
+    $sources[] = get_stylesheet_directory() . '/murmurations-aggregator/';
+    $sources[] = MURMAG_ROOT_PATH . "templates/";
+
+    foreach ($sources as $dir) {
+      if ( file_exists( $dir . $template ) ) {
+  			ob_start();
+  			include $dir . $template;
+  			$html = ob_get_clean();
+        break;
+  		}
+    }
+
+    if( ! $html ){
+			error( 'Missing template file: ' . $template );
+      return false;
+		} else{
+   		return $html;
+    }
 	}
 
 

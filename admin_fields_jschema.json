@@ -144,14 +144,11 @@
       "description" : "The web-accessible location for a JSON file that maps fields from the data schema to fields in the WP database.",
       "group" : "data_sources"
     },
-    "directory_template" : {
+    "template_override_path" : {
       "type" :  "string",
-      "title" :  "Directory template",
-      "inputAs" : "template_selector",
-      "validateAs" : "text",
-      "default" : "default",
-      "description" : "Template file to use for directory shortcode display.",
-      "group" : "node_settings"
+      "title" :  "Template override path",
+      "description" : "Local path to an alternate template directory. This path overrides the normal template hierarchy.",
+      "group" : "config"
     },
     "ignore_date" : {
       "type" :  "boolean",
