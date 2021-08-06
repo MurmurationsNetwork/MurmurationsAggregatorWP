@@ -151,25 +151,10 @@ class Admin {
           $current_values[$field] = array();
         }
 
-        /* Load the template files list into enum options */
-
-        if($field === 'directory_template'){
-          $files = array_diff(
-            scandir( Config::get( 'template_directory' ) ),
-            array( '..', '.' )
-          );
-
-          $attribs['enum'] = array();
-
-          foreach ( $files as $key => $fn ) {
-            if ( substr( $fn, -4 ) == '.php' ) {
-              $attribs['enum'][] = substr( $fn, 0, -4 );
-            }
-          }
 
         /* Build filter field select from data schema */
 
-        } else if( $field === 'filters' ){
+        if( $field === 'filters' ){
 
           $enum = array();
           $enumNames = array();
