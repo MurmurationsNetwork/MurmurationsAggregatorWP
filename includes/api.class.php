@@ -68,6 +68,7 @@ class API {
 
 		curl_setopt( $ch, CURLOPT_URL, $url );
 		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+    curl_setopt( $ch, CURLOPT_USERAGENT, 'Murmurations-Aggregator' );
 
 		$result = curl_exec( $ch );
 
@@ -104,7 +105,10 @@ class API {
 			curl_setopt( $ch, CURLOPT_USERPWD, $curl_upass );
 		}
 
+    llog( "Making index request to " . $url . " with " . $fields_string );
+
 		curl_setopt( $ch, CURLOPT_URL, $url . '?' . $fields_string );
+    curl_setopt( $ch, CURLOPT_USERAGENT, 'Murmurations-Aggregator' );
 		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
 		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
 		curl_setopt( $ch, CURLOPT_FAILONERROR, true );
@@ -113,7 +117,7 @@ class API {
 
 		if ( $result === false ) {
 			Notices::set( 'No result returned from cURL request to index. cURL error: ' . curl_error( $ch ) );
-      llog(curl_getinfo($ch), "Failed index request.");
+      llog( curl_getinfo($ch), "Failed index request." );
 			return false;
 		} else {
 			return $result;
