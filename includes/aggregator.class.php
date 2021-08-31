@@ -161,32 +161,36 @@ class Aggregator {
 
 		$filters = $settings['filters'];
 
-		if ( is_array( $filters ) ) {
-			foreach ( $filters as $key => $f ) {
-				if ( in_array( $f['field'], Config::get('index_fields') ) ) {
-					$index_filters[] = [$f['field'], $f['comparison'], $f['value']];
-				}
-			}
-		} else {
-			$filters = array();
-		}
-
-		$update_since = $settings['update_time'];
-
-		if ( $settings['ignore_date'] != 'true' ) {
-			$index_filters[] = array( 'updated', 'isGreaterThan', $update_since );
-		}
-
-		$query = array();
-		foreach ( $index_filters as $filter ) {
-			$query[ $filter[0] ] = $filter[2];
-		}
+    llog( $filters , "Filters from settings in update_nodes" );
 
     $all_index_nodes = array();
 
-
-
     foreach ($settings['indices'] as $index) {
+
+      $index_fields = explode( ',', $index['queryable_fields'] );
+
+      $index_filters = array();
+
+  		if ( is_array( $filters ) ) {
+  			foreach ( $filters as $key => $f ) {
+  				if ( in_array( $f['field'], $index_fields ) ) {
+  					$index_filters[] = [$f['field'], $f['comparison'], $f['value']];
+  				}
+  			}
+  		} else {
+  			$filters = array();
+  		}
+
+  		$update_since = $settings['update_time'];
+
+  		if ( $settings['ignore_date'] != 'true' ) {
+  			$index_filters[] = array( 'updated', 'isGreaterThan', $update_since );
+  		}
+
+  		$query = array();
+  		foreach ( $index_filters as $filter ) {
+  			$query[ $filter[0] ] = $filter[2];
+  		}
 
   		$options = array();
 

@@ -130,6 +130,13 @@
             "type" :  "string",
             "title" :  "Basic Auth password",
             "description" : "Password for data sources that are protected by Basic Authentication."
+          },
+          "queryable_fields" : {
+            "title" :  "Queryable fields",
+            "default" : "country,location,schema",
+            "type" :  "string",
+            "group" : "config",
+            "description" : "Fields that can be used when querying this index, as a comma-delimited string"
           }
         }
       },
@@ -320,6 +327,12 @@
       "type" :  "string",
       "group" : "config",
       "description" : "Field to use for the link to view a single node. If unset, single nodes will link to the single post page. Can be used to set an external location to view a single node."
+    },
+    "node_single" : {
+      "type" :  "boolean",
+      "group" : "config",
+      "description" : "Link to single node pages from directory/map. By default this will use the WP post type. Can be overridden with node_single_url_field for custom single URLs",
+      "default" : true
     },
     "log_file" : {
       "type" :  "string",
