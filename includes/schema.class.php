@@ -22,7 +22,7 @@ class Schema {
     $local_schema = get_option('murmurations_aggregator_local_schema');
 
     if( ! $local_schema ){
-      llog( "No local schema found in options. Fetching.");
+      llog( "No local schema found in options. Fetching." );
       if( is_array( Settings::get('schemas') ) ){
         $schemas_info = Settings::get('schemas');
         $schemas = array();
@@ -204,13 +204,23 @@ class Schema {
 
   public static function fetch( $url ) {
 
-    llog( "Fetching schema from " . $url );
+    llog( "In fetch(). Getting schema from " . $url );
+
+    global $wp;
+
+    llog( home_url( $wp->request ), "Current URL" );
+
+    if ( home_url( $wp->request ) == $url ){
+      llog( "Problematic recursion detected in Schema::fetch()");
+      return;
+    }
 
     $ch = curl_init();
 
 		curl_setopt( $ch, CURLOPT_URL, $url );
 		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
     curl_setopt( $ch, CURLOPT_HTTPHEADER, array( "Cache-Control: no-cache" ) );
+    curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 5 );
 
 		$result = curl_exec( $ch );
 
@@ -223,6 +233,8 @@ class Schema {
         Notices::set( "Could not parse JSON of included schema from " . $url, "warning" );
         llog( "Failed to parse JSON of schema fetched from " . $url);
         llog( $result, "Fetched JSON" );
+      } else {
+        llog( "Successfully fetched and parsed schema." );
       }
       $result = $result_ar;
     }
