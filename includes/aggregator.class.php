@@ -546,7 +546,7 @@ class Aggregator {
 					$meta_query = array();
 					foreach ( $req['filters'] as $filter ) {
 						$meta_query[] = array(
-							'key'     => $filter[0],
+							'key'     => Settings::get( 'meta_prefix' ) . $filter[0],
 							'value'   => $filter[2],
 							'compare' => $operator_map[ $filter[1] ],
 						);
