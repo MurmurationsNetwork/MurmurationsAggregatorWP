@@ -299,7 +299,7 @@ class Aggregator {
 				if ( $node->hasErrors() ) {
 					Notices::set( $node->getErrorsText(), 'error' );
 					$results['failed_nodes'][] = $url;
-					break;
+					continue;
 				}
 
 				$matched = $node->checkFilters( $filters );
