@@ -1,52 +1,61 @@
 <?php
+/**
+ * Main aggregator controller class
+ *
+ * @package Murmurations Aggregator
+ */
+
 namespace Murmurations\Aggregator;
 
+/**
+ * Main aggregator controller class
+ */
 class Aggregator {
-
-	public $notices  = array();
-	public $nodes    = array();
-	public $config   = array();
-	public $settings = array();
+	/**
+	 * Holds the array of nodes fetched from the network
+	 */
+	public $nodes = array();
 
 	public function __construct() {
 
 		$default_settings = array(
-			'schemas'               => array( array( 'location' => MURMAG_ROOT_URL . 'schemas/default.json' ) ),
-			'field_map_file'        => MURMAG_ROOT_URL . 'schemas/field_map.json',
-			'css_directory'         => MURMAG_ROOT_URL . 'css/',
-			'template_directory'    => MURMAG_ROOT_PATH . 'templates/',
-			'log_file'              => MURMAG_ROOT_PATH . 'logs/murmurations_aggregator.log',
+			'schemas'            => array( array( 'location' => MURMAG_ROOT_URL . 'schemas/default.json' ) ),
+			'field_map_file'     => MURMAG_ROOT_URL . 'schemas/field_map.json',
+			'css_directory'      => MURMAG_ROOT_URL . 'css/',
+			'template_directory' => MURMAG_ROOT_PATH . 'templates/',
+			'log_file'           => MURMAG_ROOT_PATH . 'logs/murmurations_aggregator.log',
 		);
 
 		$this->load_includes();
 
-    Settings::load_schema( $default_settings );
+		Settings::load_schema( $default_settings );
 
-    Settings::load();
+		Settings::load();
 
 		$this->register_hooks();
 
-		if ( Settings::get('enable_feeds') == 'true' ) {
+		if ( Settings::get( 'enable_feeds' ) == 'true' ) {
 			Feeds::$wpagg = $this;
 			Feeds::init();
 		}
 
-    /* Temporary arrangement... */
-    if( is_admin() ){
-      Admin::$wpagg = $this;
-    }
-
+		/* Temporary arrangement... */
+		if ( is_admin() ) {
+			Admin::$wpagg = $this;
+		}
 
 	}
 
-
+	/**
+	 * Activate the plugin
+	 */
 	public function activate() {
 
-    $admin_fields = Settings::get_fields();
+		$admin_fields = Settings::get_fields();
 
 		foreach ( $admin_fields as $name => $field ) {
 			if ( $field['default'] ) {
-        Settings::set( $name, $field['default'] );
+				Settings::set( $name, $field['default'] );
 			}
 		}
 
@@ -54,7 +63,9 @@ class Aggregator {
 
 	}
 
-
+	/**
+	 * Deactivate the plugin
+	 */
 	public function deactivate() {
 		$timestamp = wp_next_scheduled( 'murmurations_node_update' );
 		wp_unschedule_event( $timestamp, 'murmurations_node_update' );
@@ -64,42 +75,56 @@ class Aggregator {
 	}
 
 
-	/* Load an overridable template file */
+	/**
+	 * Load an (overridable) template file
+	 *
+	 * @param  string $template filename of template file
+	 * @param  array  $data data that will be accessed in the template
+	 * @return string HTML from template
+	 */
 	public static function load_template( $template, $data ) {
-    $sources = array();
+		$sources = array();
 
-    if ( Settings::get('template_override_path') ){
-      $sources[] = Settings::get('template_override_path');
-    }
+		if ( Settings::get( 'template_override_path' ) ) {
+			$sources[] = Settings::get( 'template_override_path' );
+		}
 
-    $sources[] = get_stylesheet_directory() . '/murmurations-aggregator/';
-    $sources[] = MURMAG_ROOT_PATH . "templates/";
+		$sources[] = get_stylesheet_directory() . '/murmurations-aggregator/';
+		$sources[] = MURMAG_ROOT_PATH . 'templates/';
 
-    foreach ($sources as $dir) {
-      if ( file_exists( $dir . $template ) ) {
-  			ob_start();
-  			include $dir . $template;
-  			$html = ob_get_clean();
-        break;
-  		}
-    }
+		foreach ( $sources as $dir ) {
+			if ( file_exists( $dir . $template ) ) {
+				ob_start();
+				include $dir . $template;
+				$html = ob_get_clean();
+				break;
+			}
+		}
 
-    if( ! $html ){
+		if ( ! $html ) {
 			error( 'Missing template file: ' . $template );
-      return false;
-		} else{
-   		return $html;
-    }
+			return false;
+		} else {
+			return $html;
+		}
 	}
 
-
-	// WP's enqueues don't accommodate integrity and crossorigin attributes without trickery, so we're using an action hook
+	/**
+	 * Hook to queue Leaflet's scripts
+	 *
+	 * WP's enqueues don't accommodate integrity and crossorigin attributes without trickery, so we're using an action hook
+	 */
 	public function queue_leaflet_scripts() {
 		add_action( 'wp_head', array( $this, 'leaflet_scripts' ) );
 	}
 
+	/**
+	 * Write links to Leaflet js and css files
+	 *
+	 * @return string HTML for links
+	 */
 	public function leaflet_scripts() {
-	   return '
+		return '
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
   integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
   crossorigin=""/>
@@ -109,13 +134,11 @@ class Aggregator {
 ';
 	}
 
-	public function error( $message, $type = 'notice' ) {
-		Notices::set( $message, $type );
-		if ( $type == 'fatal' ) {
-			exit( $message );
-		}
-	}
-
+	/**
+	 * Load saved nodes from the DB
+	 *
+	 * @param  array $args WP_Query compatible arguments
+	 */
 	public function load_nodes( $args = null ) {
 
 		$default_args = array(
@@ -136,6 +159,11 @@ class Aggregator {
 		}
 	}
 
+	/**
+	 * Delete all the saved nodes
+	 *
+	 * @return int the number of nodes deleted
+	 */
 	public function delete_all_nodes() {
 		$nodes = get_posts(
 			array(
@@ -155,72 +183,73 @@ class Aggregator {
 		return $count;
 	}
 
+	/**
+	 * Fetch nodes from the network and store them locally
+	 */
 	public function update_nodes() {
 
 		$settings = Settings::get();
 
 		$filters = $settings['filters'];
 
-    llog( $filters , "Filters from settings in update_nodes" );
+		llog( $filters, 'Filters from settings in update_nodes' );
 
-    $all_index_nodes = array();
+		$all_index_nodes = array();
 
-    foreach ($settings['indices'] as $index) {
+		foreach ( $settings['indices'] as $index ) {
 
-      $index_fields = explode( ',', $index['queryable_fields'] );
+			$index_fields = explode( ',', $index['queryable_fields'] );
 
-      $index_filters = array();
+			$index_filters = array();
 
-  		if ( is_array( $filters ) ) {
-  			foreach ( $filters as $key => $f ) {
-  				if ( in_array( $f['field'], $index_fields ) ) {
-  					$index_filters[] = [$f['field'], $f['comparison'], $f['value']];
-  				}
-  			}
-  		} else {
-  			$filters = array();
-  		}
+			if ( is_array( $filters ) ) {
+				foreach ( $filters as $key => $f ) {
+					if ( in_array( $f['field'], $index_fields ) ) {
+						$index_filters[] = array( $f['field'], $f['comparison'], $f['value'] );
+					}
+				}
+			} else {
+				$filters = array();
+			}
 
-  		$update_since = $settings['update_time'];
+			$update_since = $settings['update_time'];
 
-  		if ( $settings['ignore_date'] != 'true' ) {
-  			$index_filters[] = array( 'updated', 'isGreaterThan', $update_since );
-  		}
+			if ( $settings['ignore_date'] != 'true' ) {
+				$index_filters[] = array( 'updated', 'isGreaterThan', $update_since );
+			}
 
-  		$query = array();
-  		foreach ( $index_filters as $filter ) {
-  			$query[ $filter[0] ] = $filter[2];
-  		}
+			$query = array();
+			foreach ( $index_filters as $filter ) {
+				$query[ $filter[0] ] = $filter[2];
+			}
 
-  		$options = array();
+			$options = array();
 
-  		if ( isset( $index['api_key'] ) ) {
-  			$options['api_key'] = $index['api_key'];
-  		}
-  		if ( isset( $index['api_basic_auth_user'] ) ) {
-  			$options['api_basic_auth_user'] = $index['api_basic_auth_user'];
-  		}
-  		if ( isset( $index['api_basic_auth_pass'] ) ) {
-  			$options['api_basic_auth_pass'] = $index['api_basic_auth_pass'];
-  		}
+			if ( isset( $index['api_key'] ) ) {
+				$options['api_key'] = $index['api_key'];
+			}
+			if ( isset( $index['api_basic_auth_user'] ) ) {
+				$options['api_basic_auth_user'] = $index['api_basic_auth_user'];
+			}
+			if ( isset( $index['api_basic_auth_pass'] ) ) {
+				$options['api_basic_auth_pass'] = $index['api_basic_auth_pass'];
+			}
 
-  		$index_nodes = API::getIndexJson( $index['url'], $query, $options );
+			$index_nodes = API::getIndexJson( $index['url'], $query, $options );
 
-  		$index_nodes = json_decode( $index_nodes, true );
+			$index_nodes = json_decode( $index_nodes, true );
 
-  		$index_nodes = $index_nodes['data'];
+			$index_nodes = $index_nodes['data'];
 
-      if ( ! $index_nodes ) {
-        Notices::set( 'Could not connect to index: ' . $index['url'], 'error' );
-      } else {
-        Notices::set( 'Fetched node info from index at ' . $index['url'], 'success' );
-        $all_index_nodes = array_merge( $all_index_nodes, $index_nodes );
-      }
+			if ( ! $index_nodes ) {
+				Notices::set( 'Could not connect to index: ' . $index['url'], 'error' );
+			} else {
+				Notices::set( 'Fetched node info from index at ' . $index['url'], 'success' );
+				$all_index_nodes = array_merge( $all_index_nodes, $index_nodes );
+			}
+		}
 
-
-    }
-
-    $index_nodes = $all_index_nodes;
+		$index_nodes = $all_index_nodes;
 
 		$failed_nodes  = array();
 		$fetched_nodes = array();
@@ -255,7 +284,7 @@ class Aggregator {
 				$options['api_basic_auth_pass'] = $settings['api_basic_auth_pass'];
 			}
 
-      llog( "Fetching node JSON from " . $url );
+			llog( 'Fetching node JSON from ' . $url );
 
 			$node_data = API::getNodeJson( $url, $options );
 
@@ -305,12 +334,16 @@ class Aggregator {
 
 		Notices::set( $message, $class );
 
-    Settings::set( 'update_time', time() );
-    Settings::save();
+		Settings::set( 'update_time', time() );
+		Settings::save();
 
 	}
 
-
+	/**
+	 * Show the node directory (called by shortcode)
+	 *
+	 * @return string Directory HTML
+	 */
 	public function show_directory() {
 		$this->load_nodes();
 
@@ -327,6 +360,11 @@ class Aggregator {
 		return $html;
 	}
 
+	/**
+	 * Show the map of nodes (called by shortcode)
+	 *
+	 * @return string map HTML
+	 */
 	public function show_map() {
 		$this->load_nodes();
 
@@ -347,8 +385,8 @@ class Aggregator {
 
 		$html = $this->leaflet_scripts();
 
-		$map_origin = Settings::get('map_origin');
-		$map_scale  = Settings::get('map_scale');
+		$map_origin = Settings::get( 'map_origin' );
+		$map_scale  = Settings::get( 'map_scale' );
 
 		$html .= '<div id="murmurations-map" class="murmurations-map"></div>' . "\n";
 		$html .= '<script type="text/javascript">' . "\n";
@@ -360,7 +398,7 @@ class Aggregator {
     maxZoom: 18,
     zoomOffset: -1,
     id: 'mapbox/streets-v11',
-    accessToken: '" . Settings::get('mapbox_token') . "'
+    accessToken: '" . Settings::get( 'mapbox_token' ) . "'
 }).addTo(murmurations_map);\n";
 
 		foreach ( $this->nodes as $key => $node ) {
@@ -383,6 +421,9 @@ class Aggregator {
 		return $html;
 	}
 
+	/**
+	 * Load the included files for the aggregator (note this should probably be replaced with an autoloader)
+	 */
 	public function load_includes() {
 		$include_path = plugin_dir_path( __FILE__ );
 		require_once $include_path . 'api.class.php';
@@ -397,47 +438,59 @@ class Aggregator {
 		require_once $include_path . 'feeds.class.php';
 	}
 
-  public function load_node_single_template( $template ) {
+	/**
+	 * Load the template for a single node, either from the template hierarchy if available, or from the default location in the plugin
+	 *
+	 * @param  string $template default template path from WP
+	 * @return string Template path
+	 */
+	public function load_node_single_template( $template ) {
 
-     if( is_singular('murmurations_node')){
-       $template = locate_template('single-murmurations_node.php', false);
-     if ( ! $template ){
-       $template = MURMAG_ROOT_PATH . 'templates/single-murmurations_node.php';
-     }
-   }
+		if ( is_singular( 'murmurations_node' ) ) {
+			$template = locate_template( 'single-murmurations_node.php', false );
+			if ( ! $template ) {
+				  $template = MURMAG_ROOT_PATH . 'templates/single-murmurations_node.php';
+			}
+		}
 
-   return $template;
-  }
+		return $template;
+	}
+	/**
+	 * Load the template for the node archive page, either from the template hierarchy if available, or from the default location in the plugin
+	 *
+	 * @param  string $template default template path from WP
+	 * @return string Template path
+	 */
+	public function load_node_archive_template( $template ) {
+		if ( is_post_type_archive( 'murmurations_node' ) ) {
+			$template = locate_template( 'archive-murmurations_node.php', false );
+			if ( ! $template ) {
+				$template = MURMAG_ROOT_PATH . 'templates/archive-murmurations_node.php';
+			}
+		}
 
-  public function load_node_archive_template( $template ) {
-    if ( is_post_type_archive('murmurations_node') ) {
-        $template = locate_template('archive-murmurations_node.php', false);
-      if ( ! $template ){
-        $template = MURMAG_ROOT_PATH . 'templates/archive-murmurations_node.php';
-      }
-    }
+		return $template;
+	}
 
-    return $template;
-  }
-
-
+	/**
+	 * Register the aggregator's hooks and enqueues and such
+	 */
 	public function register_hooks() {
 
 		add_action( 'init', array( $this, 'register_cpts_and_taxes' ) );
 
-		add_shortcode( Settings::get('plugin_slug') . '-directory', array( $this, 'show_directory' ) );
-		add_shortcode( Settings::get('plugin_slug') . '-map', array( $this, 'show_map' ) );
+		add_shortcode( Settings::get( 'plugin_slug' ) . '-directory', array( $this, 'show_directory' ) );
+		add_shortcode( Settings::get( 'plugin_slug' ) . '-map', array( $this, 'show_map' ) );
 
-    if( is_admin() ){
-      add_action(
-        'admin_menu',
-        array(
-          'Murmurations\Aggregator\Admin',
-          'add_settings_page'
-        )
-      );
-    }
-
+		if ( is_admin() ) {
+			add_action(
+				'admin_menu',
+				array(
+					'Murmurations\Aggregator\Admin',
+					'add_settings_page',
+				)
+			);
+		}
 
 		register_activation_hook( __FILE__, array( $this, 'activate' ) );
 		register_deactivation_hook( __FILE__, array( $this, 'deactivate' ) );
@@ -447,14 +500,19 @@ class Aggregator {
 
 		add_action( 'murmurations_node_update', array( $this, 'update_nodes' ) );
 
+		add_filter( 'single_template', array( $this, 'load_node_single_template' ) );
 
-    add_filter( 'single_template', array( $this, 'load_node_single_template' ) );
-
-    add_filter( 'single-murmurations_node_template', array( $this, 'load_node_single_template' ) );
-    add_filter( 'archive_template', array( $this, 'load_node_archive_template') );
+		add_filter( 'single-murmurations_node_template', array( $this, 'load_node_single_template' ) );
+		add_filter( 'archive_template', array( $this, 'load_node_archive_template' ) );
 
 	}
 
+	/**
+	 * REST API endpoint for accessing locally stored nodes
+	 *
+	 * @param  array $req query string parameters that came with the request
+	 * @return string JSON of node data
+	 */
 	public function rest_get_nodes( $req ) {
 
 		$operator_map = array(
@@ -506,10 +564,13 @@ class Aggregator {
 		return rest_ensure_response( $rest_nodes );
 	}
 
+	/**
+	 * Register the API routes for accessing locally stored nodes
+	 */
 	public function register_api_routes() {
 
 		$result = register_rest_route(
-			Settings::get('api_route'),
+			Settings::get( 'api_route' ),
 			'get/nodes',
 			array(
 				'methods'  => 'GET',
@@ -523,24 +584,26 @@ class Aggregator {
 		}
 	}
 
+	/**
+	 * Register custom post types and taxonomies
+	 */
 	public function register_cpts_and_taxes() {
 
 		register_post_type(
 			'murmurations_node',
 			array(
 				'labels'        => array(
-					'name'          => Settings::get('node_name_plural'),
-					'singular_name' => Settings::get('node_name'),
+					'name'          => Settings::get( 'node_name_plural' ),
+					'singular_name' => Settings::get( 'node_name' ),
 				),
 				'public'        => true,
 				'has_archive'   => true,
 				'menu_icon'     => 'dashicons-admin-site-alt',
 				'show_in_menu'  => true, // 'admin.php?page=murmurations-aggregator-settings',
 				'menu_position' => 21,
-				'rewrite'       => array( 'slug' => Settings::get('node_slug') ),
+				'rewrite'       => array( 'slug' => Settings::get( 'node_slug' ) ),
 			)
 		);
 
 	}
 }
-?>

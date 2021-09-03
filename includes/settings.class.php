@@ -1,19 +1,48 @@
 <?php
+/**
+ * Settings class
+ *
+ * @package Murmurations Aggregator
+ */
+
 namespace Murmurations\Aggregator;
 
+/**
+ * Class for handling settings
+ *
+ * Settings are stored in an option. Values can originate as defaults from the admin
+ * schema, as settings overrides from a hook (for example from a wrapper plugin
+ * or theme), or from the admin form.
+ */
 class Settings {
 
+	/**
+	 * The settings are stored here once loaded
+	 *
+	 * @var array
+	 */
 	private static $settings;
+	/**
+	 * The admin schema
+	 *
+	 * @var array
+	 */
+	private static $schema;
 
-  private static $schema;
 
+	/**
+	 * Get a setting value (or all settings)
+	 *
+	 * @param  string $var Optional setting variable name
+	 * @return mixed setting value or all settings
+	 */
 	public static function get( $var = null ) {
 		if ( $var ) {
-      $field = self::get_field( $var );
-      if( $field['value'] ){
-        return $field['value'];
-      } else if ( isset( self::$settings[ $var ] ) ) {
-        return apply_filters( 'murmurations-aggregator-get-setting', self::$settings[ $var ], $var );
+			$field = self::get_field( $var );
+			if ( $field['value'] ) {
+				return $field['value'];
+			} elseif ( isset( self::$settings[ $var ] ) ) {
+				return apply_filters( 'murmurations-aggregator-get-setting', self::$settings[ $var ], $var );
 			} else {
 				return apply_filters( 'murmurations-aggregator-get-setting', false, $var );
 			}
@@ -22,70 +51,115 @@ class Settings {
 		}
 	}
 
+	/**
+	 * Set a setting value
+	 *
+	 * @param string $var   variable name
+	 * @param mixed  $value value
+	 */
 	public static function set( $var, $value ) {
-    $value = apply_filters( 'murmurations-aggregator-set-setting', $value, $var );
+		$value                  = apply_filters( 'murmurations-aggregator-set-setting', $value, $var );
 		self::$settings[ $var ] = $value;
 	}
 
-  public static function load() {
-    $settings = get_option( 'murmurations_aggregator_settings' );
 
-    $schema_fields = self::get_fields();
+	/**
+	 * Load settings from DB
+	 */
+	public static function load() {
+		$settings = get_option( 'murmurations_aggregator_settings' );
 
-    foreach ($schema_fields as $field => $attribs) {
-      if( $attribs['value'] ){
-        $settings[$field] = $attribs['value'];
-      } else if( $attribs['default'] ){
-        if( $settings[$field] === null || $settings[$field] === '' || ($settings[$field] === false && $attribs['type'] !== 'boolean')){
-          $settings[$field] = $attribs['default'];
-        }
-      }
-    }
+		$schema_fields = self::get_fields();
 
-    self::$settings = apply_filters( 'murmurations-aggregator-load-settings', $settings );
-  }
+		foreach ( $schema_fields as $field => $attribs ) {
+			if ( $attribs['value'] ) {
+				$settings[ $field ] = $attribs['value'];
+			} elseif ( $attribs['default'] ) {
+				if ( $settings[ $field ] === null || $settings[ $field ] === '' || ( $settings[ $field ] === false && $attribs['type'] !== 'boolean' ) ) {
+					$settings[ $field ] = $attribs['default'];
+				}
+			}
+		}
 
-  public static function save() {
-    $settings = apply_filters( 'murmurations-aggregator-save-settings', self::$settings );
-    return update_option( 'murmurations_aggregator_settings', $settings );
-  }
+		self::$settings = apply_filters( 'murmurations-aggregator-load-settings', $settings );
+	}
 
-  private static function get_schema_json(){
-    return file_get_contents( MURMAG_ROOT_PATH . 'admin_fields_jschema.json' );
-  }
 
-  public static function get_schema(){
-    if( ! self::$schema ){
-      self::load_schema();
-    }
-    return self::$schema;
-  }
+	/**
+	 * Save the settings to DB
+	 *
+	 * This can be called after settings have been updated using set()
+	 *
+	 * @return boolean true on success, false on failure.
+	 */
+	public static function save() {
+		$settings = apply_filters( 'murmurations-aggregator-save-settings', self::$settings );
+		return update_option( 'murmurations_aggregator_settings', $settings );
+	}
 
-  public static function load_schema( $default_values = null ){
+	/**
+	 * Get the schema JSON from the JSON file
+	 *
+	 * @return string Schema JSON
+	 */
+	private static function get_schema_json() {
+		return file_get_contents( MURMAG_ROOT_PATH . 'admin_fields_jschema.json' );
+	}
 
-    $settings_schema = json_decode( self::get_schema_json(), true );
+	/**
+	 * Get the schema as an array
+	 *
+	 * @return array Schema array
+	 */
+	public static function get_schema() {
+		if ( ! self::$schema ) {
+			self::load_schema();
+		}
+		return self::$schema;
+	}
 
-    if( is_array( $default_values ) ){
-      foreach ( $default_values as $field => $default ) {
-        $settings_schema['properties'][$field]['default'] = $default;
-      }
-    }
+	/**
+	 * Load the schema from JSON file, and store to class variable
+	 *
+	 * @param  array $default_values possible default values to set, overriding schema defaults
+	 */
+	public static function load_schema( $default_values = null ) {
 
-    $settings_schema = apply_filters( 'murmurations-aggregator-load-settings-schema', $settings_schema );
+		$settings_schema = json_decode( self::get_schema_json(), true );
 
-    self::$schema = $settings_schema;
-  }
+		if ( is_array( $default_values ) ) {
+			foreach ( $default_values as $field => $default ) {
+				$settings_schema['properties'][ $field ]['default'] = $default;
+			}
+		}
 
-  public static function get_fields(){
-    $admin_schema = self::get_schema();
-    return $admin_schema['properties'];
-  }
+		$settings_schema = apply_filters( 'murmurations-aggregator-load-settings-schema', $settings_schema );
 
-  public static function get_field($field){
-    if( ! self::$schema ){
-      self::load_schema();
-    }
-    return self::$schema['properties'][$field];
-  }
+		self::$schema = $settings_schema;
+	}
+
+	/**
+	 * Get all the schema fields
+	 *
+	 * @return array schema fields
+	 */
+	public static function get_fields() {
+		$admin_schema = self::get_schema();
+		return $admin_schema['properties'];
+	}
+
+
+	/**
+	 * Get the attributes of a single field from the admin schema
+	 *
+	 * @param  string $field field name
+	 * @return array attributes of the field
+	 */
+	public static function get_field( $field ) {
+		if ( ! self::$schema ) {
+			self::load_schema();
+		}
+		return self::$schema['properties'][ $field ];
+	}
 
 }

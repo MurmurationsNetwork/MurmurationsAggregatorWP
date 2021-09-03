@@ -1,10 +1,15 @@
 <?php
+/**
+ * Notices class
+ *
+ * @package Murmurations Aggregator
+ */
+
 namespace Murmurations\Aggregator;
 
-/*
-* Handle admin notifications
-*/
-
+/**
+ * Handle admin notices
+ */
 class Notices {
 
 	public static $notices = array();
@@ -30,7 +35,7 @@ class Notices {
 		return $notices;
 	}
 
-	public static function  show() {
+	public static function show() {
 		$notices = self::get();
 		foreach ( $notices as $notice ) {
 			?>

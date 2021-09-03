@@ -1,10 +1,29 @@
 <?php
+/**
+ * API class
+ *
+ * @package Murmurations Aggregator
+ */
+
 namespace Murmurations\Aggregator;
 
+/**
+ * Class that handles communications with the Murmurations network
+ */
 class API {
-
+	/**
+	 * Optional callback for logging
+	 * TODO: Remove this and use global logging by default
+	 */
 	public static $logging_handler = false;
 
+	/**
+	 * Check if a node matches a filter condition
+	 *
+	 * @param  array $node The node to check
+	 * @param  array $condition Condition to check the node against
+	 * @return boolean Whether the node matched the condition
+	 */
 	public static function checkNodeCondition( $node, $condition ) {
 
 		list($subject, $predicate, $object) = $condition;
@@ -46,7 +65,13 @@ class API {
 
 	}
 
-
+	/**
+	 * Fetch a node profile as JSON
+	 *
+	 * @param  string $url The node's profile URL
+	 * @param  array  $options Options for the request
+	 * @return string/boolean The returned JSON or false on failure
+	 */
 	public static function getNodeJson( $url, $options = null ) {
 
 		$ch = curl_init();
@@ -68,7 +93,7 @@ class API {
 
 		curl_setopt( $ch, CURLOPT_URL, $url );
 		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
-    curl_setopt( $ch, CURLOPT_USERAGENT, 'Murmurations-Aggregator' );
+		curl_setopt( $ch, CURLOPT_USERAGENT, 'Murmurations-Aggregator' );
 
 		$result = curl_exec( $ch );
 
@@ -80,6 +105,14 @@ class API {
 		return $result;
 	}
 
+	/**
+	 * Fetch the JSON for an index
+	 *
+	 * @param  string $url The index URL
+	 * @param  array  $query An array of key => value pairs to pass to the index as query parameters
+	 * @param  array  $options Options for the request
+	 * @return string|boolean JSON result or false on failure
+	 */
 	public static function getIndexJson( $url, $query, $options = null ) {
 
 		$ch = curl_init();
@@ -105,10 +138,10 @@ class API {
 			curl_setopt( $ch, CURLOPT_USERPWD, $curl_upass );
 		}
 
-    llog( "Making index request to " . $url . " with " . $fields_string );
+		llog( 'Making index request to ' . $url . ' with ' . $fields_string );
 
 		curl_setopt( $ch, CURLOPT_URL, $url . '?' . $fields_string );
-    curl_setopt( $ch, CURLOPT_USERAGENT, 'Murmurations-Aggregator' );
+		curl_setopt( $ch, CURLOPT_USERAGENT, 'Murmurations-Aggregator' );
 		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
 		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
 		curl_setopt( $ch, CURLOPT_FAILONERROR, true );
@@ -117,53 +150,10 @@ class API {
 
 		if ( $result === false ) {
 			Notices::set( 'No result returned from cURL request to index. cURL error: ' . curl_error( $ch ) );
-      llog( curl_getinfo($ch), "Failed index request." );
+			llog( curl_getinfo( $ch ), 'Failed index request.' );
 			return false;
 		} else {
 			return $result;
 		}
-	}
-
-	/* Collect updated RSS feed data */
-	private function feedRequest( $url, $since_time = null ) {
-
-		// Get simpleXML of feed
-		try {
-			$rss = Feed::loadRss( $url );
-		} catch ( \Exception $e ) {
-			Notices::set( 'Error connecting to feed URL: ' . $url, 'warning' );
-			llog( "Couldn't load feed" );
-		}
-
-		$ar = xml2array( $rss );
-
-		return $ar;
-	}
-
-	public static function xml2array( $xmlObject, $out = array() ) {
-		foreach ( (array) $xmlObject as $index => $node ) {
-			$out[ $index ] = ( is_object( $node ) || is_array( $node ) ) ? xml2array( $node ) : $node;
-		}
-		return $out;
-	}
-
-
-
-	public function importNodes() {
-		/*
-		What this (or associated pieces) needs to do:
-		Add a tab to the admin page
-		Show a file upload form
-		Process uploaded CSV data
-		-- No: for now, since this is relatively rare operation, well skip the interface:
-		  Upload a file to the "imports" directory
-		  Load a separate file that's only for importing that:
-			1) Opens the import data file
-			2) Parses it into an array
-			4) Writes out to JSON files and adds to index (optionally) <-- this will need to be batched in some way, otherwise the index requests will get out of control on non-tiny data sets
-			3) Adds to WP DB
-
-			*/
-
 	}
 }

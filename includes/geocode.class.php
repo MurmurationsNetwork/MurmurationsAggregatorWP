@@ -1,10 +1,15 @@
 <?php
+/**
+ * Feeds class
+ *
+ * @package Murmurations Aggregator
+ */
+
 namespace Murmurations\Aggregator;
 
-/*
-* Geocode addresses and other location information
-*/
-
+/**
+ * Geocode addresses and other location information
+ */
 class Geocode {
 
 	private $location_hash; // Hash of the location input, used as identifier for caching

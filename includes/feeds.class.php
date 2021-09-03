@@ -1,6 +1,15 @@
 <?php
+/**
+ * Feeds class
+ *
+ * @package Murmurations Aggregator
+ */
+
 namespace Murmurations\Aggregator;
 
+/**
+ * Class that handles collecting, parsing, and displaying RSS feed data from nodes
+ */
 class Feeds {
 
 	public static $wpagg;
@@ -57,17 +66,17 @@ class Feeds {
 			)
 		);
 
-    register_taxonomy(
-      'murms_feed_item_source',
-      'murms_feed_item',
-      array(
-        'labels'            => array(
-          'name'          => __( 'Sources' ),
-          'singular_name' => __( 'From' ),
-        ),
-        'show_admin_column' => true,
-      )
-    );
+		register_taxonomy(
+			'murms_feed_item_source',
+			'murms_feed_item',
+			array(
+				'labels'            => array(
+					'name'          => __( 'Sources' ),
+					'singular_name' => __( 'From' ),
+				),
+				'show_admin_column' => true,
+			)
+		);
 	}
 
 	public static function save_feed_item( $item_data ) {
@@ -122,7 +131,7 @@ class Feeds {
 
 			// Add terms directly
 			wp_set_object_terms( $id, $tags, 'murms_feed_item_tag' );
-      wp_set_object_terms( $id, array($item_data['node_name']), 'murms_feed_item_source' );
+			wp_set_object_terms( $id, array( $item_data['node_name'] ), 'murms_feed_item_source' );
 
 			// And use the ID to update meta
 			update_post_meta( $id, 'murmurations_feed_item_url', $item_data['url'] );
