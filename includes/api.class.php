@@ -20,9 +20,9 @@ class API {
 	/**
 	 * Check if a node matches a filter condition
 	 *
-	 * @param  array $node The node to check
-	 * @param  array $condition Condition to check the node against
-	 * @return boolean Whether the node matched the condition
+	 * @param  array $node The node to check.
+	 * @param  array $condition Condition to check the node against.
+	 * @return boolean Whether the node matched the condition.
 	 */
 	public static function checkNodeCondition( $node, $condition ) {
 
@@ -68,9 +68,9 @@ class API {
 	/**
 	 * Fetch a node profile as JSON
 	 *
-	 * @param  string $url The node's profile URL
-	 * @param  array  $options Options for the request
-	 * @return string/boolean The returned JSON or false on failure
+	 * @param  string $url The node's profile URL.
+	 * @param  array  $options Options for the request.
+	 * @return string/boolean The returned JSON or false on failure.
 	 */
 	public static function getNodeJson( $url, $options = null ) {
 
@@ -108,10 +108,10 @@ class API {
 	/**
 	 * Fetch the JSON for an index
 	 *
-	 * @param  string $url The index URL
-	 * @param  array  $query An array of key => value pairs to pass to the index as query parameters
-	 * @param  array  $options Options for the request
-	 * @return string|boolean JSON result or false on failure
+	 * @param  string $url The index URL.
+	 * @param  array  $query An array of key => value pairs to pass to the index as query parameters.
+	 * @param  array  $options Options for the request.
+	 * @return string|boolean JSON result or false on failure.
 	 */
 	public static function getIndexJson( $url, $query, $options = null ) {
 
@@ -121,12 +121,12 @@ class API {
 		// If basic auth information is set, add it to cURL request...
 		if ( $options['api_basic_auth_user'] && $options['api_basic_auth_pass'] ) {
 			$curl_upass = $options['api_basic_auth_user'] . ':' . $options['api_basic_auth_pass'];
-			// And put the api key, if present, into the query (not recommended)
+			// And put the api key, if present, into the query (not recommended).
 			if ( $options['api_key'] ) {
 				$query['api_key'] = $options['api_key'];
 			}
 		} else {
-			// Otherwise use the cURL basic auth parameters for the api key (recommended)
+			// Otherwise use the cURL basic auth parameters for the api key (recommended).
 			if ( $options['api_key'] ) {
 				$curl_upass = $options['api_key'] . ':';
 			}

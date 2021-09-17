@@ -7,7 +7,7 @@ if ( $data['url'] ) {
 	$popup_str .= '<div class="url"><a href="' . $data['url'] . '">' . $data['url'] . '</a></div>';
 }
 if ( $data['description'] ) {
-	$popup_str .= '<div class="description">' . wp_trim_words( $data['description'], 60, '...' );
+	$popup_str .= '<div class="description">' . esc_html( wp_trim_words( $data['description'], 60, '...' ) );
 	if ( Config::get('node_single') ) {
 		if ( Config::get('node_single_url_field') ) {
 			$href   = $data[ Config::get('node_single_url_field') ];
@@ -15,7 +15,7 @@ if ( $data['description'] ) {
 		} else {
 			$href = $data['guid'];
 		}
-		$popup_str .= ' <a href="' . $href . '" ' . $target . '>read more</a>';
+		$popup_str .= ' <a href="' . esc_url( $href ). '" ' . $target . '>read more</a>';
 
 	}
 	$popup_str .= '</div>';

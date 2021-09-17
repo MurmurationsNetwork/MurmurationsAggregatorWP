@@ -33,8 +33,8 @@ class Settings {
 	/**
 	 * Get a setting value (or all settings)
 	 *
-	 * @param  string $var Optional setting variable name
-	 * @return mixed setting value or all settings
+	 * @param  string $var Optional setting variable name.
+	 * @return mixed setting value or all settings.
 	 */
 	public static function get( $var = null ) {
 		if ( $var ) {
@@ -42,23 +42,23 @@ class Settings {
 			if ( $field['value'] ) {
 				return $field['value'];
 			} elseif ( isset( self::$settings[ $var ] ) ) {
-				return apply_filters( 'murmurations-aggregator-get-setting', self::$settings[ $var ], $var );
+				return apply_filters( 'murmurations_aggregator_get_setting', self::$settings[ $var ], $var );
 			} else {
-				return apply_filters( 'murmurations-aggregator-get-setting', false, $var );
+				return apply_filters( 'murmurations_aggregator_get_setting', false, $var );
 			}
 		} else {
-			return apply_filters( 'murmurations-aggregator-get-settings', self::$settings );
+			return apply_filters( 'murmurations_aggregator_get_settings', self::$settings );
 		}
 	}
 
 	/**
 	 * Set a setting value
 	 *
-	 * @param string $var   variable name
-	 * @param mixed  $value value
+	 * @param string $var   variable name.
+	 * @param mixed  $value value.
 	 */
 	public static function set( $var, $value ) {
-		$value                  = apply_filters( 'murmurations-aggregator-set-setting', $value, $var );
+		$value                  = apply_filters( 'murmurations_aggregator_set_setting', $value, $var );
 		self::$settings[ $var ] = $value;
 	}
 
@@ -81,19 +81,19 @@ class Settings {
 			}
 		}
 
-		self::$settings = apply_filters( 'murmurations-aggregator-load-settings', $settings );
+		self::$settings = apply_filters( 'murmurations_aggregator_load_settings', $settings );
 	}
 
 
 	/**
 	 * Save the settings to DB
 	 *
-	 * This can be called after settings have been updated using set()
+	 * This can be called after settings have been updated using set().
 	 *
 	 * @return boolean true on success, false on failure.
 	 */
 	public static function save() {
-		$settings = apply_filters( 'murmurations-aggregator-save-settings', self::$settings );
+		$settings = apply_filters( 'murmurations_aggregator_save_settings', self::$settings );
 		return update_option( 'murmurations_aggregator_settings', $settings );
 	}
 
@@ -121,7 +121,7 @@ class Settings {
 	/**
 	 * Load the schema from JSON file, and store to class variable
 	 *
-	 * @param  array $default_values possible default values to set, overriding schema defaults
+	 * @param  array $default_values possible default values to set, overriding schema defaults.
 	 */
 	public static function load_schema( $default_values = null ) {
 
@@ -133,7 +133,7 @@ class Settings {
 			}
 		}
 
-		$settings_schema = apply_filters( 'murmurations-aggregator-load-settings-schema', $settings_schema );
+		$settings_schema = apply_filters( 'murmurations_aggregator_load_settings_schema', $settings_schema );
 
 		self::$schema = $settings_schema;
 	}
@@ -141,7 +141,7 @@ class Settings {
 	/**
 	 * Get all the schema fields
 	 *
-	 * @return array schema fields
+	 * @return array schema fields.
 	 */
 	public static function get_fields() {
 		$admin_schema = self::get_schema();
@@ -152,7 +152,7 @@ class Settings {
 	/**
 	 * Get the attributes of a single field from the admin schema
 	 *
-	 * @param  string $field field name
+	 * @param  string $field field name.
 	 * @return array attributes of the field
 	 */
 	public static function get_field( $field ) {

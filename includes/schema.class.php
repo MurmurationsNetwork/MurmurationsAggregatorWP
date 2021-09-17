@@ -83,27 +83,13 @@ class Schema {
 				self::$fields = $local_schema['properties'];
 		}
 
-		/*
-		if ( file_exists( Config::get('schema_file') ) ) {
-		$schema_json  = file_get_contents( Config::get('schema_file') );
-		$schema = json_decode( $schema_json, true );
-		if( $schema === null || ! isset( $schema[ 'properties' ] )){
-		error( 'Invalid schema: ' . Config::get('schema_file'), 'fatal' );
-		}else{
-		self::$schema = $schema;
-		self::$fields = $schema[ 'properties' ];
-		}
-		} else {
-		error( 'Schema file not found: ' . Config::get('schema_file'), 'fatal' );
-		}
-		*/
 	}
 
 	/**
 	 * Retrieve the local schema, or a field thereof
 	 *
-	 * @param  string $field the name of a field to get
-	 * @return array Field definition, or whole schema
+	 * @param  string $field the name of a field to get.
+	 * @return array Field definition, or whole schema.
 	 */
 	public static function get( $field = null ) {
 		if ( ! self::$schema ) {
@@ -123,7 +109,7 @@ class Schema {
 	/**
 	 * Get all the fields of the schema (properties object)
 	 *
-	 * @return array Array of all the fields
+	 * @return array Array of all the fields.
 	 */
 	public static function get_fields() {
 		if ( ! self::$schema ) {
@@ -137,9 +123,9 @@ class Schema {
 	/**
 	 * Set one or all of the attributes of a schema field
 	 *
-	 * @param string $field The name of the field
-	 * @param mixed  $attrib_or_attribs The attribute name, or the array of attributes
-	 * @param mixed  $value The value of an attribute
+	 * @param string $field The name of the field.
+	 * @param mixed  $attrib_or_attribs The attribute name, or the array of attributes.
+	 * @param mixed  $value The value of an attribute.
 	 */
 	public static function set( $field, $attrib_or_attribs, $value = null ) {
 		if ( $value && is_string( $attrib_or_attribs ) ) {
@@ -171,11 +157,10 @@ class Schema {
 	 * Merge multiple schemas
 	 *
 	 * Later schemas take precedence -- properties of earlier schemas will be recursively
-	 * replaced by properties of later schemas with the same name
+	 * replaced by properties of later schemas with the same name.
 	 *
 	 * @param array $schemas An array of schemas as PHP arrays.
 	 */
-
 	public static function merge( array $schemas ) {
 
 		$merged_schema = array();
@@ -195,10 +180,9 @@ class Schema {
 	 * Fetch any included schemas
 	 * Dereference fields by fetching their content
 	 *
-	 * @param array $schema Schema as a PHP array
-	 * @return array Dereferenced schema as a PHP array
+	 * @param array $schema Schema as a PHP array.
+	 * @return array Dereferenced schema as a PHP array.
 	 */
-
 	public static function dereference( $schema ) {
 
 		llog( 'Dereferencing schema' );
@@ -220,7 +204,7 @@ class Schema {
 			unset( $schema['include'] );
 		}
 
-		/* for now, this can only handle refs for fields that are in the library! */
+		/* For now, this can only handle refs for fields that are in the library! */
 
 		foreach ( $schema['properties'] as $key => $attribs ) {
 			if ( isset( $attribs['$ref'] ) ) {
@@ -249,7 +233,6 @@ class Schema {
 	 *
 	 * @param string $url The schema URL.
 	 */
-
 	public static function fetch( $url ) {
 
 		llog( 'In fetch(). Getting schema from ' . $url );

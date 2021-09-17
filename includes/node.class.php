@@ -12,7 +12,7 @@ namespace Murmurations\Aggregator;
  */
 class Node {
 	/**
-	 * Holds errors for the object
+	 * @var array $errors Holds errors for the object.
 	 */
 	private $errors = array();
 
@@ -20,9 +20,9 @@ class Node {
 	 * Constructor
 	 *
 	 * @param mixed $arg Can be:
-	 * a post ID int (in which case will attempt to build from the post)
-	 * a post object (build from the post)
-	 * a JSON string (build from JSON, inserting or updating the post record)
+	 * a post ID int (in which case will attempt to build from the post).
+	 * a post object (build from the post).
+	 * a JSON string (build from JSON, inserting or updating the post record).
 	 */
 	public function __construct( $arg = null ) {
 		if ( is_numeric( $arg ) ) {
@@ -88,7 +88,7 @@ class Node {
 
 		foreach ( $metas as $key => $value ) {
 
-			if ( substr( $key, 0, strlen( Settings::get( 'meta_prefix' ) ) ) == Settings::get( 'meta_prefix' ) ) {
+			if ( substr( $key, 0, strlen( Settings::get( 'meta_prefix' ) ) ) === Settings::get( 'meta_prefix' ) ) {
 				$key = substr( $key, strlen( Settings::get( 'meta_prefix' ) ) );
 			}
 
@@ -109,8 +109,8 @@ class Node {
 	/**
 	 * Check filter conditions against the post object
 	 *
-	 * @param  array $filters the array of filters to check against
-	 * @return boolean true if all filters match, otherwise false
+	 * @param  array $filters the array of filters to check against.
+	 * @return boolean true if all filters match, otherwise false.
 	 */
 	public function checkFilters( array $filters ) {
 
@@ -124,7 +124,12 @@ class Node {
 
 		return $matched;
 	}
-
+  /**
+   * Check if this node matches a filter condition
+   *
+   * @param  array  $condition (array with field, comparison, and value).
+   * @return boolean True if condition is matched, false otherwise.
+   */
 	private function checkCondition( array $condition ) {
 
 		extract( $condition );
@@ -252,9 +257,9 @@ class Node {
 	/**
 	 * Get the node post from the profile URL of the node
 	 *
-	 * @param string $url the profile URL of the node
-	 * @param array  $args additional args for the post query
-	 * @return mixed WP_Post object if successful, false on failure
+	 * @param string $url the profile URL of the node.
+	 * @param array  $args additional args for the post query.
+	 * @return mixed WP_Post object if successful, false on failure.
 	 */
 	public function getPostFromProfileUrl( $url, $args = null ) {
 
@@ -319,7 +324,7 @@ class Node {
 	/**
 	 * Set an error on this node
 	 *
-	 * @param string $error The error message
+	 * @param string $error The error message.
 	 */
 	private function error( $error ) {
 		$this->errors[] = $error;
@@ -329,7 +334,7 @@ class Node {
 	/**
 	 * Find out if there are errors
 	 *
-	 * @return boolean true if errors, otherwise false
+	 * @return boolean true if errors, otherwise false.
 	 */
 	public function hasErrors() {
 		return count( $this->errors ) > 0;
@@ -338,7 +343,7 @@ class Node {
 	/**
 	 * Get the array of errors
 	 *
-	 * @return array Error array
+	 * @return array Error array.
 	 */
 	public function getErrors() {
 		return $this->errors;
@@ -347,7 +352,7 @@ class Node {
 	/**
 	 * Get the text of errors
 	 *
-	 * @return string HTML errors string
+	 * @return string HTML errors string.
 	 */
 	public function getErrorsText() {
 		$text = '';
@@ -360,8 +365,8 @@ class Node {
 	/**
 	 * Set a property of the node object
 	 *
-	 * @param string $property property name
-	 * @param mixed  $value The property value
+	 * @param string $property property name.
+	 * @param mixed  $value The property value.
 	 */
 	public function setProperty( $property, $value ) {
 		$this->data[ $property ] = $value;

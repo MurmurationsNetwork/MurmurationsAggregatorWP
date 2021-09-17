@@ -12,8 +12,8 @@ $murmurations_log_buffer = '';
 /**
  * Write to the log
  *
- * @param  mixed  $content Things to be logged
- * @param  string $meta Optional description of things
+ * @param  mixed  $content Things to be logged.
+ * @param  string $meta Optional description of things.
  */
 function llog( $content, $meta = null ) {
 
@@ -47,9 +47,9 @@ function llog( $content, $meta = null ) {
 /**
  * Output debugging information
  *
- * @param  mixed  $content Things to be debugged
- * @param  string $meta Optional description
- * @return string the HTML formatted debugging output
+ * @param  mixed  $content Things to be debugged.
+ * @param  string $meta Optional description.
+ * @return string the HTML formatted debugging output.
  */
 function debug( $content, $meta = null ) {
 
@@ -69,13 +69,13 @@ function debug( $content, $meta = null ) {
 /**
  * Basic error handling
  *
- * @param  string $message A description of what went wrong
- * @param  string $severity Severity of the error
+ * @param  string $message A description of what went wrong.
+ * @param  string $severity Severity of the error.
  */
 function error( $message, $severity = 'warn' ) {
 	llog( $message, 'error' );
 	Notices::set( $message, $severity );
-	if ( $severity == 'fatal' ) {
+	if ( $severity === 'fatal' ) {
 		exit( $message );
 	}
 }

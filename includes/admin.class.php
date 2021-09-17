@@ -23,21 +23,21 @@ class Admin {
 	 */
 	public static function show_admin_settings_page() {
 
-		if ( $_POST['action'] ) {
+		if ( isset($_POST['action']) ) {
 			check_admin_referer( 'murmurations_ag_actions_form' );
-			if ( $_POST['action'] == 'update_murms_feed_items' ) {
+			if ( $_POST['action'] === 'update_murms_feed_items' ) {
 				Feeds::update_feeds();
 			}
-			if ( $_POST['action'] == 'update_nodes' ) {
+			if ( $_POST['action'] === 'update_nodes' ) {
 				self::$wpagg->update_nodes();
 			}
-			if ( $_POST['action'] == 'delete_all_nodes' ) {
+			if ( $_POST['action'] === 'delete_all_nodes' ) {
 				self::$wpagg->delete_all_nodes();
 			}
 		}
 
 		?>
-	 <h1><?php echo Config::get( 'plugin_name' ); ?> Settings</h1>
+	 <h1><?php echo esc_html( Config::get( 'plugin_name' ) ); ?> Settings</h1>
 	 <form method="POST">
 		<?php
 		wp_nonce_field( 'murmurations_ag_actions_form' );
@@ -71,7 +71,7 @@ class Admin {
 			'config'        => 'Advanced',
 		);
 
-		$tabs = apply_filters( 'murmurations-aggregator-admin-tabs', $tabs );
+		$tabs = apply_filters( 'murmurations_aggregator_admin_tabs', $tabs );
 
 		$tab = 'general';
 
@@ -107,9 +107,9 @@ class Admin {
 	/**
 	 * Pre-process current settings data to meet RJSF data type requirements
 	 *
-	 * @param array $schema the RJSF admin schema
-	 * @param  array $values current values
-	 * @return array processed values
+	 * @param array $schema the RJSF admin schema.
+	 * @param  array $values current values.
+	 * @return array processed values.
 	 */
 	public static function fix_rjsf_data_types( $schema, $values ) {
 		foreach ( $schema['properties'] as $field => $attribs ) {
@@ -120,7 +120,7 @@ class Admin {
 			}
 			$value = $values[ $field ];
 
-			// Aggresively set default values
+			// Aggressively set default values.
 			if ( $attribs['default'] ) {
 				if ( $value === null || $value === '' || ( $value === false && $attribs['type'] !== 'boolean' ) ) {
 					$value = $attribs['default'];
@@ -129,7 +129,7 @@ class Admin {
 
 			if ( is_array( $value ) ) {
 				foreach ( $value as $key => $item ) {
-					// Sometimes array fields have their own "properties" property, and sometimes they don't
+					// Sometimes array fields have their own "properties" property, and sometimes they don't.
 					if ( ! isset( $attribs['items']['properties'] ) ) {
 						$attribs['items']['properties'] = array( $attribs['items'] );
 					}
@@ -153,7 +153,7 @@ class Admin {
 	/**
 	 * Show the RJSF form for an admin tab
 	 *
-	 * @param  string $group the field group to be shown
+	 * @param  string $group the field group to be shown.
 	 */
 	public static function show_rjsf_admin_form( $group = null ) {
 
@@ -167,7 +167,7 @@ class Admin {
 
 		foreach ( $raw_admin_schema['properties'] as $field => $attribs ) {
 
-			if ( ! $group || ( $attribs['group'] == $group ) ) {
+			if ( ! $group || ( $attribs['group'] === $group ) ) {
 
 				if ( $attribs['value'] ) {
 					$attribs['readOnly'] = true;
@@ -183,35 +183,35 @@ class Admin {
 				if ( $field === 'filters' ) {
 
 					$enum      = array();
-					$enumNames = array();
+					$enum_names = array();
 
 					foreach ( Schema::get_fields() as $schema_field => $schema_field_attribs ) {
 						$enum[]      = $schema_field;
-						$enumNames[] = $schema_field_attribs['title'];
+						$enum_names[] = $schema_field_attribs['title'];
 					}
 
 					$attribs['items']['properties']['field']['enum']      = $enum;
-					$attribs['items']['properties']['field']['enumNames'] = $enumNames;
+					$attribs['items']['properties']['field']['enumNames'] = $enum_names;
 
 				} elseif ( $field === 'filter_fields' ) {
-					// Add enum fields to the options for front-end filters
+					// Add enum fields to the options for front-end filters.
 
 					$enum      = array();
-					$enumNames = array();
+					$enum_names = array();
 
 					foreach ( Schema::get_fields() as $schema_field => $schema_field_attribs ) {
 						if ( isset( $schema_field_attribs['enum'] ) ) {
 								$enum[]      = $schema_field;
-								$enumNames[] = $schema_field_attribs['title'];
+								$enum_names[] = $schema_field_attribs['title'];
 						} elseif ( $schema_field_attribs['type'] === 'array'
 						&& ( $schema_field_attribs['items']['enum'] ) ) {
 							  $enum[]      = $schema_field;
-							  $enumNames[] = $schema_field_attribs['title'];
+							  $enum_names[] = $schema_field_attribs['title'];
 						}
 					}
 
 					$attribs['items']['enum']      = $enum;
-					$attribs['items']['enumNames'] = $enumNames;
+					$attribs['items']['enumNames'] = $enum_names;
 
 				}
 
@@ -221,7 +221,7 @@ class Admin {
 
 		$current_values = self::fix_rjsf_data_types( $admin_schema, $current_values );
 
-		$admin_schema = apply_filters( 'murmurations-aggregator-admin-schema', $admin_schema );
+		$admin_schema = apply_filters( 'murmurations_aggregator_admin_schema', $admin_schema );
 
 		$admin_schema_json = json_encode( $admin_schema );
 
@@ -256,17 +256,17 @@ class Admin {
 	};
 
 	jQuery.post(ajaxurl, data, function(response) {
-	  console.log(response);
+
 	  formOverlay.style.visibility = "hidden";
 	  var noticeContainer = document.getElementById('murmagg-admin-form-notice');
 
 	  noticeContainer.innerHTML = "";
 
 	  for (const message of response.messages){
-		var notice = document.createElement("div");
-		notice.innerHTML = '<p>'+message.message+'</p>';
-		notice.className = "notice notice-"+message.type;
-		noticeContainer.appendChild(notice);
+  		var notice = document.createElement("div");
+  		notice.innerHTML = '<p>'+message.message+'</p>';
+  		notice.className = "notice notice-"+message.type;
+  		noticeContainer.appendChild(notice);
 	  }
 	  noticeContainer.style.display = "block";
 	});

@@ -28,7 +28,7 @@ get_header();
       </header>
       <div class="post-meta-wrapper">
     <?php if ( $data['url'] ) : ?>
-      <div class="murmurations-node-url"><a href="<?php echo $data['url']; ?>"><?php echo $data['url']; ?></a></div>
+      <div class="murmurations-node-url"><a href="<?php echo esc_url( $data['url'] ); ?>"><?php echo  esc_url( $data['url'] ); ?></a></div>
     <?php endif; ?>
       </div>
       <div class="entry-content">
@@ -41,7 +41,7 @@ get_header();
           } else {
             $href = $data['guid'];
           }
-          ?><p><a href="<?php echo $href; ?>" <?php echo $target; ?>>read more</a></p>
+          ?><p><a href="<?php echo esc_url( $href ); ?>" <?php echo $target; ?>>read more</a></p>
           <?php
         }
 
@@ -61,7 +61,7 @@ get_header();
           $place_components[] = $data['location']['region'];
         }
 
-        echo join( ', ', $place_components );
+        echo esc_html( join( ', ', $place_components ) );
 
         ?>
       </div>

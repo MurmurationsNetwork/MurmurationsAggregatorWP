@@ -13,9 +13,13 @@ namespace Murmurations\Aggregator;
 class Aggregator {
 	/**
 	 * Holds the array of nodes fetched from the network
+	 * @var array $nodes
 	 */
 	public $nodes = array();
 
+  /**
+   * Constructor
+   */
 	public function __construct() {
 
 		$default_settings = array(
@@ -34,7 +38,7 @@ class Aggregator {
 
 		$this->register_hooks();
 
-		if ( Settings::get( 'enable_feeds' ) == 'true' ) {
+		if ( Settings::get( 'enable_feeds' ) === 'true' ) {
 			Feeds::$wpagg = $this;
 			Feeds::init();
 		}
@@ -78,9 +82,9 @@ class Aggregator {
 	/**
 	 * Load an (overridable) template file
 	 *
-	 * @param  string $template filename of template file
-	 * @param  array  $data data that will be accessed in the template
-	 * @return string HTML from template
+	 * @param  string $template filename of template file.
+	 * @param  array  $data data that will be accessed in the template.
+	 * @return string HTML from template.
 	 */
 	public static function load_template( $template, $data ) {
 		$sources = array();
@@ -162,7 +166,7 @@ class Aggregator {
 	/**
 	 * Delete all the saved nodes
 	 *
-	 * @return int the number of nodes deleted
+	 * @return int the number of nodes deleted.
 	 */
 	public function delete_all_nodes() {
 		$nodes = get_posts(
