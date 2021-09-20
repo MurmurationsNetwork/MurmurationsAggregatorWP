@@ -12,8 +12,6 @@ namespace Murmurations\Aggregator;
  */
 class Feeds {
 
-	public static $wpagg;
-
 	public static function init() {
 
 		require_once MURMAG_ROOT_PATH . 'libraries/Feed.php';
@@ -87,8 +85,10 @@ class Feeds {
 
 		$post_data = array();
 
-		$post_data['post_title']   = $item_data['title'];
-		$post_data['post_content'] = $item_data['content:encoded'];
+    $content_allowed_tags = array('a', 'p', 'div', 'ul', 'li', 'img' );
+
+		$post_data['post_title']   = wp_strip_all_tags( $item_data['title'] );
+		$post_data['post_content'] = strip_tags( $item_data['content:encoded'], $content_allowed_tags );
 		if ( ! $post_data['post_content'] ) {
 			$post_data['post_content'] = $item_data['title'];
 		}
@@ -195,7 +195,7 @@ class Feeds {
 	}
 
 	public static function update_feed_urls() {
-		$nodes = self::$wpagg->load_nodes();
+		$nodes = Aggregator::get_nodes();
 		foreach ( $nodes as $id => $node ) {
 			if ( ! isset( $node->data['feed_url'] ) && isset( $node->data['url'] ) ) {
 				$feed_url = self::get_feed_url( $node->data['url'] );
@@ -224,9 +224,7 @@ class Feeds {
 		$feed_items = array();
 
 		// Get the locally stored nodes
-		self::$wpagg->load_nodes();
-
-		$nodes = self::$wpagg->nodes;
+		$nodes = Aggregator::get_nodes();
 
 		$results = array(
 			'nodes_with_feeds'   => 0,
