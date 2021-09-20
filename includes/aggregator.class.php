@@ -39,7 +39,6 @@ class Aggregator {
 		$this->register_hooks();
 
 		if ( Settings::get( 'enable_feeds' ) === 'true' ) {
-			Feeds::$wpagg = $this;
 			Feeds::init();
 		}
 
@@ -138,6 +137,35 @@ class Aggregator {
 ';
 	}
 
+  /**
+   * Get saved nodes from the DB (static)
+   *
+   * @param  array $args WP_Query compatible arguments.
+   * @return array of Node objects.
+   */
+  public static function get_nodes( $args = null ) {
+
+    $default_args = array(
+      'post_type'      => 'murmurations_node',
+      'posts_per_page' => -1,
+    );
+
+    $nodes = array();
+
+    $args = wp_parse_args( $args, $default_args );
+
+    $posts = get_posts( $args );
+
+    if ( count( $posts ) > 0 ) {
+      foreach ( $posts as $key => $post ) {
+        $nodes[ $post->ID ] = new Node( $post );
+      }
+    }
+
+    return $nodes;
+
+  }
+
 	/**
 	 * Load saved nodes from the DB
 	 *
@@ -200,7 +228,7 @@ class Aggregator {
 
 		$all_index_nodes = array();
 
-		foreach ( $settings['indices'] as $index ) {
+		foreach ( $settings['indices'] as $index_key => $index ) {
 
 			$index_fields = explode( ',', $index['queryable_fields'] );
 
@@ -227,27 +255,33 @@ class Aggregator {
 				$query[ $filter[0] ] = $filter[2];
 			}
 
-			$options = array();
+			$index_options = array();
 
 			if ( isset( $index['api_key'] ) ) {
-				$options['api_key'] = $index['api_key'];
+				$index_options['api_key'] = $index['api_key'];
 			}
 			if ( isset( $index['api_basic_auth_user'] ) ) {
-				$options['api_basic_auth_user'] = $index['api_basic_auth_user'];
+				$index_options['api_basic_auth_user'] = $index['api_basic_auth_user'];
 			}
 			if ( isset( $index['api_basic_auth_pass'] ) ) {
-				$options['api_basic_auth_pass'] = $index['api_basic_auth_pass'];
+				$index_options['api_basic_auth_pass'] = $index['api_basic_auth_pass'];
 			}
 
-			$index_nodes = API::getIndexJson( $index['url'], $query, $options );
+			$index_nodes = API::getIndexJson( $index['url'], $query, $index_options );
 
 			$index_nodes = json_decode( $index_nodes, true );
 
-			$index_nodes = $index_nodes['data'];
+      if ( ! $index_nodes ) {
+        Notices::set( 'Could not parse index JSON from: ' . $index['url'], 'error' );
+        llog( $index_nodes , "Could not parse index JSON" );
+      } else {
 
-			if ( ! $index_nodes ) {
-				Notices::set( 'Could not connect to index: ' . $index['url'], 'error' );
-			} else {
+  			$index_nodes = $index_nodes['data'];
+
+        foreach ($index_nodes as $key => $node) {
+          $index_nodes[$key]['index_options'] = $index;
+        }
+
 				Notices::set( 'Fetched node info from index at ' . $index['url'], 'success' );
 				$all_index_nodes = array_merge( $all_index_nodes, $index_nodes );
 			}
@@ -276,19 +310,17 @@ class Aggregator {
 
 			$options = array();
 
-			if ( isset( $settings['use_api_key_for_nodes'] ) && isset( $settings['api_key'] ) ) {
-				if ( $settings['use_api_key_for_nodes'] == 'true' ) {
-					$options['api_key'] = $settings['api_key'];
+			if ( isset( $data['index_options']['use_api_key_for_nodes'] ) && isset( $data['index_options']['api_key'] ) ) {
+				if ( $data['index_options']['use_api_key_for_nodes'] == 'true' ) {
+					$options['api_key'] = $data['index_options']['api_key'];
 				}
 			}
-			if ( isset( $settings['api_basic_auth_user'] ) ) {
-				$options['api_basic_auth_user'] = $settings['api_basic_auth_user'];
+			if ( isset( $data['index_options']['api_basic_auth_user'] ) ) {
+				$options['api_basic_auth_user'] = $data['index_options']['api_basic_auth_user'];
 			}
-			if ( isset( $settings['api_basic_auth_pass'] ) ) {
-				$options['api_basic_auth_pass'] = $settings['api_basic_auth_pass'];
+			if ( isset( $data['index_options']['api_basic_auth_pass'] ) ) {
+				$options['api_basic_auth_pass'] = $data['index_options']['api_basic_auth_pass'];
 			}
-
-			llog( 'Fetching node JSON from ' . $url );
 
 			$node_data = API::getNodeJson( $url, $options );
 
@@ -407,7 +439,7 @@ class Aggregator {
 
 		foreach ( $this->nodes as $key => $node ) {
 
-			if ( is_numeric( $node->data['geolocation']['lat'] ) && is_numeric( $node->data['geolocation']['lon'] ) ) {
+			if ( isset( $node->data['geolocation']['lat'] ) && isset( $node->data['geolocation']['lon'] ) ) {
 
 				$popup = trim( self::load_template( 'map_node_popup.php', $node->data ) );
 
