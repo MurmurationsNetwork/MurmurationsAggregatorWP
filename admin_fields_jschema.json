@@ -137,6 +137,24 @@
             "type" :  "string",
             "group" : "config",
             "description" : "Fields that can be used when querying this index, as a comma-delimited string"
+          },
+          "parameters" : {
+            "type" :  "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "parameter" : {
+                  "type" : "string",
+                  "title" : "Parameter name"
+                },
+                "value" : {
+                  "type" : "string",
+                  "title" : "Value"
+                }
+              }
+            },
+            "title" :  "Index query parameters",
+            "description" : "Set parameters that will be passed with the query string to this index."
           }
         }
       },
