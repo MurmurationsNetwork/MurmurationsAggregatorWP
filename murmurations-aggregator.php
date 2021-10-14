@@ -30,11 +30,3 @@ add_action(
 		Aggregator::init();
 	}
 );
-
-add_action(
-  'wp_ajax_save_settings',
-  array(
-    'Murmurations\Aggregator\Admin',
-    'ajax_save_settings'
-  )
-);

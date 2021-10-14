@@ -37,6 +37,10 @@ class Aggregator {
 			Feeds::init();
 		}
 
+    if( is_admin() ){
+      Admin::init();
+    }
+
 	}
 
 	/**
@@ -191,16 +195,17 @@ class Aggregator {
   public static function ajax_get_index_nodes() {
     $nodes = self::get_index_nodes();
 
-    $feedback = array(
+    $result = array(
       'status'   => 'success',
       'messages' => Notices::get(),
+      'nodes' => $nodes
     );
 
     if( ! $nodes ){
-      $feedback['status'] = 'failure';
+      $result['status'] = 'failure';
     }
 
-    wp_send_json( $feedback );
+    wp_send_json( $result );
 
   }
 
@@ -288,9 +293,12 @@ class Aggregator {
 
   }
 
-  public static function ajax_update_node( $url ){
+  public static function ajax_update_node(){
 
-    $result = update_node( array( 'profile_url' => $url ) );
+    $profile_url = $_POST['profile_url'];
+
+
+    $result = self::update_node( array( 'profile_url' => $profile_url ) );
 
     $feedback = array(
       'status'   => 'success',
@@ -349,7 +357,7 @@ class Aggregator {
           $node_array['profile_url'] = $data['profile_url'];
         }
 
-        Notices::set("Fetched JSON from $url");
+        Notices::set("Fetched JSON");
 
         $node = new Node( $node_array );
 
@@ -374,7 +382,7 @@ class Aggregator {
           if ( ! $result ){
             Notices::set( 'Failed to save node: ' . $url, 'error' );
           } else {
-            Notices::set( 'Node sucessfully saved: ' . $url, 'success' );
+            Notices::set( 'Node sucessfully saved', 'success' );
             return $result;
           }
         } else {
@@ -579,16 +587,6 @@ class Aggregator {
 
 		add_shortcode( Settings::get( 'plugin_slug' ) . '-directory', array( __CLASS__, 'show_directory' ) );
 		add_shortcode( Settings::get( 'plugin_slug' ) . '-map', array( __CLASS__, 'show_map' ) );
-
-		if ( is_admin() ) {
-			add_action(
-				'admin_menu',
-				array(
-					'Murmurations\Aggregator\Admin',
-					'add_settings_page',
-				)
-			);
-		}
 
 		register_activation_hook( __FILE__, array( __CLASS__, 'activate' ) );
 		register_deactivation_hook( __FILE__, array( __CLASS__, 'deactivate' ) );
