@@ -255,6 +255,12 @@ class Aggregator {
 				$query[ $filter[0] ] = $filter[2];
 			}
 
+      if( isset( $index['parameters'] ) ){
+        foreach ($index['parameters'] as $pair) {
+          $query[ $pair['parameter'] ] = $pair['value'];
+        }
+      }
+
 			$index_options = array();
 
 			if ( isset( $index['api_key'] ) ) {
@@ -322,41 +328,56 @@ class Aggregator {
 				$options['api_basic_auth_pass'] = $data['index_options']['api_basic_auth_pass'];
 			}
 
-			$node_data = API::getNodeJson( $url, $options );
+			$node_json = API::getNodeJson( $url, $options );
 
-			if ( ! $node_data ) {
+			if ( ! $node_json ) {
 				$results['failed_nodes'][] = $url;
 			} else {
 
-				$results['fetched_nodes'][] = $url;
+        $node_array = json_decode( $node_json, true );
 
-				$node = new Node( $node_data );
+        if ( ! $node_array ) {
 
-				if ( $node->hasErrors() ) {
-					Notices::set( $node->getErrorsText(), 'error' );
-					$results['failed_nodes'][] = $url;
-					continue;
-				}
+          error( 'Attempted to build node from invalid JSON. Could not parse.');
+          llog( $node_json, "Failed to parse node JSON from $url");
 
-				$matched = $node->checkFilters( $filters );
+        } else {
 
-				if ( $matched == true ) {
-					$results['matched_nodes'][] = $url;
+          // Make sure the profile URL is included in the node data
+          if( !isset( $node_array['profile_url'] ) ){
+            $node_array['profile_url'] = $data['profile_url'];
+          }
 
-					$result = $node->save();
+  				$results['fetched_nodes'][] = $url;
 
-					if ( $result ) {
-						$results['saved_nodes'][] = $url;
-					} else {
-						Notices::set( 'Failed to save node: ' . $url, 'error' );
-					}
-				} else {
-					if ( $settings['unmatching_local_nodes_action'] == 'delete' ) {
-						$node->delete();
-					} else {
-						$node->deactivate();
-					}
-				}
+  				$node = new Node( $node_array );
+
+  				if ( $node->hasErrors() ) {
+  					Notices::set( $node->getErrorsText(), 'error' );
+  					$results['failed_nodes'][] = $url;
+  					continue;
+  				}
+
+  				$matched = $node->checkFilters( $filters );
+
+  				if ( $matched == true ) {
+  					$results['matched_nodes'][] = $url;
+
+  					$result = $node->save();
+
+  					if ( $result ) {
+  						$results['saved_nodes'][] = $url;
+  					} else {
+  						Notices::set( 'Failed to save node: ' . $url, 'error' );
+  					}
+  				} else {
+  					if ( $settings['unmatching_local_nodes_action'] == 'delete' ) {
+  						$node->delete();
+  					} else {
+  						$node->deactivate();
+  					}
+  				}
+        }
 			}
 		}
 

@@ -30,8 +30,8 @@ class Node {
 			$this->buildFromWPPost( $post );
 		} elseif ( is_a( $arg, 'WP_Post' ) ) {
 			$this->buildFromWPPost( $arg );
-		} elseif ( is_string( $arg ) ) {
-			$this->buildFromJson( $arg );
+		} elseif ( is_array( $arg ) ) {
+			$this->buildFromArray( $arg );
 		}
 	}
 
@@ -41,11 +41,12 @@ class Node {
 	 * @param  string $json Node profile JSON
 	 * @return boolean true on success, false on failure
 	 */
-	public function buildFromJson( $json ) {
-		$this->data = json_decode( $json, true );
+	public function buildFromArray( $profile_array ) {
+		$this->data = $profile_array;
 
 		if ( ! $this->data ) {
-			$this->error( 'Attempted to build from invalid JSON. Could not parse.' );
+			$this->error( 'Attempted to build from invalid JSON. Could not parse.');
+      llog( $json, "Failed to parse node JSON");
 			return false;
 		}
 
