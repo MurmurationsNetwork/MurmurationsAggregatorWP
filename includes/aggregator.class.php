@@ -184,6 +184,27 @@ class Aggregator {
 	}
 
   /**
+   * Get index nodes by AJAX
+   *
+   *
+   */
+  public static function ajax_get_index_nodes() {
+    $nodes = self::get_index_nodes();
+
+    $feedback = array(
+      'status'   => 'success',
+      'messages' => Notices::get(),
+    );
+
+    if( ! $nodes ){
+      $feedback['status'] = 'failure';
+    }
+
+    wp_send_json( $feedback );
+
+  }
+
+  /**
    * Get node info from indices
    *
    * @return array Array of nodes fetched from indices.
@@ -269,6 +290,19 @@ class Aggregator {
 
   public static function ajax_update_node( $url ){
 
+    $result = update_node( array( 'profile_url' => $url ) );
+
+    $feedback = array(
+      'status'   => 'success',
+      'messages' => Notices::get(),
+    );
+
+    if( ! $result ){
+      $feedback['status'] = 'failure';
+    }
+
+    wp_send_json( $feedback );
+
   }
 
 
@@ -290,10 +324,13 @@ class Aggregator {
       $options['api_basic_auth_pass'] = $data['index_options']['api_basic_auth_pass'];
     }
 
+    Notices::set( "Fetching node from $url" );
+
     $node_json = API::getNodeJson( $url, $options );
 
     if ( ! $node_json ) {
       error( "Could not fetch node from $url" );
+      return false;
     } else {
 
       $node_array = json_decode( $node_json, true );
@@ -301,7 +338,7 @@ class Aggregator {
       if ( ! $node_array ) {
 
         error( 'Attempted to build node from invalid JSON. Could not parse.');
-        llog( $node_json, "Failed to parse node JSON from $url");
+        llog( $node_json, "Failed to parse node JSON from $url" );
 
         return false;
 
@@ -312,6 +349,8 @@ class Aggregator {
           $node_array['profile_url'] = $data['profile_url'];
         }
 
+        Notices::set("Fetched JSON from $url");
+
         $node = new Node( $node_array );
 
         if ( $node->hasErrors() ) {
@@ -319,7 +358,14 @@ class Aggregator {
           return false;
         }
 
-        $matched = $node->checkFilters( Settings::get('filters') );
+        $filters = Settings::get('filters');
+
+        if( is_array($filters) ){
+          $matched = $node->checkFilters( $filters );
+        } else {
+          $matched = true;
+        }
+
 
         if ( $matched == true ) {
 
@@ -327,6 +373,9 @@ class Aggregator {
 
           if ( ! $result ){
             Notices::set( 'Failed to save node: ' . $url, 'error' );
+          } else {
+            Notices::set( 'Node sucessfully saved: ' . $url, 'success' );
+            return $result;
           }
         } else {
           Notices::set( 'Node did not match filters: ' . $url, 'notice' );
