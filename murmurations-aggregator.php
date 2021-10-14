@@ -27,7 +27,7 @@ define( 'MURMAG_ROOT_URL', plugin_dir_url( __FILE__ ) );
 add_action(
 	'plugins_loaded',
 	function() {
-		$mawp = new Aggregator();
+		Aggregator::init();
 	}
 );
 
