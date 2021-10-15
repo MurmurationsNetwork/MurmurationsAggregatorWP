@@ -135,7 +135,11 @@ class Admin {
 
 			// Make sure there's something there...
 			if ( ! isset( $values[ $field ] ) ) {
-				$values[ $field ] = null;
+        if ( 'string' === $attribs['type'] ){
+          $values[ $field ] = '';
+        } else {
+          $values[ $field ] = null;
+        }
 			}
 			$value = $values[ $field ];
 
