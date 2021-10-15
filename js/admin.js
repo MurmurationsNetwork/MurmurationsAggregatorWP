@@ -33,7 +33,8 @@
 
           var data = {
             'action': 'update_node',
-            'profile_url' : node.profile_url
+            'profile_url' : node.profile_url,
+            'index_options' : node.index_options
           };
 
           stats.queried += 1;

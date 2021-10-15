@@ -155,6 +155,11 @@
             },
             "title" :  "Index query parameters",
             "description" : "Set parameters that will be passed with the query string to this index."
+          },
+          "disabled" : {
+            "type" : "boolean",
+            "default" : false,
+            "title" :  "Turn off this data source"
           }
         }
       },

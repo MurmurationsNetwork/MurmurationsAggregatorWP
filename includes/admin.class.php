@@ -134,6 +134,7 @@ class Admin {
 		foreach ( $schema['properties'] as $field => $attribs ) {
 
 			// Make sure there's something there...
+			/*
 			if ( ! isset( $values[ $field ] ) ) {
         if ( 'string' === $attribs['type'] ){
           $values[ $field ] = '';
@@ -141,34 +142,38 @@ class Admin {
           $values[ $field ] = null;
         }
 			}
-			$value = $values[ $field ];
+      */
+     if(isset($values[ $field ])){
 
-			// Aggressively set default values.
-			if ( $attribs['default'] ) {
-				if ( $value === null || $value === '' || ( $value === false && $attribs['type'] !== 'boolean' ) ) {
-					$value = $attribs['default'];
-				}
-			}
+  			$value = $values[ $field ];
 
-			if ( is_array( $value ) ) {
-				foreach ( $value as $key => $item ) {
-					// Sometimes array fields have their own "properties" property, and sometimes they don't.
-					if ( ! isset( $attribs['items']['properties'] ) ) {
-						$attribs['items']['properties'] = array( $attribs['items'] );
-					}
-					$value[ $key ] = self::fix_rjsf_data_types( $attribs['items'], $item );
-				}
-			} elseif ( $attribs['type'] === 'boolean' && is_string( $value ) ) {
-				if ( $value === 'true' ) {
-					$value = true;
-				} else {
-					$value = false;
-				}
-			} elseif ( $attribs['type'] === 'integer' && is_string( $value ) ) {
-				$value = (int) $value;
-			}
+  			// Aggressively set default values.
+  			if ( $attribs['default'] ) {
+  				if ( $value === null || $value === '' || ( $value === false && $attribs['type'] !== 'boolean' ) ) {
+  					$value = $attribs['default'];
+  				}
+  			}
 
-			$values[ $field ] = $value;
+  			if ( is_array( $value ) ) {
+  				foreach ( $value as $key => $item ) {
+  					// Sometimes array fields have their own "properties" property, and sometimes they don't.
+  					if ( ! isset( $attribs['items']['properties'] ) ) {
+  						$attribs['items']['properties'] = array( $attribs['items'] );
+  					}
+  					$value[ $key ] = self::fix_rjsf_data_types( $attribs['items'], $item );
+  				}
+  			} elseif ( $attribs['type'] === 'boolean' && is_string( $value ) ) {
+  				if ( $value === 'true' ) {
+  					$value = true;
+  				} else {
+  					$value = false;
+  				}
+  			} elseif ( $attribs['type'] === 'integer' && is_string( $value ) ) {
+  				$value = (int) $value;
+  			}
+        
+  			$values[ $field ] = $value;
+      }
 		}
 		return $values;
 	}

@@ -226,67 +226,70 @@ class Aggregator {
 
 		foreach ( $settings['indices'] as $index_key => $index ) {
 
-			$index_fields = explode( ',', $index['queryable_fields'] );
+      if ( ( ! $index['disabled'] ) || ( $index['disabled'] === 'false' ) ){
 
-			$index_filters = array();
+  			$index_fields = explode( ',', $index['queryable_fields'] );
 
-			if ( is_array( $filters ) ) {
-				foreach ( $filters as $key => $f ) {
-					if ( in_array( $f['field'], $index_fields ) ) {
-						$index_filters[] = array( $f['field'], $f['comparison'], $f['value'] );
-					}
-				}
-			} else {
-				$filters = array();
-			}
+  			$index_filters = array();
 
-			$update_since = $settings['update_time'];
+  			if ( is_array( $filters ) ) {
+  				foreach ( $filters as $key => $f ) {
+  					if ( in_array( $f['field'], $index_fields ) ) {
+  						$index_filters[] = array( $f['field'], $f['comparison'], $f['value'] );
+  					}
+  				}
+  			} else {
+  				$filters = array();
+  			}
 
-			if ( $settings['ignore_date'] != 'true' ) {
-				$index_filters[] = array( 'updated', 'isGreaterThan', $update_since );
-			}
+  			$update_since = $settings['update_time'];
 
-			$query = array();
-			foreach ( $index_filters as $filter ) {
-				$query[ $filter[0] ] = $filter[2];
-			}
+  			if ( $settings['ignore_date'] != 'true' ) {
+  				$index_filters[] = array( 'updated', 'isGreaterThan', $update_since );
+  			}
 
-      if( isset( $index['parameters'] ) ){
-        foreach ($index['parameters'] as $pair) {
-          $query[ $pair['parameter'] ] = $pair['value'];
+  			$query = array();
+  			foreach ( $index_filters as $filter ) {
+  				$query[ $filter[0] ] = $filter[2];
+  			}
+
+        if( isset( $index['parameters'] ) ){
+          foreach ($index['parameters'] as $pair) {
+            $query[ $pair['parameter'] ] = $pair['value'];
+          }
         }
+
+  			$index_options = array();
+
+  			if ( isset( $index['api_key'] ) ) {
+  				$index_options['api_key'] = $index['api_key'];
+  			}
+  			if ( isset( $index['api_basic_auth_user'] ) ) {
+  				$index_options['api_basic_auth_user'] = $index['api_basic_auth_user'];
+  			}
+  			if ( isset( $index['api_basic_auth_pass'] ) ) {
+  				$index_options['api_basic_auth_pass'] = $index['api_basic_auth_pass'];
+  			}
+
+  			$index_nodes = API::getIndexJson( $index['url'], $query, $index_options );
+
+  			$index_nodes = json_decode( $index_nodes, true );
+
+        if ( ! $index_nodes ) {
+          Notices::set( 'Could not parse index JSON from: ' . $index['url'], 'error' );
+          llog( $index_nodes , "Could not parse index JSON" );
+        } else {
+
+    			$index_nodes = $index_nodes['data'];
+
+          foreach ($index_nodes as $key => $node) {
+            $index_nodes[$key]['index_options'] = $index;
+          }
+
+  				Notices::set( 'Fetched node info from index at ' . $index['url'], 'success' );
+  				$all_index_nodes = array_merge( $all_index_nodes, $index_nodes );
+  			}
       }
-
-			$index_options = array();
-
-			if ( isset( $index['api_key'] ) ) {
-				$index_options['api_key'] = $index['api_key'];
-			}
-			if ( isset( $index['api_basic_auth_user'] ) ) {
-				$index_options['api_basic_auth_user'] = $index['api_basic_auth_user'];
-			}
-			if ( isset( $index['api_basic_auth_pass'] ) ) {
-				$index_options['api_basic_auth_pass'] = $index['api_basic_auth_pass'];
-			}
-
-			$index_nodes = API::getIndexJson( $index['url'], $query, $index_options );
-
-			$index_nodes = json_decode( $index_nodes, true );
-
-      if ( ! $index_nodes ) {
-        Notices::set( 'Could not parse index JSON from: ' . $index['url'], 'error' );
-        llog( $index_nodes , "Could not parse index JSON" );
-      } else {
-
-  			$index_nodes = $index_nodes['data'];
-
-        foreach ($index_nodes as $key => $node) {
-          $index_nodes[$key]['index_options'] = $index;
-        }
-
-				Notices::set( 'Fetched node info from index at ' . $index['url'], 'success' );
-				$all_index_nodes = array_merge( $all_index_nodes, $index_nodes );
-			}
 		}
 
 		return $all_index_nodes;
@@ -296,9 +299,12 @@ class Aggregator {
   public static function ajax_update_node(){
 
     $profile_url = $_POST['profile_url'];
+    $index_options = $_POST['index_options'];
 
-
-    $result = self::update_node( array( 'profile_url' => $profile_url ) );
+    $result = self::update_node( array(
+      'profile_url' => $profile_url,
+      'index_options' => $index_options
+    ) );
 
     $feedback = array(
       'status'   => 'success',
@@ -306,7 +312,7 @@ class Aggregator {
     );
 
     if( ! $result ){
-      $feedback['status'] = 'failure';
+      $feedback['status'] = 'failed';
     }
 
     wp_send_json( $feedback );
