@@ -188,6 +188,29 @@ class Aggregator {
 	}
 
 
+  /**
+   * Get the local schema for client side inspection
+   *
+   *
+   */
+  public static function ajax_get_local_schema() {
+
+    $schema = Schema::get();
+
+    if (! $schema ) {
+      $status = 'failed';
+    } else {
+      $status = 'success';
+    }
+
+    wp_send_json( array(
+      'status'   => $status,
+      'schema' => $schema,
+      'messages' => Notices::get()
+    ) );
+
+  }
+
     /**
      * Set the last node update time after client-side node updates
      *

@@ -1,95 +1,126 @@
 
-  function ajaxUpdateNodes(){
+function viewLocalSchema(){
 
-  	logContainer = document.getElementById('murmagg-admin-form-log-container');
+  alert("Get local schema");
 
-  	logContainer.style.visibility = "visible";
+  logContainer = document.getElementById('murmagg-admin-form-log-container');
 
-    logContainer.value += "Fetching index data...\n";
+  logContainer.style.visibility = "visible";
 
-  	var data = {
-  	  'action': 'get_index_nodes'
-  	};
+  logContainer.value = "Fetching local schema...\n";
 
-  	jQuery.post(ajaxurl, data, function(response) {
 
-      console.log(response);
+  var data = {
+	  'action': 'get_local_schema'
+	};
 
-  	  for (const message of response.messages){
-        node_update_log(message.message.toString());
-  	  }
+  jQuery.ajax({
+    type: "POST",
+    url: ajaxurl,
+    data: data,
+    success: function(response) {
+      if(response.status.toString() == 'success'){
+        node_update_log(JSON.stringify(response.schema));
+      } else {
+        node_update_log("Failed to get schema");
+      }
+    }
+  });
+}
 
-      if(response.nodes.length > 0){
+function ajaxUpdateNodes(){
 
-        stats = {
-          success : 0,
-          failed : 0,
-          queried : 0
-        };
+	logContainer = document.getElementById('murmagg-admin-form-log-container');
 
-        node_update_log("Fetching " + response.nodes.length.toString() + " nodes...");
+	logContainer.style.visibility = "visible";
 
-        for (const node of response.nodes){
+  logContainer.value = "Fetching index data...\n";
 
-          var data = {
-            'action': 'update_node',
-            'profile_url' : node.profile_url,
-            'index_options' : node.index_options
-          };
+	var data = {
+	  'action': 'get_index_nodes'
+	};
 
-          stats.queried += 1;
+	jQuery.post(ajaxurl, data, function(response) {
 
-          jQuery.ajax({
-            type: "POST",
-            url: ajaxurl,
-            data: data,
-            async : false,
-            success: function(response) {
+    console.log(response);
 
-              console.log(response);
+	  for (const message of response.messages){
+      node_update_log(message.message.toString());
+	  }
 
-              if(response.status.toString() == 'success'){
-                stats.success += 1;
-              } else {
-                stats.failed += 1;
-              }
+    if(response.nodes.length > 0){
 
-              for (const message of response.messages){
-                node_update_log(message.message.toString());
-              }
-              node_update_log("*** " + response.status.toString() + " ***");
-            }
-          });
+      stats = {
+        success : 0,
+        failed : 0,
+        queried : 0
+      };
 
-        }
+      node_update_log("Fetching " + response.nodes.length.toString() + " nodes...");
+
+      for (const node of response.nodes){
 
         var data = {
-      	  'action': 'set_update_time'
-      	};
+          'action': 'update_node',
+          'profile_url' : node.profile_url,
+          'index_options' : node.index_options
+        };
 
-      	jQuery.post(ajaxurl, data, function(response) {
-          if(response.status.toString() == 'success'){
-            node_update_log("Set update time");
-          } else {
-            node_update_log("Failed to set update time!");
+        node_update_log("Fetching " + node.profile_url.toString());
+
+        stats.queried += 1;
+
+        jQuery.ajax({
+          type: "POST",
+          url: ajaxurl,
+          data: data,
+          async : false,
+          success: function(response) {
+
+            console.log(response);
+
+            if(response.status.toString() == 'success'){
+              stats.success += 1;
+            } else {
+              stats.failed += 1;
+            }
+
+            for (const message of response.messages){
+              node_update_log(message.message.toString());
+            }
+            node_update_log("*** " + response.status.toString() + " ***");
           }
         });
 
-        node_update_log("\nNodes queried: " + stats.queried.toString() );
-        node_update_log("Nodes failed: " + stats.failed.toString() );
-        node_update_log("Nodes saved: " + stats.success.toString() );
-
-
-      } else {
-        node_update_log("No nodes found at index");
       }
-  	});
 
-    return false;
+      var data = {
+    	  'action': 'set_update_time'
+    	};
 
-  }
+    	jQuery.post(ajaxurl, data, function(response) {
+        if(response.status.toString() == 'success'){
+          node_update_log("Set update time");
+        } else {
+          node_update_log("Failed to set update time!");
+        }
+      });
 
-  function node_update_log(message){
-    var logContainer = document.getElementById('murmagg-admin-form-log-container');
-    logContainer.value += message + "\n";
-  }
+      node_update_log("\nNodes queried: " + stats.queried.toString() );
+      node_update_log("Nodes failed: " + stats.failed.toString() );
+      node_update_log("Nodes saved: " + stats.success.toString() );
+
+
+    } else {
+      node_update_log("No nodes found at index");
+    }
+	});
+
+  return false;
+
+}
+
+function node_update_log(message){
+  var logContainer = document.getElementById('murmagg-admin-form-log-container');
+  logContainer.value += message + "\n";
+}

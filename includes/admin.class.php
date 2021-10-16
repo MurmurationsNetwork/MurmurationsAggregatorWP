@@ -118,6 +118,8 @@ class Admin {
 
       <button type="submit" name="action" class="murms-delete murms-has-icon" value="delete_all_nodes"><i class="murms-icon murms-icon-delete"></i>Delete all stored nodes</button>
 
+       <button onclick="viewLocalSchema()" type="button" class="murms-update">View local schema</button>
+
       </form>
       <textarea id="murmagg-admin-form-log-container" style="width:100%; height: 400px; visibility: hidden;"></textarea>
       <?php
@@ -249,9 +251,10 @@ class Admin {
 						}
 					}
 
-					$attribs['items']['enum']      = $enum;
-					$attribs['items']['enumNames'] = $enum_names;
-
+          if (count($enum) > 0){
+    					$attribs['items']['enum']      = $enum;
+    					$attribs['items']['enumNames'] = $enum_names;
+          }
 				}
 
 				$admin_schema['properties'][ $field ] = $attribs;
@@ -524,6 +527,13 @@ class Admin {
       )
     );
 
+    add_action(
+      'wp_ajax_get_local_schema',
+      array(
+        'Murmurations\Aggregator\Aggregator',
+        'ajax_get_local_schema'
+      )
+    );
     add_action(
       'admin_enqueue_scripts',
       array(
