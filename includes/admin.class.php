@@ -12,11 +12,16 @@ namespace Murmurations\Aggregator;
  */
 class Admin {
 	/**
-	 * Instance of the main aggregator class. This will be removed in the future.
+	 * Initialize if this is an admin page
 	 *
-	 * @var Aggregator
 	 */
-	public static $wpagg;
+  public static function init(){
+
+    self::register_things();
+
+
+
+  }
 
 	/**
 	 * Method called by WP hook to show the aggregator admin
@@ -29,31 +34,16 @@ class Admin {
 				Feeds::update_feeds();
 			}
 			if ( $_POST['action'] === 'update_nodes' ) {
-				self::$wpagg->update_nodes();
+				Aggregator::update_nodes();
 			}
 			if ( $_POST['action'] === 'delete_all_nodes' ) {
-				self::$wpagg->delete_all_nodes();
+				Aggregator::delete_all_nodes();
 			}
 		}
 
 		?>
 	 <h1><?php echo esc_html( Config::get( 'plugin_name' ) ); ?> Settings</h1>
-	 <form method="POST">
-		<?php
-		wp_nonce_field( 'murmurations_ag_actions_form' );
-		?>
-	 <button type="submit" name="action" class="murms-update murms-has-icon" value="update_nodes"><i class="murms-icon murms-icon-update"></i>Update nodes</button>
-		<?php
-		if ( Settings::get( 'enable_feeds' ) === 'true' ) :
-			?>
-	   <button type="submit" name="action" class="murms-update murms-has-icon" value="update_murms_feed_items"><i class="murms-icon murms-icon-update"></i>Update feeds</button>
-			<?php
-	   endif;
-		?>
 
-	 <button type="submit" name="action" class="murms-delete murms-has-icon" value="delete_all_nodes"><i class="murms-icon murms-icon-delete"></i>Delete all stored nodes</button>
-
-   </form>
 		<?php
 
 		if ( isset( $_POST['murmurations_ag'] ) ) {
@@ -63,11 +53,12 @@ class Admin {
 		echo Notices::show();
 
 		$tabs = array(
-			'general'       => 'General',
+			'general'       => 'Dashboard',
+			'data_sources'  => 'Data Sources',
 			'node_settings' => 'Nodes',
+			'filters' => 'Filters',
 			'map_settings'  => 'Map',
 			'feed_settings' => 'Feeds',
-			'data_sources'  => 'Data Sources',
 			'config'        => 'Advanced',
 		);
 
@@ -95,7 +86,46 @@ class Admin {
 
 		<?php
 
-		self::show_rjsf_admin_form( $tab );
+    if( 'general' === $tab ){
+
+      ?>
+      <div id="murms-dashboard-stats">
+        <b>Local <?php echo Settings::get( 'node_name_plural' ); ?>:</b> <?php
+        $count = wp_count_posts('murmurations_node');
+        echo $count->publish . " ";
+        if( Settings::get('update_time') ){
+          echo "<b>Last updated:</b> ". date('Y-m-d G:i:s T', Settings::get('update_time'));
+
+        }
+        ?>
+
+      </div>
+      <form method="POST">
+       <?php
+       wp_nonce_field( 'murmurations_ag_actions_form' );
+       ?>
+        <button onclick="ajaxUpdateNodes()" type="button" class="murms-update murms-has-icon"><i class="murms-icon murms-icon-update"></i>Update nodes from the network</button>
+
+       <?php
+       if ( Settings::get( 'enable_feeds' ) === 'true' ) :
+         ?>
+
+          <button type="submit" name="action" class="murms-update murms-has-icon" value="update_murms_feed_items"><i class="murms-icon murms-icon-update"></i>Update feeds</button>
+
+         <?php
+        endif;
+       ?>
+
+      <button type="submit" name="action" class="murms-delete murms-has-icon" value="delete_all_nodes"><i class="murms-icon murms-icon-delete"></i>Delete all stored nodes</button>
+
+      </form>
+      <textarea id="murmagg-admin-form-log-container" style="width:100%; height: 400px; visibility: hidden;"></textarea>
+      <?php
+
+    } else {
+      self::show_rjsf_admin_form( $tab );
+    }
+
 
 		?>
 
@@ -115,37 +145,46 @@ class Admin {
 		foreach ( $schema['properties'] as $field => $attribs ) {
 
 			// Make sure there's something there...
+			/*
 			if ( ! isset( $values[ $field ] ) ) {
-				$values[ $field ] = null;
+        if ( 'string' === $attribs['type'] ){
+          $values[ $field ] = '';
+        } else {
+          $values[ $field ] = null;
+        }
 			}
-			$value = $values[ $field ];
+      */
+     if(isset($values[ $field ])){
 
-			// Aggressively set default values.
-			if ( $attribs['default'] ) {
-				if ( $value === null || $value === '' || ( $value === false && $attribs['type'] !== 'boolean' ) ) {
-					$value = $attribs['default'];
-				}
-			}
+  			$value = $values[ $field ];
 
-			if ( is_array( $value ) ) {
-				foreach ( $value as $key => $item ) {
-					// Sometimes array fields have their own "properties" property, and sometimes they don't.
-					if ( ! isset( $attribs['items']['properties'] ) ) {
-						$attribs['items']['properties'] = array( $attribs['items'] );
-					}
-					$value[ $key ] = self::fix_rjsf_data_types( $attribs['items'], $item );
-				}
-			} elseif ( $attribs['type'] === 'boolean' && is_string( $value ) ) {
-				if ( $value === 'true' ) {
-					$value = true;
-				} else {
-					$value = false;
-				}
-			} elseif ( $attribs['type'] === 'integer' && is_string( $value ) ) {
-				$value = (int) $value;
-			}
+  			// Aggressively set default values.
+  			if ( $attribs['default'] ) {
+  				if ( $value === null || $value === '' || ( $value === false && $attribs['type'] !== 'boolean' ) ) {
+  					$value = $attribs['default'];
+  				}
+  			}
 
-			$values[ $field ] = $value;
+  			if ( is_array( $value ) ) {
+  				foreach ( $value as $key => $item ) {
+  					// Sometimes array fields have their own "properties" property, and sometimes they don't.
+  					if ( ! isset( $attribs['items']['properties'] ) ) {
+  						$attribs['items']['properties'] = array( $attribs['items'] );
+  					}
+  					$value[ $key ] = self::fix_rjsf_data_types( $attribs['items'], $item );
+  				}
+  			} elseif ( $attribs['type'] === 'boolean' && is_string( $value ) ) {
+  				if ( $value === 'true' ) {
+  					$value = true;
+  				} else {
+  					$value = false;
+  				}
+  			} elseif ( $attribs['type'] === 'integer' && is_string( $value ) ) {
+  				$value = (int) $value;
+  			}
+
+  			$values[ $field ] = $value;
+      }
 		}
 		return $values;
 	}
@@ -225,7 +264,7 @@ class Admin {
 
 		$admin_schema_json = json_encode( $admin_schema );
 
-		$current_values_json = json_encode( $current_values );
+    $current_values_json = json_encode( $current_values );
 
 		$nonce_field = wp_nonce_field( 'murmurations_ag_admin_form', 'murmurations_ag_admin_form_nonce', true, false );
 
@@ -436,6 +475,64 @@ class Admin {
 		);
 
 	}
+
+  public static function enqueue_admin_script(){
+    wp_enqueue_script( 'murmurations_aggregator_admin_js', plugin_dir_url( __FILE__ ) . '../js/admin.js');
+  }
+
+
+  public static function register_things(){
+
+   add_action(
+      'admin_menu',
+      array(
+        'Murmurations\Aggregator\Admin',
+        'add_settings_page',
+      )
+    );
+
+
+    add_action(
+      'wp_ajax_save_settings',
+      array(
+        'Murmurations\Aggregator\Admin',
+        'ajax_save_settings'
+      )
+    );
+
+    add_action(
+      'wp_ajax_update_node',
+      array(
+        'Murmurations\Aggregator\Aggregator',
+        'ajax_update_node'
+      )
+    );
+
+    add_action(
+      'wp_ajax_get_index_nodes',
+      array(
+        'Murmurations\Aggregator\Aggregator',
+        'ajax_get_index_nodes'
+      )
+    );
+
+    add_action(
+      'wp_ajax_set_update_time',
+      array(
+        'Murmurations\Aggregator\Aggregator',
+        'ajax_set_update_time'
+      )
+    );
+
+    add_action(
+      'admin_enqueue_scripts',
+      array(
+        __CLASS__,
+        'enqueue_admin_script'
+      )
+    );
+  }
+
 
 }
 ?>

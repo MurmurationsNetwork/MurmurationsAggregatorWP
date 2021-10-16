@@ -59,7 +59,7 @@
       "description" : "Post status for new nodes from the network. Set to 'Draft' if nodes should be reviewed before they are publicly viewable."
     },
     "nodes_per_page" : {
-      "type" :  "number",
+      "type" :  "integer",
       "title" :  "Nodes per page",
       "default" : 10,
       "group" : "node_settings",
@@ -100,7 +100,7 @@
       },
       "title" :  "Filters",
       "description" : "Set parameters to limit the items that will be fetched and saved. Items must match all the conditions defined here to be included.",
-      "group" : "general"
+      "group" : "filters"
     },
     "indices" : {
       "type" :  "array",
@@ -155,6 +155,11 @@
             },
             "title" :  "Index query parameters",
             "description" : "Set parameters that will be passed with the query string to this index."
+          },
+          "disabled" : {
+            "type" : "boolean",
+            "default" : false,
+            "title" :  "Turn off this data source"
           }
         }
       },
@@ -368,6 +373,11 @@
       "type" :  "string",
       "group" : "config",
       "description" : "API route identifier to define the route to access locally stored nodes from client-side interfaces or external sites"
+    },
+    "update_time" : {
+      "type" :  "integer",
+      "group" : "config",
+      "description" : "Timestamp of last update from the network"
     }
   }
 }

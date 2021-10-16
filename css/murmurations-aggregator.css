@@ -221,6 +221,11 @@
    color: #ff0000;
  }
 
+ button.murms-update, button.murms-delete {
+   margin: 10px;
+   padding: 10px;
+ }
+
  button.murms-update i.murms-icon::before{
 	content: "\f463";
  }
@@ -246,4 +251,10 @@ i.murms-icon-delete::before{
 
  .murms-admin-form-section h2{
    border-bottom: 1px solid #ccc;
+ }
+
+ #murms-dashboard-stats{
+   padding: 1em;
+   font-size: 1.3em;
+   color: #666;
  }

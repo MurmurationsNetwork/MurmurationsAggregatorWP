@@ -11,16 +11,11 @@ namespace Murmurations\Aggregator;
  * Main aggregator controller class
  */
 class Aggregator {
-	/**
-	 * Holds the array of nodes fetched from the network
-	 * @var array $nodes
-	 */
-	public $nodes = array();
 
   /**
-   * Constructor
+   * Initialize
    */
-	public function __construct() {
+	public static function init() {
 
 		$default_settings = array(
 			'schemas'            => array( array( 'location' => MURMAG_ROOT_URL . 'schemas/default.json' ) ),
@@ -30,29 +25,28 @@ class Aggregator {
 			'log_file'           => MURMAG_ROOT_PATH . 'logs/murmurations_aggregator.log',
 		);
 
-		$this->load_includes();
+		self::load_includes();
 
 		Settings::load_schema( $default_settings );
 
 		Settings::load();
 
-		$this->register_hooks();
+		self::register_hooks();
 
 		if ( Settings::get( 'enable_feeds' ) === 'true' ) {
 			Feeds::init();
 		}
 
-		/* Temporary arrangement... */
-		if ( is_admin() ) {
-			Admin::$wpagg = $this;
-		}
+    if( is_admin() ){
+      Admin::init();
+    }
 
 	}
 
 	/**
 	 * Activate the plugin
 	 */
-	public function activate() {
+	public static function activate() {
 
 		$admin_fields = Settings::get_fields();
 
@@ -69,7 +63,7 @@ class Aggregator {
 	/**
 	 * Deactivate the plugin
 	 */
-	public function deactivate() {
+	public static function deactivate() {
 		$timestamp = wp_next_scheduled( 'murmurations_node_update' );
 		wp_unschedule_event( $timestamp, 'murmurations_node_update' );
 
@@ -117,8 +111,8 @@ class Aggregator {
 	 *
 	 * WP's enqueues don't accommodate integrity and crossorigin attributes without trickery, so we're using an action hook
 	 */
-	public function queue_leaflet_scripts() {
-		add_action( 'wp_head', array( $this, 'leaflet_scripts' ) );
+	public static function queue_leaflet_scripts() {
+		add_action( 'wp_head', array( __CLASS__, 'leaflet_scripts' ) );
 	}
 
 	/**
@@ -126,7 +120,7 @@ class Aggregator {
 	 *
 	 * @return string HTML for links
 	 */
-	public function leaflet_scripts() {
+	public static function leaflet_scripts() {
 		return '
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
   integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
@@ -160,43 +154,21 @@ class Aggregator {
       foreach ( $posts as $key => $post ) {
         $nodes[ $post->ID ] = new Node( $post );
       }
-    }
+    } else {
+			llog( 'No node posts found in get_nodes using args: ' . print_r( $args, true ) );
+		}
 
     return $nodes;
 
   }
 
-	/**
-	 * Load saved nodes from the DB
-	 *
-	 * @param  array $args WP_Query compatible arguments
-	 */
-	public function load_nodes( $args = null ) {
-
-		$default_args = array(
-			'post_type'      => 'murmurations_node',
-			'posts_per_page' => -1,
-		);
-
-		$args = wp_parse_args( $args, $default_args );
-
-		$posts = get_posts( $args );
-
-		if ( count( $posts ) > 0 ) {
-			foreach ( $posts as $key => $post ) {
-				$this->nodes[ $post->ID ] = new Node( $post );
-			}
-		} else {
-			llog( 'No node posts found in load_nodes using args: ' . print_r( $args, true ) );
-		}
-	}
 
 	/**
 	 * Delete all the saved nodes
 	 *
 	 * @return int the number of nodes deleted.
 	 */
-	public function delete_all_nodes() {
+	public static function delete_all_nodes() {
 		$nodes = get_posts(
 			array(
 				'post_type'   => 'murmurations_node',
@@ -215,85 +187,251 @@ class Aggregator {
 		return $count;
 	}
 
-	/**
-	 * Fetch nodes from the network and store them locally
-	 */
-	public function update_nodes() {
+
+    /**
+     * Set the last node update time after client-side node updates
+     *
+     *
+     */
+    public static function ajax_set_update_time() {
+
+      Settings::set( 'update_time', time() );
+      $result = Settings::save();
+
+      if (! $result ) {
+        $status = 'failed';
+      } else {
+        $status = 'success';
+      }
+
+      wp_send_json( array(
+        'status'   => $status,
+        'messages' => Notices::get()
+      ) );
+
+    }
+
+
+  /**
+   * Get index nodes by AJAX
+   *
+   *
+   */
+  public static function ajax_get_index_nodes() {
+    $nodes = self::get_index_nodes();
+
+    $result = array(
+      'status'   => 'success',
+      'messages' => Notices::get(),
+      'nodes' => $nodes
+    );
+
+    if( ! $nodes ){
+      $result['status'] = 'failure';
+    }
+
+    wp_send_json( $result );
+
+  }
+
+  /**
+   * Get node info from indices
+   *
+   * @return array Array of nodes fetched from indices.
+   */
+  public static function get_index_nodes() {
 
 		$settings = Settings::get();
 
 		$filters = $settings['filters'];
 
-		llog( $filters, 'Filters from settings in update_nodes' );
+		llog( $filters, 'Filters from settings in get_index_nodes' );
 
 		$all_index_nodes = array();
 
 		foreach ( $settings['indices'] as $index_key => $index ) {
 
-			$index_fields = explode( ',', $index['queryable_fields'] );
+      if ( ( ! $index['disabled'] ) || ( $index['disabled'] === 'false' ) ){
 
-			$index_filters = array();
+  			$index_fields = explode( ',', $index['queryable_fields'] );
 
-			if ( is_array( $filters ) ) {
-				foreach ( $filters as $key => $f ) {
-					if ( in_array( $f['field'], $index_fields ) ) {
-						$index_filters[] = array( $f['field'], $f['comparison'], $f['value'] );
-					}
-				}
-			} else {
-				$filters = array();
-			}
+  			$index_filters = array();
 
-			$update_since = $settings['update_time'];
+  			if ( is_array( $filters ) ) {
+  				foreach ( $filters as $key => $f ) {
+  					if ( in_array( $f['field'], $index_fields ) ) {
+  						$index_filters[] = array( $f['field'], $f['comparison'], $f['value'] );
+  					}
+  				}
+  			} else {
+  				$filters = array();
+  			}
 
-			if ( $settings['ignore_date'] != 'true' ) {
-				$index_filters[] = array( 'updated', 'isGreaterThan', $update_since );
-			}
+  			$update_since = $settings['update_time'];
 
-			$query = array();
-			foreach ( $index_filters as $filter ) {
-				$query[ $filter[0] ] = $filter[2];
-			}
+  			if ( $settings['ignore_date'] != 'true' ) {
+          $index_filters[] = array( 'last_validated', 'isGreaterThan', $update_since );
+  			}
 
-      if( isset( $index['parameters'] ) ){
-        foreach ($index['parameters'] as $pair) {
-          $query[ $pair['parameter'] ] = $pair['value'];
+  			$query = array();
+  			foreach ( $index_filters as $filter ) {
+  				$query[ $filter[0] ] = $filter[2];
+  			}
+
+        if( isset( $index['parameters'] ) ){
+          foreach ($index['parameters'] as $pair) {
+            $query[ $pair['parameter'] ] = $pair['value'];
+          }
         }
+
+  			$index_options = array();
+
+  			if ( isset( $index['api_key'] ) ) {
+  				$index_options['api_key'] = $index['api_key'];
+  			}
+  			if ( isset( $index['api_basic_auth_user'] ) ) {
+  				$index_options['api_basic_auth_user'] = $index['api_basic_auth_user'];
+  			}
+  			if ( isset( $index['api_basic_auth_pass'] ) ) {
+  				$index_options['api_basic_auth_pass'] = $index['api_basic_auth_pass'];
+  			}
+
+  			$index_nodes = API::getIndexJson( $index['url'], $query, $index_options );
+
+  			$index_nodes = json_decode( $index_nodes, true );
+
+        if ( ! $index_nodes ) {
+          Notices::set( 'Could not parse index JSON from: ' . $index['url'], 'error' );
+          llog( $index_nodes , "Could not parse index JSON" );
+        } else {
+
+    			$index_nodes = $index_nodes['data'];
+
+          foreach ($index_nodes as $key => $node) {
+            $index_nodes[$key]['index_options'] = $index;
+          }
+
+  				Notices::set( 'Fetched node info from index at ' . $index['url'], 'success' );
+  				$all_index_nodes = array_merge( $all_index_nodes, $index_nodes );
+  			}
       }
-
-			$index_options = array();
-
-			if ( isset( $index['api_key'] ) ) {
-				$index_options['api_key'] = $index['api_key'];
-			}
-			if ( isset( $index['api_basic_auth_user'] ) ) {
-				$index_options['api_basic_auth_user'] = $index['api_basic_auth_user'];
-			}
-			if ( isset( $index['api_basic_auth_pass'] ) ) {
-				$index_options['api_basic_auth_pass'] = $index['api_basic_auth_pass'];
-			}
-
-			$index_nodes = API::getIndexJson( $index['url'], $query, $index_options );
-
-			$index_nodes = json_decode( $index_nodes, true );
-
-      if ( ! $index_nodes ) {
-        Notices::set( 'Could not parse index JSON from: ' . $index['url'], 'error' );
-        llog( $index_nodes , "Could not parse index JSON" );
-      } else {
-
-  			$index_nodes = $index_nodes['data'];
-
-        foreach ($index_nodes as $key => $node) {
-          $index_nodes[$key]['index_options'] = $index;
-        }
-
-				Notices::set( 'Fetched node info from index at ' . $index['url'], 'success' );
-				$all_index_nodes = array_merge( $all_index_nodes, $index_nodes );
-			}
 		}
 
-		$index_nodes = $all_index_nodes;
+		return $all_index_nodes;
+
+  }
+
+  public static function ajax_update_node(){
+
+    $profile_url = $_POST['profile_url'];
+    $index_options = $_POST['index_options'];
+
+    $result = self::update_node( array(
+      'profile_url' => $profile_url,
+      'index_options' => $index_options
+    ) );
+
+    $feedback = array(
+      'status'   => 'success',
+      'messages' => Notices::get(),
+    );
+
+    if( ! $result ){
+      $feedback['status'] = 'failed';
+    }
+
+    wp_send_json( $feedback );
+
+  }
+
+
+  public static function update_node( $data ){
+
+    $url = $data['profile_url'];
+
+    $options = array();
+
+    if ( isset( $data['index_options']['use_api_key_for_nodes'] ) && isset( $data['index_options']['api_key'] ) ) {
+      if ( $data['index_options']['use_api_key_for_nodes'] == 'true' ) {
+        $options['api_key'] = $data['index_options']['api_key'];
+      }
+    }
+    if ( isset( $data['index_options']['api_basic_auth_user'] ) ) {
+      $options['api_basic_auth_user'] = $data['index_options']['api_basic_auth_user'];
+    }
+    if ( isset( $data['index_options']['api_basic_auth_pass'] ) ) {
+      $options['api_basic_auth_pass'] = $data['index_options']['api_basic_auth_pass'];
+    }
+
+    Notices::set( "Fetching node from $url" );
+
+    $node_json = API::getNodeJson( $url, $options );
+
+    if ( ! $node_json ) {
+      error( "Could not fetch node from $url" );
+      return false;
+    } else {
+
+      $node_array = json_decode( $node_json, true );
+
+      if ( ! $node_array ) {
+
+        error( 'Attempted to build node from invalid JSON. Could not parse.');
+        llog( $node_json, "Failed to parse node JSON from $url" );
+
+        return false;
+
+      } else {
+
+        // Make sure the profile URL is included in the node data
+        if( !isset( $node_array['profile_url'] ) ){
+          $node_array['profile_url'] = $data['profile_url'];
+        }
+
+        Notices::set("Fetched JSON");
+
+        $node = new Node( $node_array );
+
+        if ( $node->hasErrors() ) {
+          Notices::set( $node->getErrorsText(), 'error' );
+          return false;
+        }
+
+        $filters = Settings::get('filters');
+
+        if( is_array($filters) ){
+          $matched = $node->checkFilters( $filters );
+        } else {
+          $matched = true;
+        }
+
+
+        if ( $matched == true ) {
+
+          $result = $node->save();
+
+          if ( ! $result ){
+            Notices::set( 'Failed to save node: ' . $url, 'error' );
+          } else {
+            Notices::set( 'Node sucessfully saved', 'success' );
+            return $result;
+          }
+        } else {
+          Notices::set( 'Node did not match filters: ' . $url, 'notice' );
+
+        }
+      }
+    }
+
+  }
+
+
+	/**
+	 * Fetch nodes from the network and store them locally
+	 */
+	public static function update_nodes() {
+
+    $index_nodes = self::get_index_nodes();
 
 		$failed_nodes  = array();
 		$fetched_nodes = array();
@@ -310,75 +448,17 @@ class Aggregator {
 
 		foreach ( $index_nodes as $key => $data ) {
 
-			$url = $data['profile_url'];
 
-			$results['nodes_from_index'][] = $url;
+      $results['nodes_from_index'][] = $data['profile_url'];
 
-			$options = array();
+      $result = self::update_node( $data );
 
-			if ( isset( $data['index_options']['use_api_key_for_nodes'] ) && isset( $data['index_options']['api_key'] ) ) {
-				if ( $data['index_options']['use_api_key_for_nodes'] == 'true' ) {
-					$options['api_key'] = $data['index_options']['api_key'];
-				}
-			}
-			if ( isset( $data['index_options']['api_basic_auth_user'] ) ) {
-				$options['api_basic_auth_user'] = $data['index_options']['api_basic_auth_user'];
-			}
-			if ( isset( $data['index_options']['api_basic_auth_pass'] ) ) {
-				$options['api_basic_auth_pass'] = $data['index_options']['api_basic_auth_pass'];
-			}
+      if( !$result ){
+        $results['failed_nodes'][] = $data['profile_url'];
+      } else {
+        $results['saved_nodes'][] = $data['profile_url'];
+      }
 
-			$node_json = API::getNodeJson( $url, $options );
-
-			if ( ! $node_json ) {
-				$results['failed_nodes'][] = $url;
-			} else {
-
-        $node_array = json_decode( $node_json, true );
-
-        if ( ! $node_array ) {
-
-          error( 'Attempted to build node from invalid JSON. Could not parse.');
-          llog( $node_json, "Failed to parse node JSON from $url");
-
-        } else {
-
-          // Make sure the profile URL is included in the node data
-          if( !isset( $node_array['profile_url'] ) ){
-            $node_array['profile_url'] = $data['profile_url'];
-          }
-
-  				$results['fetched_nodes'][] = $url;
-
-  				$node = new Node( $node_array );
-
-  				if ( $node->hasErrors() ) {
-  					Notices::set( $node->getErrorsText(), 'error' );
-  					$results['failed_nodes'][] = $url;
-  					continue;
-  				}
-
-  				$matched = $node->checkFilters( $filters );
-
-  				if ( $matched == true ) {
-  					$results['matched_nodes'][] = $url;
-
-  					$result = $node->save();
-
-  					if ( $result ) {
-  						$results['saved_nodes'][] = $url;
-  					} else {
-  						Notices::set( 'Failed to save node: ' . $url, 'error' );
-  					}
-  				} else {
-  					if ( $settings['unmatching_local_nodes_action'] == 'delete' ) {
-  						$node->delete();
-  					} else {
-  						$node->deactivate();
-  					}
-  				}
-        }
-			}
 		}
 
 		$message = 'Nodes updated. ' . count( $results['nodes_from_index'] ) . ' nodes fetched from index. ' . count( $results['failed_nodes'] ) . ' failed. ' . count( $results['fetched_nodes'] ) . ' nodes returned results. ' . count( $results['matched_nodes'] ) . ' nodes matched filters. ' . count( $results['saved_nodes'] ) . ' nodes saved. ';
@@ -401,14 +481,14 @@ class Aggregator {
 	 *
 	 * @return string Directory HTML
 	 */
-	public function show_directory() {
-		$this->load_nodes();
+	public static function show_directory() {
+		$nodes = self::get_nodes();
 
 		$html = '<div id="murmurations-directory">';
-		if ( count( $this->nodes ) < 1 ) {
+		if ( count( $nodes ) < 1 ) {
 			$html .= 'No records found';
 		} else {
-			foreach ( $this->nodes as $key => $node ) {
+			foreach ( $nodes as $key => $node ) {
 				$html .= self::load_template( 'node_list_item.php', $node->data );
 			}
 		}
@@ -422,8 +502,8 @@ class Aggregator {
 	 *
 	 * @return string map HTML
 	 */
-	public function show_map() {
-		$this->load_nodes();
+	public static function show_map() {
+		$nodes = self::get_nodes();
 
 		/*
 		Because of the cross-origin stuff, these don't fit WP's queue paradigm. In future, we should use this method, but for now loading scripts as HTML in the head via env
@@ -440,7 +520,7 @@ class Aggregator {
 
 		// This API recently changed (https://docs.mapbox.com/help/troubleshooting/migrate-legacy-static-tiles-api)
 
-		$html = $this->leaflet_scripts();
+		$html = self::leaflet_scripts();
 
 		$map_origin = Settings::get( 'map_origin' );
 		$map_scale  = Settings::get( 'map_scale' );
@@ -458,7 +538,7 @@ class Aggregator {
     accessToken: '" . Settings::get( 'mapbox_token' ) . "'
 }).addTo(murmurations_map);\n";
 
-		foreach ( $this->nodes as $key => $node ) {
+		foreach ( $nodes as $key => $node ) {
 
 			if ( isset( $node->data['geolocation']['lat'] ) && isset( $node->data['geolocation']['lon'] ) ) {
 
@@ -481,7 +561,7 @@ class Aggregator {
 	/**
 	 * Load the included files for the aggregator (note this should probably be replaced with an autoloader)
 	 */
-	public function load_includes() {
+	public static function load_includes() {
 		$include_path = plugin_dir_path( __FILE__ );
 		require_once $include_path . 'api.class.php';
 		require_once $include_path . 'node.class.php';
@@ -501,7 +581,7 @@ class Aggregator {
 	 * @param  string $template default template path from WP
 	 * @return string Template path
 	 */
-	public function load_node_single_template( $template ) {
+	public static function load_node_single_template( $template ) {
 
 		if ( is_singular( 'murmurations_node' ) ) {
 			$template = locate_template( 'single-murmurations_node.php', false );
@@ -518,7 +598,7 @@ class Aggregator {
 	 * @param  string $template default template path from WP
 	 * @return string Template path
 	 */
-	public function load_node_archive_template( $template ) {
+	public static function load_node_archive_template( $template ) {
 		if ( is_post_type_archive( 'murmurations_node' ) ) {
 			$template = locate_template( 'archive-murmurations_node.php', false );
 			if ( ! $template ) {
@@ -534,33 +614,23 @@ class Aggregator {
 	 */
 	public function register_hooks() {
 
-		add_action( 'init', array( $this, 'register_cpts_and_taxes' ) );
+		add_action( 'init', array( __CLASS__, 'register_cpts_and_taxes' ) );
 
-		add_shortcode( Settings::get( 'plugin_slug' ) . '-directory', array( $this, 'show_directory' ) );
-		add_shortcode( Settings::get( 'plugin_slug' ) . '-map', array( $this, 'show_map' ) );
+		add_shortcode( Settings::get( 'plugin_slug' ) . '-directory', array( __CLASS__, 'show_directory' ) );
+		add_shortcode( Settings::get( 'plugin_slug' ) . '-map', array( __CLASS__, 'show_map' ) );
 
-		if ( is_admin() ) {
-			add_action(
-				'admin_menu',
-				array(
-					'Murmurations\Aggregator\Admin',
-					'add_settings_page',
-				)
-			);
-		}
-
-		register_activation_hook( __FILE__, array( $this, 'activate' ) );
-		register_deactivation_hook( __FILE__, array( $this, 'deactivate' ) );
+		register_activation_hook( __FILE__, array( __CLASS__, 'activate' ) );
+		register_deactivation_hook( __FILE__, array( __CLASS__, 'deactivate' ) );
 
 		wp_enqueue_style( 'murmurations-agg-css', MURMAG_ROOT_URL . 'css/murmurations-aggregator.css' );
-		add_action( 'rest_api_init', array( $this, 'register_api_routes' ) );
+		add_action( 'rest_api_init', array( __CLASS__, 'register_api_routes' ) );
 
-		add_action( 'murmurations_node_update', array( $this, 'update_nodes' ) );
+		add_action( 'murmurations_node_update', array( __CLASS__, 'update_nodes' ) );
 
-		add_filter( 'single_template', array( $this, 'load_node_single_template' ) );
+		add_filter( 'single_template', array( __CLASS__, 'load_node_single_template' ) );
 
-		add_filter( 'single-murmurations_node_template', array( $this, 'load_node_single_template' ) );
-		add_filter( 'archive_template', array( $this, 'load_node_archive_template' ) );
+		add_filter( 'single-murmurations_node_template', array( __CLASS__, 'load_node_single_template' ) );
+		add_filter( 'archive_template', array( __CLASS__, 'load_node_archive_template' ) );
 
 	}
 
@@ -570,7 +640,7 @@ class Aggregator {
 	 * @param  array $req query string parameters that came with the request
 	 * @return string JSON of node data
 	 */
-	public function rest_get_nodes( $req ) {
+	public static function rest_get_nodes( $req ) {
 
 		$operator_map = array(
 			'equals'        => '=',
@@ -613,9 +683,10 @@ class Aggregator {
 			}
 		}
 
-		$this->load_nodes( $args );
+		$nodes = self::get_nodes( $args );
+
 		$rest_nodes = array();
-		foreach ( $this->nodes as $node ) {
+		foreach ( $nodes as $node ) {
 			$rest_nodes[] = $node->data;
 		}
 		return rest_ensure_response( $rest_nodes );
@@ -624,14 +695,14 @@ class Aggregator {
 	/**
 	 * Register the API routes for accessing locally stored nodes
 	 */
-	public function register_api_routes() {
+	public static function register_api_routes() {
 
 		$result = register_rest_route(
 			Settings::get( 'api_route' ),
 			'get/nodes',
 			array(
 				'methods'  => 'GET',
-				'callback' => array( $this, 'rest_get_nodes' ),
+				'callback' => array( __CLASS__, 'rest_get_nodes' ),
 			)
 		);
 
