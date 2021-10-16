@@ -100,7 +100,7 @@
       },
       "title" :  "Filters",
       "description" : "Set parameters to limit the items that will be fetched and saved. Items must match all the conditions defined here to be included.",
-      "group" : "general"
+      "group" : "filters"
     },
     "indices" : {
       "type" :  "array",
@@ -373,6 +373,11 @@
       "type" :  "string",
       "group" : "config",
       "description" : "API route identifier to define the route to access locally stored nodes from client-side interfaces or external sites"
+    },
+    "update_time" : {
+      "type" :  "integer",
+      "group" : "config",
+      "description" : "Timestamp of last update from the network"
     }
   }
 }

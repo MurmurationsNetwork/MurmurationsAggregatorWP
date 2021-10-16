@@ -187,6 +187,31 @@ class Aggregator {
 		return $count;
 	}
 
+
+    /**
+     * Set the last node update time after client-side node updates
+     *
+     *
+     */
+    public static function ajax_set_update_time() {
+
+      Settings::set( 'update_time', time() );
+      $result = Settings::save();
+
+      if (! $result ) {
+        $status = 'failed';
+      } else {
+        $status = 'success';
+      }
+
+      wp_send_json( array(
+        'status'   => $status,
+        'messages' => Notices::get()
+      ) );
+
+    }
+
+
   /**
    * Get index nodes by AJAX
    *

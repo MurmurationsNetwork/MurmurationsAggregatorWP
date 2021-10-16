@@ -63,6 +63,18 @@
 
         }
 
+        var data = {
+      	  'action': 'set_update_time'
+      	};
+
+      	jQuery.post(ajaxurl, data, function(response) {
+          if(response.status.toString() == 'success'){
+            node_update_log("Set update time");
+          } else {
+            node_update_log("Failed to set update time!");
+          }
+        });
+
         node_update_log("\nNodes queried: " + stats.queried.toString() );
         node_update_log("Nodes failed: " + stats.failed.toString() );
         node_update_log("Nodes saved: " + stats.success.toString() );

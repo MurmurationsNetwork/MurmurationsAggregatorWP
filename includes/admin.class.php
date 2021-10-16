@@ -53,9 +53,10 @@ class Admin {
 		echo Notices::show();
 
 		$tabs = array(
-			'general'       => 'General',
+			'general'       => 'Dashboard',
 			'data_sources'  => 'Data Sources',
 			'node_settings' => 'Nodes',
+			'filters' => 'Filters',
 			'map_settings'  => 'Map',
 			'feed_settings' => 'Feeds',
 			'config'        => 'Advanced',
@@ -86,26 +87,36 @@ class Admin {
 		<?php
 
     if( 'general' === $tab ){
+
       ?>
+      <div id="murms-dashboard-stats">
+        <b>Local <?php echo Settings::get( 'node_name_plural' ); ?>:</b> <?php
+        $count = wp_count_posts('murmurations_node');
+        echo $count->publish . " ";
+        if( Settings::get('update_time') ){
+          echo "<b>Last updated:</b> ". date('Y-m-d G:i:s T', Settings::get('update_time'));
+
+        }
+        ?>
+
+      </div>
       <form method="POST">
        <?php
        wp_nonce_field( 'murmurations_ag_actions_form' );
        ?>
-       <div style="margin: 1em">
-        <button onclick="ajaxUpdateNodes()" type="button" class="murms-update murms-has-icon"><i class="murms-icon murms-icon-update"></i>Update nodes</button>
-      </div>
+        <button onclick="ajaxUpdateNodes()" type="button" class="murms-update murms-has-icon"><i class="murms-icon murms-icon-update"></i>Update nodes from the network</button>
+
        <?php
        if ( Settings::get( 'enable_feeds' ) === 'true' ) :
          ?>
-         <div style="margin: 1em">
+
           <button type="submit" name="action" class="murms-update murms-has-icon" value="update_murms_feed_items"><i class="murms-icon murms-icon-update"></i>Update feeds</button>
-        </div>
+
          <?php
         endif;
        ?>
-      <div style="margin: 1em">
+
       <button type="submit" name="action" class="murms-delete murms-has-icon" value="delete_all_nodes"><i class="murms-icon murms-icon-delete"></i>Delete all stored nodes</button>
-    </div>
 
       </form>
       <textarea id="murmagg-admin-form-log-container" style="width:100%; height: 400px; visibility: hidden;"></textarea>
@@ -171,7 +182,7 @@ class Admin {
   			} elseif ( $attribs['type'] === 'integer' && is_string( $value ) ) {
   				$value = (int) $value;
   			}
-        
+
   			$values[ $field ] = $value;
       }
 		}
@@ -472,39 +483,46 @@ class Admin {
 
   public static function register_things(){
 
-       add_action(
-          'admin_menu',
-          array(
-            'Murmurations\Aggregator\Admin',
-            'add_settings_page',
-          )
-        );
+   add_action(
+      'admin_menu',
+      array(
+        'Murmurations\Aggregator\Admin',
+        'add_settings_page',
+      )
+    );
 
 
-        add_action(
-          'wp_ajax_save_settings',
-          array(
-            'Murmurations\Aggregator\Admin',
-            'ajax_save_settings'
-          )
-        );
+    add_action(
+      'wp_ajax_save_settings',
+      array(
+        'Murmurations\Aggregator\Admin',
+        'ajax_save_settings'
+      )
+    );
 
-        add_action(
-          'wp_ajax_update_node',
-          array(
-            'Murmurations\Aggregator\Aggregator',
-            'ajax_update_node'
-          )
-        );
+    add_action(
+      'wp_ajax_update_node',
+      array(
+        'Murmurations\Aggregator\Aggregator',
+        'ajax_update_node'
+      )
+    );
 
-        add_action(
-          'wp_ajax_get_index_nodes',
-          array(
-            'Murmurations\Aggregator\Aggregator',
-            'ajax_get_index_nodes'
-          )
-        );
+    add_action(
+      'wp_ajax_get_index_nodes',
+      array(
+        'Murmurations\Aggregator\Aggregator',
+        'ajax_get_index_nodes'
+      )
+    );
 
+    add_action(
+      'wp_ajax_set_update_time',
+      array(
+        'Murmurations\Aggregator\Aggregator',
+        'ajax_set_update_time'
+      )
+    );
 
     add_action(
       'admin_enqueue_scripts',
