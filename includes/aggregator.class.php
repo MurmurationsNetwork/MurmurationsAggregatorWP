@@ -245,7 +245,7 @@ class Aggregator {
   			$update_since = $settings['update_time'];
 
   			if ( $settings['ignore_date'] != 'true' ) {
-  				$index_filters[] = array( 'updated', 'isGreaterThan', $update_since );
+          $index_filters[] = array( 'last_validated', 'isGreaterThan', $update_since );
   			}
 
   			$query = array();
