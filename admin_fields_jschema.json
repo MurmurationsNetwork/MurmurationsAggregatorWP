@@ -59,7 +59,7 @@
       "description" : "Post status for new nodes from the network. Set to 'Draft' if nodes should be reviewed before they are publicly viewable."
     },
     "nodes_per_page" : {
-      "type" :  "number",
+      "type" :  "integer",
       "title" :  "Nodes per page",
       "default" : 10,
       "group" : "node_settings",
