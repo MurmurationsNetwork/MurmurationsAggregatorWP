@@ -436,7 +436,7 @@ class Aggregator {
           if ( ! $result ){
             Notices::set( 'Failed to save node: ' . $url, 'error' );
           } else {
-            Notices::set( 'Node sucessfully saved', 'success' );
+            Notices::set( 'Node successfully saved', 'success' );
             return $result;
           }
         } else {
