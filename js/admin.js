@@ -1,8 +1,6 @@
 
 function viewLocalSchema(){
 
-  alert("Get local schema");
-
   logContainer = document.getElementById('murmagg-admin-form-log-container');
 
   logContainer.style.visibility = "visible";
