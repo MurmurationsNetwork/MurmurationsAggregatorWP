@@ -753,6 +753,13 @@ class Aggregator {
 				'show_in_menu'  => true, // 'admin.php?page=murmurations-aggregator-settings',
 				'menu_position' => 21,
 				'rewrite'       => array( 'slug' => Settings::get( 'node_slug' ) ),
+        'supports' => array(
+          'title',
+          'editor',
+          'excerpt',
+          'thumbnail',
+          'custom-fields'
+        )  
 			)
 		);
 
