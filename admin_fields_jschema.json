@@ -346,6 +346,14 @@
       "group" : "node_settings",
       "description" : "Array of fields to include in list display (may be irrelevant in custom templates)."
     },
+    "api_node_format" : {
+      "default" : "JSON",
+      "type" :  "string",
+      "enum" : ["JSON","HTML"],
+      "title" :  "Node format sent to front-end interfaces",
+      "group" : "node_settings",
+      "description" : "For React interfaces, set whether the interface should request JSON data (layout handled by the interface), or HTML (layout handled by templates). Choose HTML to use overridable templates output in the React interfaces."
+    },
     "node_single_url_field" : {
       "type" :  "string",
       "group" : "config",

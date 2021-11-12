@@ -724,7 +724,7 @@ class Aggregator {
 
 		$rest_nodes = array();
 		foreach ( $nodes as $node ) {
-      if ( 'html' === $req[ 'format' ] ){
+      if ( 'HTML' === $req[ 'format' ] ){
 
   			$rest_nodes[] = self::load_template( 'node_list_item.php', $node->data );
 

@@ -238,7 +238,7 @@ class Feeds {
 				$node = self::update_node_feed_url( $node );
 			}
 
-			if ( $node->data['feed_url'] ) {
+			if ( $node->data['feed_url'] &&  $node->data['feed_url'] != 'not_found') {
 				$node_feed_items = self::get_remote_feed_items( $node->data['feed_url'] );
 
 				if ( count( $node_feed_items ) > 0 ) {
