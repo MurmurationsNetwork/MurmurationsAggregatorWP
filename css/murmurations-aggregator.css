@@ -4,9 +4,13 @@
   max-width: unset;
 }
 
-.murmurations-node{
+article.murmurations-node{
   margin-bottom: 2em;
+  margin-left: 1em;
+  margin-right: 1em;
+  display: flex;
 }
+
 
 .murmurations-node div{
   margin-bottom: 10px;
@@ -15,27 +19,20 @@
 .murmurations-node-image {
   vertical-align: top;
   width: 150px;
-	/*width: 28.7%;*/
-	/*float: left;*/
 	margin: 0;
-	/*position: relative;*/
+  margin-right: 1em;
 }
-.murmurations-node-table td {
-  word-break:break-word;
-  vertical-align: top;
+
+.murmurations-node-text {
+  flex: 1;
 }
 
 .murmurations-node-image img{
   width: 150px;
   height: auto;
+  margin-top: 0.5em;
 }
 
-.murmurations-node-content {
-  /*width: 71.3%; */
-  width: 700px;
-  float: right;
-  padding: 0 0 0 45px;
-}
 
 .murmurations-node-org-types{
   font-weight:bold;
@@ -46,7 +43,7 @@
 }
 
 .murmurations-node h3.murmurations-node-name{
-  margin-top:1.5em;
+  margin-top: 0;
   margin-bottom:0.5em;
 }
 
