@@ -337,7 +337,7 @@
       "description" : "String used to prefix shortcodes and admin settings pages."
     },
     "list_fields" : {
-      "default" : ["country"],
+      "default" : ["org_type_tags","tags"],
       "type" :  "array",
       "title" :  "Fields for directory display",
       "items" : {
