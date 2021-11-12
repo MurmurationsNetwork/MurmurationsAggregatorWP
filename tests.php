@@ -25,6 +25,14 @@ if ( $_GET['t'] ) {
 
 class Tests {
 
+  public static function get_template_location( $template ){
+
+    $result = Aggregator::get_template_location( $template );
+
+    return array( Notices::get(), $result );
+
+  }
+
   public static function get_index_nodes( ){
 
     $result = Aggregator::get_index_nodes();

@@ -71,6 +71,38 @@ class Aggregator {
 		wp_unschedule_event( $timestamp, 'murmurations_feed_update' );
 	}
 
+  /**
+   * Get the location of a template file.
+   *
+   * The sequence of priority is:
+   *  - Theme template location
+   *  - Location set in the 'template_override_path' setting var
+   *  - Default template from plugin directory
+   * @param  string $template the filename of the template
+   * @return string|boolean full path of template file or false if template wasn't found anywhere
+   */
+  public static function get_template_location( $template ){
+
+    $locations = array();
+
+    $locations[] = locate_template( $template, false );
+
+		if ( Settings::get( 'template_override_path' ) ) {
+			$locations[] = Settings::get( 'template_override_path' ) . $template;
+		}
+
+		$locations[] = MURMAG_ROOT_PATH . 'templates/' . $template;
+
+		foreach ( $locations as $location ) {
+			if ( file_exists( $location ) ) {
+        return $location;
+			}
+		}
+
+    return false;
+
+  }
+
 
 	/**
 	 * Load an (overridable) template file
@@ -80,29 +112,17 @@ class Aggregator {
 	 * @return string HTML from template.
 	 */
 	public static function load_template( $template, $data ) {
-		$sources = array();
 
-		if ( Settings::get( 'template_override_path' ) ) {
-			$sources[] = Settings::get( 'template_override_path' );
-		}
+    $location = self::get_template_location( $template );
 
-		$sources[] = get_stylesheet_directory() . '/murmurations-aggregator/';
-		$sources[] = MURMAG_ROOT_PATH . 'templates/';
-
-		foreach ( $sources as $dir ) {
-			if ( file_exists( $dir . $template ) ) {
-				ob_start();
-				include $dir . $template;
-				$html = ob_get_clean();
-				break;
-			}
-		}
-
-		if ( ! $html ) {
+    if( $location ) {
+      ob_start();
+      include $location;
+      $html = ob_get_clean();
+      return $html;
+    } else {
 			error( 'Missing template file: ' . $template );
 			return false;
-		} else {
-			return $html;
 		}
 	}
 
@@ -599,7 +619,7 @@ class Aggregator {
 	}
 
 	/**
-	 * Load the template for a single node, either from the template hierarchy if available, or from the default location in the plugin
+	 * Filter the WP single template path for a single node, either from the template hierarchy if available, or from the default location in the plugin (single_template filter)
 	 *
 	 * @param  string $template default template path from WP
 	 * @return string Template path
@@ -607,26 +627,21 @@ class Aggregator {
 	public static function load_node_single_template( $template ) {
 
 		if ( is_singular( 'murmurations_node' ) ) {
-			$template = locate_template( 'single-murmurations_node.php', false );
-			if ( ! $template ) {
-				  $template = MURMAG_ROOT_PATH . 'templates/single-murmurations_node.php';
-			}
+  	  $template = self::get_template_location( 'single-murmurations_node.php' );
 		}
 
 		return $template;
 	}
+
 	/**
-	 * Load the template for the node archive page, either from the template hierarchy if available, or from the default location in the plugin
+	 * Filter the WP archive template path for the node archive page, either from the template hierarchy if available, or from the default location in the plugin (archive_template filter)
 	 *
 	 * @param  string $template default template path from WP
 	 * @return string Template path
 	 */
 	public static function load_node_archive_template( $template ) {
 		if ( is_post_type_archive( 'murmurations_node' ) ) {
-			$template = locate_template( 'archive-murmurations_node.php', false );
-			if ( ! $template ) {
-				$template = MURMAG_ROOT_PATH . 'templates/archive-murmurations_node.php';
-			}
+			$template = self::get_template_location( 'archive-murmurations_node.php' );
 		}
 
 		return $template;
@@ -652,7 +667,6 @@ class Aggregator {
 
 		add_filter( 'single_template', array( __CLASS__, 'load_node_single_template' ) );
 
-		add_filter( 'single-murmurations_node_template', array( __CLASS__, 'load_node_single_template' ) );
 		add_filter( 'archive_template', array( __CLASS__, 'load_node_archive_template' ) );
 
 	}
@@ -710,7 +724,13 @@ class Aggregator {
 
 		$rest_nodes = array();
 		foreach ( $nodes as $node ) {
-			$rest_nodes[] = $node->data;
+      if ( 'html' === $req[ 'format' ] ){
+
+  			$rest_nodes[] = self::load_template( 'node_list_item.php', $node->data );
+
+      }else{
+			  $rest_nodes[] = $node->data;
+      }
 		}
 		return rest_ensure_response( $rest_nodes );
 	}
@@ -759,7 +779,7 @@ class Aggregator {
           'excerpt',
           'thumbnail',
           'custom-fields'
-        )  
+        )
 			)
 		);
 
