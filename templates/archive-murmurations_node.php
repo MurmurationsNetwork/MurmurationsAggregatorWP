@@ -20,7 +20,7 @@ get_header();
     $node = new Murmurations\Aggregator\Node($post);
     $data = $node->data;
 
-    include( plugin_dir_path( __FILE__ ) . 'node_list_item.php' );
+    echo Murmurations\Aggregator\Aggregator::load_template(  'node_list_item.php', $data);
 
     ?>
 
