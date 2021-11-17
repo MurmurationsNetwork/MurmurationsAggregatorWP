@@ -235,20 +235,14 @@ class Admin {
 					$attribs['items']['properties']['field']['enumNames'] = $enum_names;
 
 				} elseif ( $field === 'filter_fields' ) {
-					// Add enum fields to the options for front-end filters.
+					// Add fields to the options for front-end filters.
 
 					$enum      = array();
 					$enum_names = array();
 
 					foreach ( Schema::get_fields() as $schema_field => $schema_field_attribs ) {
-						if ( isset( $schema_field_attribs['enum'] ) ) {
-								$enum[]      = $schema_field;
-								$enum_names[] = $schema_field_attribs['title'];
-						} elseif ( $schema_field_attribs['type'] === 'array'
-						&& ( $schema_field_attribs['items']['enum'] ) ) {
-							  $enum[]      = $schema_field;
-							  $enum_names[] = $schema_field_attribs['title'];
-						}
+            $enum[]      = $schema_field;
+            $enum_names[] = $schema_field_attribs['title'];
 					}
 
           if (count($enum) > 0){
