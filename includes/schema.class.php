@@ -220,6 +220,13 @@ class Schema {
 				$schema['properties'][ $key ] = array_replace_recursive( $field_data, $attribs );
 
 			}
+
+      if ( isset($schema['properties'][ $key ]['items']['properties']) ){
+
+        $schema['properties'][ $key ]['items'] = self::dereference( $schema['properties'][ $key ]['items'] );
+
+      }
+
 		}
 
 		$output_schema = array_replace_recursive( $output_schema, $schema );
