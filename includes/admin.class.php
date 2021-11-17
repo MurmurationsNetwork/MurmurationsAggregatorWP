@@ -528,6 +528,15 @@ class Admin {
         'ajax_get_local_schema'
       )
     );
+
+    add_action(
+      'wp_ajax_save_node',
+      array(
+        'Murmurations\Aggregator\Admin',
+        'ajax_save_node'
+      )
+    );
+
     add_action(
       'admin_enqueue_scripts',
       array(
@@ -535,8 +544,197 @@ class Admin {
         'enqueue_admin_script'
       )
     );
+
+    add_action(
+      'add_meta_boxes_murmurations_node',
+      array(
+        __CLASS__,
+        'add_admin_node_edit_form'
+      )
+    );
+
+    add_action(
+      'save_post',
+      array(
+        __CLASS__,
+        'save_node_edit'
+      )
+    );
+
   }
 
+  public static function add_admin_node_edit_form( $node_post ){
+    add_meta_box(
+      'murmurations-node-edit',
+      __( 'Edit Node Data' ),
+      array( __CLASS__, 'show_admin_node_edit_form' ),
+      'murmurations_node',
+      'normal',
+      'default'
+    );
+  }
+
+  public static function show_admin_node_edit_form(){
+
+    self::show_rjsf_node_form();
+
+  }
+
+
+  	/**
+  	 * Show the RJSF form for editing a node (experimental!)
+  	 *
+  	 */
+  	public static function show_rjsf_node_form() {
+
+  		$local_schema = Schema::get();
+
+      unset(
+        $local_schema['$schema'],
+        $local_schema['id'],
+        $local_schema['title'],
+        $local_schema['description']
+      );
+
+      $node = new Node( (int) $_GET['post'] );
+
+  		$current_values = $node->data;
+
+      $local_schema['properties']['profile_url'] = array(
+        'type' => 'string',
+        'title' => 'profile_url'
+      );
+
+  		$node_schema_json = json_encode( $local_schema );
+
+      $current_values_json = json_encode( $current_values );
+
+  		?>
+  <div id="murmagg-admin-form-container">
+    <div id="murmagg-admin-form-overlay"></div>
+    <div id="murmagg-admin-form-notice"></div>
+    <div id="murmagg-admin-form"></div>
+  </div>
+
+
+
+  <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-jsonschema-form/dist/react-jsonschema-form.js"></script>
+
+  <script>
+
+    const murmagNodeFormSubmit = (Form, e) => {
+
+    	formOverlay = document.getElementById('murmagg-admin-form-overlay');
+
+    	formOverlay.style.visibility = "visible";
+
+    	var data = {
+    	  'action': 'save_node',
+    	  'formData': Form.formData
+    	};
+
+    	jQuery.post(ajaxurl, data, function(response) {
+
+    	  formOverlay.style.visibility = "hidden";
+    	  var noticeContainer = document.getElementById('murmagg-admin-form-notice');
+
+    	  noticeContainer.innerHTML = "";
+
+    	  for (const message of response.messages){
+      		var notice = document.createElement("div");
+      		notice.innerHTML = '<p>'+message.message+'</p>';
+      		notice.className = "notice notice-"+message.type;
+      		noticeContainer.appendChild(notice);
+    	  }
+    	  noticeContainer.style.display = "block";
+    	});
+
+    }
+
+    const Form = JSONSchemaForm.default;
+
+    const schema = <?php echo $node_schema_json; ?>;
+
+    const uiSchema = {
+  	filters: {
+  	  classNames: "murmag-filter-field"
+  	},
+
+  	schemas: {
+  	  classNames: "murmag-schemas-field"
+  	},
+
+  	indices: {
+  	  classNames: "murmag-indices-field"
+  	}
+    };
+
+
+    const formData = <?php echo $current_values_json; ?>;
+
+    const log = (type) => console.log.bind(console, type);
+
+    const saveButton = React.createElement(
+  	'button',
+  	{
+  	  type:"submit",
+  	  className : "button button-primary button-large"
+  	},
+  	'Save Node'
+    );
+
+    const element = React.createElement(
+  	Form,
+  	{
+  	  schema,
+  	  uiSchema,
+  	  formData,
+  	  onChange: log("changed"),
+  	  onSubmit: murmagNodeFormSubmit,
+  	  onError: log("errors")
+  	},
+  	saveButton
+    )
+    ReactDOM.render(element, document.getElementById("murmagg-admin-form"));
+
+  </script>
+  		<?php
+
+  	}
+
+    /**
+     * Save the output from the RJSF node form, submitted by XHR
+     */
+    public static function ajax_save_node() {
+
+      llog( 'Saving node' );
+
+      $data = $_POST['formData'];
+
+      $node = new Node( $data );
+
+      $result = $node->save();
+
+      if( $result ){
+        $status = 'success';
+        Notices::set( 'Node '.$result.' saved', 'success' );
+      }else{
+        $status = 'fail';
+        Notices::set( 'Node '.$result.' could not be saved', 'failure' );
+      }
+
+
+      $result = array(
+        'data'     => $data,
+        'dataStr'  => print_r( $data, true ),
+        'status'   => $status,
+        'messages' => Notices::get()
+      );
+
+      wp_send_json( $result );
+    }
 
 }
 ?>
