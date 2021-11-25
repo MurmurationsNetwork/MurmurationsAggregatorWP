@@ -728,10 +728,27 @@ class Aggregator {
 
   			$rest_nodes[] = self::load_template( 'node_list_item.php', $node->data );
 
+      }else if ( 'KUMU' === $req[ 'format' ] ){
+
+        if( !isset( $node->data['label'] ) && isset( $node->data['name'] ) ){
+          $node->data['label'] = $node->data['name'];
+        }
+
+  			$rest_nodes[] = $node->data;
+
       }else{
 			  $rest_nodes[] = $node->data;
       }
 		}
+
+    if ( 'KUMU' === $req[ 'format' ] ){
+
+      $rest_nodes = array(
+        "elements" => $rest_nodes
+      );
+
+    }
+
 		return rest_ensure_response( $rest_nodes );
 	}
 
