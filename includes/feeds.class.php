@@ -1,9 +1,16 @@
 <?php
+/**
+ * Feeds class
+ *
+ * @package Murmurations Aggregator
+ */
+
 namespace Murmurations\Aggregator;
 
+/**
+ * Class that handles collecting, parsing, and displaying RSS feed data from nodes
+ */
 class Feeds {
-
-	public static $wpagg;
 
 	public static function init() {
 
@@ -57,17 +64,17 @@ class Feeds {
 			)
 		);
 
-    register_taxonomy(
-      'murms_feed_item_source',
-      'murms_feed_item',
-      array(
-        'labels'            => array(
-          'name'          => __( 'Sources' ),
-          'singular_name' => __( 'From' ),
-        ),
-        'show_admin_column' => true,
-      )
-    );
+		register_taxonomy(
+			'murms_feed_item_source',
+			'murms_feed_item',
+			array(
+				'labels'            => array(
+					'name'          => __( 'Sources' ),
+					'singular_name' => __( 'From' ),
+				),
+				'show_admin_column' => true,
+			)
+		);
 	}
 
 	public static function save_feed_item( $item_data ) {
@@ -78,8 +85,10 @@ class Feeds {
 
 		$post_data = array();
 
-		$post_data['post_title']   = $item_data['title'];
-		$post_data['post_content'] = $item_data['content:encoded'];
+    $content_allowed_tags = array('a', 'p', 'div', 'ul', 'li', 'img' );
+
+		$post_data['post_title']   = wp_strip_all_tags( $item_data['title'] );
+		$post_data['post_content'] = strip_tags( $item_data['content:encoded'], $content_allowed_tags );
 		if ( ! $post_data['post_content'] ) {
 			$post_data['post_content'] = $item_data['title'];
 		}
@@ -122,7 +131,7 @@ class Feeds {
 
 			// Add terms directly
 			wp_set_object_terms( $id, $tags, 'murms_feed_item_tag' );
-      wp_set_object_terms( $id, array($item_data['node_name']), 'murms_feed_item_source' );
+			wp_set_object_terms( $id, array( $item_data['node_name'] ), 'murms_feed_item_source' );
 
 			// And use the ID to update meta
 			update_post_meta( $id, 'murmurations_feed_item_url', $item_data['url'] );
@@ -186,7 +195,7 @@ class Feeds {
 	}
 
 	public static function update_feed_urls() {
-		$nodes = self::$wpagg->load_nodes();
+		$nodes = Aggregator::get_nodes();
 		foreach ( $nodes as $id => $node ) {
 			if ( ! isset( $node->data['feed_url'] ) && isset( $node->data['url'] ) ) {
 				$feed_url = self::get_feed_url( $node->data['url'] );
@@ -215,9 +224,7 @@ class Feeds {
 		$feed_items = array();
 
 		// Get the locally stored nodes
-		self::$wpagg->load_nodes();
-
-		$nodes = self::$wpagg->nodes;
+		$nodes = Aggregator::get_nodes();
 
 		$results = array(
 			'nodes_with_feeds'   => 0,
@@ -231,7 +238,7 @@ class Feeds {
 				$node = self::update_node_feed_url( $node );
 			}
 
-			if ( $node->data['feed_url'] ) {
+			if ( $node->data['feed_url'] &&  $node->data['feed_url'] != 'not_found') {
 				$node_feed_items = self::get_remote_feed_items( $node->data['feed_url'] );
 
 				if ( count( $node_feed_items ) > 0 ) {

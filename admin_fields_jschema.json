@@ -19,6 +19,14 @@
       "description" : "How often should locally stored nodes be updated from the network?",
       "group" : "node_settings"
     },
+    "ignore_date" : {
+      "type" :  "boolean",
+      "title" :  "Ignore node update date when fetching nodes",
+      "inputAs" : "checkbox",
+      "validateAs" : "text",
+      "description" : "If unchecked, only nodes that have been updated since they were last requested will be fetched.",
+      "group" : "node_settings"
+    },
     "updated_node_post_status" : {
       "type" :  "string",
       "title" :  "Updated node post status",
@@ -49,6 +57,13 @@
       "default" : "publish",
       "group" : "node_settings",
       "description" : "Post status for new nodes from the network. Set to 'Draft' if nodes should be reviewed before they are publicly viewable."
+    },
+    "nodes_per_page" : {
+      "type" :  "integer",
+      "title" :  "Nodes per page",
+      "default" : 10,
+      "group" : "node_settings",
+      "description" : "How many nodes to show per page (in client-side interfaces)"
     },
     "filters" : {
       "type" :  "array",
@@ -84,8 +99,8 @@
         }
       },
       "title" :  "Filters",
-      "description" : "Set parameters to limit the nodes that will be fetched and saved. Nodes must match all the conditions defined  here to be included.",
-      "group" : "general"
+      "description" : "Set parameters to limit the items that will be fetched and saved. Items must match all the conditions defined here to be included.",
+      "group" : "filters"
     },
     "indices" : {
       "type" :  "array",
@@ -115,6 +130,36 @@
             "type" :  "string",
             "title" :  "Basic Auth password",
             "description" : "Password for data sources that are protected by Basic Authentication."
+          },
+          "queryable_fields" : {
+            "title" :  "Queryable fields",
+            "default" : "country,location,schema",
+            "type" :  "string",
+            "group" : "config",
+            "description" : "Fields that can be used when querying this index, as a comma-delimited string"
+          },
+          "parameters" : {
+            "type" :  "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "parameter" : {
+                  "type" : "string",
+                  "title" : "Parameter name"
+                },
+                "value" : {
+                  "type" : "string",
+                  "title" : "Value"
+                }
+              }
+            },
+            "title" :  "Index query parameters",
+            "description" : "Set parameters that will be passed with the query string to this index."
+          },
+          "disabled" : {
+            "type" : "boolean",
+            "default" : false,
+            "title" :  "Turn off this data source"
           }
         }
       },
@@ -150,13 +195,12 @@
       "description" : "Local path to an alternate template directory. This path overrides the normal template hierarchy.",
       "group" : "config"
     },
-    "ignore_date" : {
+    "enable_feeds" : {
       "type" :  "boolean",
-      "title" :  "Ignore node update date when fetching nodes",
-      "inputAs" : "checkbox",
-      "validateAs" : "text",
-      "description" : "If unchecked, only nodes that have been updated since they were last requested will be fetched.",
-      "group" : "node_settings"
+      "title" :  "Enable feeds",
+      "group" : "feed_settings",
+      "default" : false,
+      "description" : "Enable collecting feed data from nodes."
     },
     "feed_update_interval" : {
       "type" :  "string",
@@ -235,13 +279,6 @@
       "group" : "map_settings",
       "description" : "API key for Mapbox, tile provider for Leaflet. See https://www.mapbox.com/studio/account/tokens/"
     },
-    "enable_feeds" : {
-      "type" :  "boolean",
-      "title" :  "Enable feeds",
-      "group" : "config",
-      "default" : false,
-      "description" : "Enable collecting feed data from nodes."
-    },
     "logging_mode" : {
       "type" :  "string",
       "enum" : [
@@ -261,12 +298,12 @@
     },
     "filter_fields" : {
       "type" :  "array",
-      "title" : "Fields for node filters",
+      "title" : "Fields for front-end filters",
       "items" : {
         "type" : "string"
       },
-      "description" : "Fields to show in filters for map and directory",
-      "group" : "config"
+      "description" : "Fields to show in front-end filters for map and directory",
+      "group" : "node_settings"
     },
     "plugin_name" : {
       "default" : "Murmurations Aggregator",
@@ -300,18 +337,33 @@
       "description" : "String used to prefix shortcodes and admin settings pages."
     },
     "list_fields" : {
-      "default" : ["country","community_types","project_types","languages_spoken"],
+      "default" : ["org_type_tags","tags"],
       "type" :  "array",
+      "title" :  "Fields for directory display",
       "items" : {
         "type" : "string"
       },
-      "group" : "config",
+      "group" : "node_settings",
       "description" : "Array of fields to include in list display (may be irrelevant in custom templates)."
+    },
+    "api_node_format" : {
+      "default" : "JSON",
+      "type" :  "string",
+      "enum" : ["JSON","HTML"],
+      "title" :  "Node format sent to front-end interfaces",
+      "group" : "node_settings",
+      "description" : "For React interfaces, set whether the interface should request JSON data (layout handled by the interface), or HTML (layout handled by templates). Choose HTML to use overridable templates output in the React interfaces."
     },
     "node_single_url_field" : {
       "type" :  "string",
       "group" : "config",
       "description" : "Field to use for the link to view a single node. If unset, single nodes will link to the single post page. Can be used to set an external location to view a single node."
+    },
+    "node_single" : {
+      "type" :  "boolean",
+      "group" : "config",
+      "description" : "Link to single node pages from directory/map. By default this will use the WP post type. Can be overridden with node_single_url_field for custom single URLs",
+      "default" : true
     },
     "log_file" : {
       "type" :  "string",
@@ -329,6 +381,11 @@
       "type" :  "string",
       "group" : "config",
       "description" : "API route identifier to define the route to access locally stored nodes from client-side interfaces or external sites"
+    },
+    "update_time" : {
+      "type" :  "integer",
+      "group" : "config",
+      "description" : "Timestamp of last update from the network"
     }
   }
 }

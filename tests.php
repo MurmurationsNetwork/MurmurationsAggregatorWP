@@ -25,9 +25,50 @@ if ( $_GET['t'] ) {
 
 class Tests {
 
+  public static function get_template_location( $template ){
+
+    $result = Aggregator::get_template_location( $template );
+
+    return array( Notices::get(), $result );
+
+  }
+
+  public static function get_index_nodes( ){
+
+    $result = Aggregator::get_index_nodes();
+
+    return array( Notices::get(), $result );
+
+  }
+
+  public static function update_node( $url ){
+
+    $result = Aggregator::update_node( array( 'profile_url' => $url ) );
+
+    return array($result, Notices::get());
+
+  }
+
+  public static function inspect_remote_node_json( $url ){
+
+    $options = array(
+      'api_basic_auth_user' => 'eco',
+      'api_basic_auth_pass' => 'village',
+      'api_key' => 'test_key'
+    );
+
+    $out = "Node JSON from: " . $url . "\n";
+
+    $out .= API::getNodeJson( $url, $options );
+
+    return $out;
+
+  }
+
   public static function get_settings_fields(){
     return Settings::get_fields();
   }
+
   public static function node_from_id(){
     return new Node(2113);
   }
@@ -159,18 +200,27 @@ class Tests {
 	}
 
 
-	public static function getIndexJson() {
+  public static function getSettings() {
+    return Settings::get();
+  }
+
+
+	public static function getIndexJson($index = 0) {
 
 		API::$logging_handler = array( 'MurmsAggregatorTests', 'print' );
 
-		$url = 'https://index.murmurations.network/v1/nodes';
+    $indices = Settings::get('indices');
 
-		//$options['api_key']             = 'hello';
-		$options['api_basic_auth_user'] = 'sdf';
-		$options['api_basic_auth_pass'] = 'sdf';
+    $index = $indices[$index];
+
+		$url = $index['url'];
+
+		$options['api_key']             =  $index['api_key'];
+		$options['api_basic_auth_user'] = $index['api_basic_auth_user'];
+		$options['api_basic_auth_pass'] = $index['api_basic_auth_pass'];
 
 		$query = array(
-		 'country' => 'GB',
+		 'country' => 'Canada',
 		// 'last_validated' => 1541779342
 		);
 

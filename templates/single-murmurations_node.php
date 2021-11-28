@@ -1,12 +1,8 @@
 <?php
 /**
- * The template for displaying all single posts
+ * The default template for displaying all single nodes
  *
- * @link https://developer.wordpress.org/themes/basics/template-hierarchy/#single-post
- *
- * @package WordPress
- * @subpackage Twenty_Twenty_One
- * @since Twenty Twenty-One 1.0
+ * @package Murmurations Aggregator
  */
 
 get_header();

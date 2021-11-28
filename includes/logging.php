@@ -1,8 +1,20 @@
 <?php
+/**
+ * Logging and error handling
+ *
+ * @package Murmurations Aggregator
+ */
+
 namespace Murmurations\Aggregator;
 
 $murmurations_log_buffer = '';
 
+/**
+ * Write to the log
+ *
+ * @param  mixed  $content Things to be logged.
+ * @param  string $meta Optional description of things.
+ */
 function llog( $content, $meta = null ) {
 
 	global $murmurations_log_buffer;
@@ -10,9 +22,9 @@ function llog( $content, $meta = null ) {
 	$file = Settings::get( 'log_file' );
 	$mode = Settings::get( 'logging_mode' );
 
-  if ( $mode === 'none' ){
-    return;
-  }
+	if ( $mode === 'none' ) {
+		return;
+	}
 
 	$log  = date( DATE_ATOM ) . ' ';
 	$log .= $meta ? $meta . ': ' : '';
@@ -32,6 +44,13 @@ function llog( $content, $meta = null ) {
 	}
 }
 
+/**
+ * Output debugging information
+ *
+ * @param  mixed  $content Things to be debugged.
+ * @param  string $meta Optional description.
+ * @return string the HTML formatted debugging output.
+ */
 function debug( $content, $meta = null ) {
 
 	$out  = '<pre>';
@@ -47,13 +66,16 @@ function debug( $content, $meta = null ) {
 
 }
 
+/**
+ * Basic error handling
+ *
+ * @param  string $message A description of what went wrong.
+ * @param  string $severity Severity of the error.
+ */
 function error( $message, $severity = 'warn' ) {
 	llog( $message, 'error' );
 	Notices::set( $message, $severity );
-	if ( $severity == 'fatal' ) {
+	if ( $severity === 'fatal' ) {
 		exit( $message );
 	}
 }
-
-
-?>

@@ -1,133 +1,27 @@
 {
-  "$schema": "https://json-schema.org/draft-04/schema#",
-  "id": "https://cdn.murmurations.network/schemas/gen_ecovillages_v0.0.1.json",
-  "title": "GEN Ecovillages",
-  "description": "Ecovillage projects in the Global Ecovillage Network.",
+  "$schema": "https://json-schema.org/draft-06/schema#",
+  "id": "https://cdn.murmurations.network/schemas/default-v1.json",
+  "title": "Default Schema",
+  "description": "The default schema for initial validation of a profile by the index.",
   "type": "object",
+  "propertyNames": {
+    "pattern": "^[a-z0-9_]*$"
+  },
   "properties": {
-    "name": {
-      "title": "Name",
-      "description": "The name of the ecovillage",
-      "type": "string"
-    },
-    "url": {
-      "title": "Website",
-      "description": "Website URL",
-      "type": "string",
-      "maxLength": 2000,
-      "pattern": "https?://"
-    },
-    "profile_url": {
-      "title": "Profile URL",
-      "description": "Profile URL",
-      "type": "string",
-      "maxLength": 2000,
-      "pattern": "https?://"
-    },
-    "gen_project_url": {
-      "title": "GEN Project URL",
-      "description": "URL of the project page on ecovillage.org",
-      "type": "string",
-      "maxLength": 2000,
-      "pattern": "https?://"
-    },
-    "description": {
-      "title": "Description",
-      "description": "",
-      "type": "string"
-    },
-    "project_types": {
-      "title": "Project types",
-      "description": "",
-      "type": "array"
-    },
-    "community_types": {
-      "title": "Community types",
-      "description": "",
-      "type": "array"
-    },
-    "gen_community_setting": {
-      "title": "Community setting",
-      "description": "",
-      "type": "array"
-    },
-    "country": {
-       "title": "Country",
-       "description": "",
-       "type": "string"
-    },
-    "locality": {
-       "title": "Locality",
-       "description": "A city, town, village, etc.",
-       "type": "string",
-       "pattern": "^.{1,100}$"
-    },
-    "region": {
-       "title": "Region",
-       "description": "A state, county, province, etc.",
-       "type": "string",
-       "pattern": "^.{1,100}$"
-    },
-    "gen_region": {
-       "title": "GEN Region",
-       "description": "The GEN region of this project",
-       "type": "string",
-       "pattern": "^.{1,100}$"
-    },
-    "project_status": {
-       "title": "Project status",
-       "description": "",
-       "type": "string"
-    },
-    "languages_spoken": {
-       "title": "Languages spoken",
-       "type": "array",
-       "pattern": "^.{1,100}$"
-    },
-    "gen_sustainability_dimensions": {
-       "title": "GEN sustainability dimensions",
-       "type": "array"
-    },
-    "gen_project_gen_status": {
-      "title": "GEN membership status",
-      "type": "string"
-    },
-    "visitors_accepted": {
-       "title": "Visitors accepted",
-       "description": "",
-       "type": "string"
-    },
-    "new_members_accepted" : {
-      "title": "New members accepted",
-      "type": "string"
-    },
-    "geolocation": {
-    "title": "Geolocation Coordinates",
-      "description": "The geo-coordinates (latitude & longitude) of the project",
-      "type": "object",
-      "properties": {
-        "lat": {
-          "type": "number",
-          "minimum": -90,
-          "maximum": 90
-        },
-        "lon": {
-          "type": "number",
-          "minimum": -180,
-          "maximum": 180
-        }
-      },
-      "required": ["lat", "lon"]
+    "linked_schemas": {
+      "$ref": "../fields/linked_schemas-v1.json"
     }
   },
-  "required": ["name", "url"],
+  "required": ["linked_schemas"],
   "metadata": {
     "creator": {
-      "name": "GENNA Data Sharing Project"
+      "name": "Murmurations Network",
+      "url": "https://murmurations.network"
     },
     "schema": {
-      "name": "gen_ecovillages_v0.0.1",
-      "version": "0.0.1"
+      "name": "default-v1",
+      "version": 1,
+      "url": "https://murmurations.network/schemas/default_schema"
     }
   }
 }
