@@ -116,7 +116,7 @@ class Admin {
         endif;
        ?>
 
-      <button type="submit" name="action" class="murms-delete murms-has-icon" value="delete_all_nodes"><i class="murms-icon murms-icon-delete"></i>Delete all stored nodes</button>
+      <button type="submit"  onclick="return confirm('Are you sure you would like to delete all locally stored nodes?')"  name="action" class="murms-delete murms-has-icon" value="delete_all_nodes"><i class="murms-icon murms-icon-delete"></i>Delete all stored nodes</button>
 
        <button onclick="viewLocalSchema()" type="button" class="murms-update">View local schema</button>
 
