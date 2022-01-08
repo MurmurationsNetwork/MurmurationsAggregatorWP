@@ -144,9 +144,10 @@ class Schema {
 			if ( $field_map_url ) {
 				$field_map = self::fetch( $field_map_url );
 			} else {
-				Notices::set( 'No field map URL found' );
-				llog( 'Missing field map URL' );
-				return false;
+				// Load the default field map
+				$json = file_get_contents( MURMAG_ROOT_PATH . 'schemas/field_map.json' );
+				$field_map = json_decode( $json, true );
+				llog( $field_map, 'Loaded default field map' );
 			}
 			self::$field_map = $field_map;
 		}
