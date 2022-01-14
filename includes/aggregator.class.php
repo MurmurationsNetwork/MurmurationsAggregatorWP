@@ -583,12 +583,23 @@ class Aggregator {
 
 		foreach ( $nodes as $key => $node ) {
 
+			$has_coords = false;
+
 			if ( isset( $node->data['geolocation']['lat'] ) && isset( $node->data['geolocation']['lon'] ) ) {
-
-				$popup = trim( self::load_template( 'map_node_popup.php', $node->data ) );
-
 				$lat = $node->data['geolocation']['lat'];
 				$lon = $node->data['geolocation']['lon'];
+				$has_coords = true;
+			}
+
+			if ( isset( $node->data['latitude'] ) && isset( $node->data['longitude'] ) ) {
+				$lat = $node->data['latitude'];
+				$lon = $node->data['longitude'];
+				$has_coords = true;
+			}
+
+			if ( $has_coords ) {
+
+				$popup = trim( self::load_template( 'map_node_popup.php', $node->data ) );
 
 				$html .= 'var marker = L.marker([' . $lat . ', ' . $lon . "]).addTo(murmurations_map);\n";
 				$html .= "marker.bindPopup(\"$popup\");\n";

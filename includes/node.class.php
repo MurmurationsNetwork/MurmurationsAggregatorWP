@@ -96,6 +96,17 @@ class Node {
 			$this->data[ $key ] = maybe_unserialize( $value[0] );
 		}
 
+		if(is_array($this->data['image'])){
+			if(isset($this->data['image'][0]['url'])){
+				$this->data['images'] = $this->data['image'];
+				$this->data['image'] = $this->data['image'][0]['url'];
+			}
+		}
+
+		if(!isset($this->data['url']) && isset($this->data['primary_url'])){
+			$this->data['url'] = $this->data['primary_url'];
+		}
+
 		if ( ! $this->data['profile_url'] ) {
 			$this->error( 'Profile URL not found in WP Post data.' );
 			return false;

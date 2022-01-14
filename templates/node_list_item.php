@@ -7,8 +7,8 @@
 
 ?>
 <article class="murmurations-node <?php echo esc_attr( $data_classes ); ?>" id="<?php echo esc_url( $data['url'] ); ?>">
-  <?php if ( isset($data['image'][0]['url']) ) : ?>
-  <div class="murmurations-node-image"><img src="<?php echo esc_url( $data['image'][0]['url'] ); ?>"></div>
+  <?php if ( isset($data['image']) ) : ?>
+  <div class="murmurations-node-image"><img src="<?php echo esc_url( $data['image'] ); ?>"></div>
   <?php endif; ?>
   <div class="murmurations-node-text">
   	<?php if ( $data['name'] ) : ?>
