@@ -282,30 +282,43 @@ class Admin {
 
   const murmagAdminFormSubmit = (Form, e) => {
 
-	formOverlay = document.getElementById('murmagg-admin-form-overlay');
+  	formOverlay = document.getElementById('murmagg-admin-form-overlay');
 
-	formOverlay.style.visibility = "visible";
+  	formOverlay.style.visibility = "visible";
 
-	var data = {
-	  'action': 'save_settings',
-	  'formData': Form.formData
-	};
+    for (field in Form.formData){
+      if(typeof(Form.formData[field]) == 'object'){
+        if(Object.keys(Form.formData[field]).length === 0){
+          Form.formData[field] = "empty_object";
+        }
+      }
+      if(typeof(Form.formData[field]) == 'array'){
+        if(Array.keys(Form.formData[field]).length === 0){
+          Form.formData[field] = "empty_array";
+        }
+      }
+    }
 
-	jQuery.post(ajaxurl, data, function(response) {
+  	var data = {
+  	  'action': 'save_settings',
+  	  'formData': Form.formData
+  	};
 
-	  formOverlay.style.visibility = "hidden";
-	  var noticeContainer = document.getElementById('murmagg-admin-form-notice');
+  	jQuery.post(ajaxurl, data, function(response) {
 
-	  noticeContainer.innerHTML = "";
+  	  formOverlay.style.visibility = "hidden";
+  	  var noticeContainer = document.getElementById('murmagg-admin-form-notice');
 
-	  for (const message of response.messages){
-  		var notice = document.createElement("div");
-  		notice.innerHTML = '<p>'+message.message+'</p>';
-  		notice.className = "notice notice-"+message.type;
-  		noticeContainer.appendChild(notice);
-	  }
-	  noticeContainer.style.display = "block";
-	});
+  	  noticeContainer.innerHTML = "";
+
+  	  for (const message of response.messages){
+    		var notice = document.createElement("div");
+    		notice.innerHTML = '<p>'+message.message+'</p>';
+    		notice.className = "notice notice-"+message.type;
+    		noticeContainer.appendChild(notice);
+  	  }
+  	  noticeContainer.style.display = "block";
+  	});
 
   }
 
@@ -371,6 +384,8 @@ class Admin {
 
 		$data = $_POST['formData'];
 
+    llog($data, "Settings data in ajax_save");
+
 		if ( $data['node_update_interval'] != Settings::get( 'node_update_interval' ) ) {
 			$new_interval = $data['node_update_interval'];
 			$timestamp    = wp_next_scheduled( 'murmurations_node_update' );
@@ -401,6 +416,9 @@ class Admin {
 
 		foreach ( $admin_fields as $key => $f ) {
 			if ( isset( $data[ $key ] ) ) {
+        if($data[ $key ] === "empty_array" || $data[ $key ] === "empty_object"){
+          $data[ $key ] = array();
+        }
 				Settings::set( $key, $data[ $key ] );
 			}
 		}
