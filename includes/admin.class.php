@@ -570,15 +570,7 @@ class Admin {
         'add_admin_node_edit_form'
       )
     );
-
-    add_action(
-      'save_post',
-      array(
-        __CLASS__,
-        'save_node_edit'
-      )
-    );
-
+    
   }
 
   public static function add_admin_node_edit_form( $node_post ){
