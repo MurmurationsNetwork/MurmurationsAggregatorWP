@@ -18,9 +18,7 @@ article.murmurations-node{
 
 .murmurations-node-image {
   vertical-align: top;
-  width: 150px;
 	margin: 0;
-  margin-right: 1em;
 }
 
 .murmurations-node-text {
@@ -31,6 +29,7 @@ article.murmurations-node{
   width: 150px;
   height: auto;
   margin-top: 0.5em;
+  margin-right: 1em;
 }
 
 
