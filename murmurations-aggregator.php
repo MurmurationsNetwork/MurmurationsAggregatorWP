@@ -10,6 +10,7 @@
  * License:           GPLv3
  * License URI:				https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain:       murmurations
+ * GitHub Plugin URI: https://github.com/MurmurationsNetwork/MurmurationsAggregatorWP
  */
 
 /*
