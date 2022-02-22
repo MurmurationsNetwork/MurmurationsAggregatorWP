@@ -55,8 +55,7 @@ class Admin {
 		$tabs = array(
 			'general'       => 'Dashboard',
 			'data_sources'  => 'Data Sources',
-			'node_settings' => 'Nodes',
-			'filters' => 'Filters',
+			'interface' => 'Interface',
 			'map_settings'  => 'Map',
 			'feed_settings' => 'Feeds',
 			'config'        => 'Advanced',
@@ -75,9 +74,10 @@ class Admin {
 	<nav class="nav-tab-wrapper">
 		<?php
 		foreach ( $tabs as $slug => $title ) {
-			$class = $slug == $tab ? 'nav-tab-active' : '';
-			echo '<a href="?page=' . Config::get( 'plugin_slug' ) . '-settings&tab=' . $slug . '" class="nav-tab ' . $class . '">' . $title . ' </a>';
-
+      if( "feed_settings" != $slug || Settings::get('enable_feeds') === "true" ){
+			   $class = $slug == $tab ? 'nav-tab-active' : '';
+			   echo '<a href="?page=' . Config::get( 'plugin_slug' ) . '-settings&tab=' . $slug . '" class="nav-tab ' . $class . '">' . $title . ' </a>';
+      }
 		}
 		?>
 	</nav>
@@ -121,12 +121,14 @@ class Admin {
        <button onclick="viewLocalSchema()" type="button" class="murms-update">View local schema</button>
 
       </form>
-      <textarea id="murmagg-admin-form-log-container" style="width:100%; height: 400px; visibility: hidden;"></textarea>
+      <textarea id="murmagg-admin-form-log-container" style="width:100%; height: 400px; display: none;"></textarea>
       <?php
 
-    } else {
-      self::show_rjsf_admin_form( $tab );
     }
+
+
+    self::show_rjsf_admin_form( $tab );
+
 
 
 		?>
@@ -146,16 +148,6 @@ class Admin {
 	public static function fix_rjsf_data_types( $schema, $values ) {
 		foreach ( $schema['properties'] as $field => $attribs ) {
 
-			// Make sure there's something there...
-			/*
-			if ( ! isset( $values[ $field ] ) ) {
-        if ( 'string' === $attribs['type'] ){
-          $values[ $field ] = '';
-        } else {
-          $values[ $field ] = null;
-        }
-			}
-      */
      if(isset($values[ $field ])){
 
   			$value = $values[ $field ];
@@ -563,14 +555,15 @@ class Admin {
       )
     );
 
-    add_action(
-      'add_meta_boxes_murmurations_node',
-      array(
-        __CLASS__,
-        'add_admin_node_edit_form'
-      )
-    );
-    
+    if( Settings::get( "enable_node_edit" ) === "true" ){
+      add_action(
+        'add_meta_boxes_murmurations_node',
+        array(
+          __CLASS__,
+          'add_admin_node_edit_form'
+        )
+      );
+    }
   }
 
   public static function add_admin_node_edit_form( $node_post ){

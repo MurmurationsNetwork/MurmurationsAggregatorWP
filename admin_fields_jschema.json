@@ -17,7 +17,7 @@
       ],
       "default" : "weekly",
       "description" : "How often should locally stored nodes be updated from the network?",
-      "group" : "node_settings"
+      "group" : "general"
     },
     "ignore_date" : {
       "type" :  "boolean",
@@ -25,7 +25,7 @@
       "inputAs" : "checkbox",
       "validateAs" : "text",
       "description" : "If unchecked, only nodes that have been updated since they were last requested will be fetched.",
-      "group" : "node_settings"
+      "group" : "general"
     },
     "updated_node_post_status" : {
       "type" :  "string",
@@ -39,7 +39,7 @@
         "Draft"
       ],
       "default" : "no_change",
-      "group" : "node_settings",
+      "group" : "general",
       "description" : "Post status for nodes that have been updated from the network. Set to 'Draft' if updated nodes should be reviewed before they are publicly viewable."
     },
     "new_node_post_status" : {
@@ -55,14 +55,14 @@
         "Draft"
       ],
       "default" : "publish",
-      "group" : "node_settings",
+      "group" : "general",
       "description" : "Post status for new nodes from the network. Set to 'Draft' if nodes should be reviewed before they are publicly viewable."
     },
     "nodes_per_page" : {
       "type" :  "integer",
       "title" :  "Nodes per page",
       "default" : 10,
-      "group" : "node_settings",
+      "group" : "general",
       "description" : "How many nodes to show per page (in client-side interfaces)"
     },
     "filters" : {
@@ -100,7 +100,7 @@
       },
       "title" :  "Filters",
       "description" : "Set parameters to limit the items that will be fetched and saved. Items must match all the conditions defined here to be included.",
-      "group" : "filters"
+      "group" : "config"
     },
     "indices" : {
       "type" :  "array",
@@ -194,13 +194,6 @@
       "title" :  "Template override path",
       "description" : "Local path to an alternate template directory. This path overrides the normal template hierarchy.",
       "group" : "config"
-    },
-    "enable_feeds" : {
-      "type" :  "boolean",
-      "title" :  "Enable feeds",
-      "group" : "feed_settings",
-      "default" : false,
-      "description" : "Enable collecting feed data from nodes."
     },
     "feed_update_interval" : {
       "type" :  "string",
@@ -303,7 +296,7 @@
         "type" : "string"
       },
       "description" : "Fields to show in front-end filters for map and directory",
-      "group" : "node_settings"
+      "group" : "interface"
     },
     "plugin_name" : {
       "default" : "Murmurations Aggregator",
@@ -313,24 +306,28 @@
       "description" : "What the plugin is called in the admin interface."
     },
     "node_name" : {
+      "title" :  "Node name",
       "default" : "Murmurations Node",
       "type" :  "string",
       "group" : "config",
       "description" : "What nodes are called in the admin interface (singular)."
     },
     "node_name_plural" : {
+      "title" :  "Node name plural",
       "default" : "Murmurations Nodes",
       "type" :  "string",
       "group" : "config",
       "description" : "What nodes are called in the admin interface (plural)."
     },
     "node_slug" : {
+      "title" :  "Node slug",
       "default" : "nodes",
       "type" :  "string",
       "group" : "config",
       "description" : "String used in the path for archive and single node URLs."
     },
     "plugin_slug" : {
+      "title" :  "Plugin slug",
       "default" : "murmurations",
       "type" :  "string",
       "group" : "config",
@@ -343,7 +340,7 @@
       "items" : {
         "type" : "string"
       },
-      "group" : "node_settings",
+      "group" : "interface",
       "description" : "Array of fields to include in list display (may be irrelevant in custom templates)."
     },
     "api_node_format" : {
@@ -351,41 +348,61 @@
       "type" :  "string",
       "enum" : ["JSON","HTML"],
       "title" :  "Node format sent to front-end interfaces",
-      "group" : "node_settings",
+      "group" : "general",
       "description" : "For React interfaces, set whether the interface should request JSON data (layout handled by the interface), or HTML (layout handled by templates). Choose HTML to use overridable templates output in the React interfaces."
     },
     "node_single_url_field" : {
+      "title" :  "Field for single node URL",
       "type" :  "string",
       "group" : "config",
       "description" : "Field to use for the link to view a single node. If unset, single nodes will link to the single post page. Can be used to set an external location to view a single node."
     },
     "node_single" : {
+      "title" :  "Show link to single nodes",
       "type" :  "boolean",
       "group" : "config",
       "description" : "Link to single node pages from directory/map. By default this will use the WP post type. Can be overridden with node_single_url_field for custom single URLs",
       "default" : true
     },
     "log_file" : {
+      "title" :  "Log file location",
       "type" :  "string",
       "group" : "config",
       "description" : "File to write logs to. Must be writable."
     },
     "meta_prefix" : {
+      "title" :  "Meta prefix",
       "default" : "murmurations_",
       "type" :  "string",
       "group" : "config",
       "description" : "Prefix for meta values saved to the WP DB."
     },
     "api_route" : {
+      "title" :  "API route",
       "default" : "murmurations-aggregator/v1",
       "type" :  "string",
       "group" : "config",
       "description" : "API route identifier to define the route to access locally stored nodes from client-side interfaces or external sites"
     },
     "update_time" : {
+      "title" :  "Update time",
       "type" :  "integer",
       "group" : "config",
       "description" : "Timestamp of last update from the network"
+    },
+    "enable_feeds" : {
+      "type" :  "boolean",
+      "title" :  "Enable feeds (EXPERIMENTAL)",
+      "group" : "config",
+      "default" : false,
+      "description" : "Enable collecting feed data from nodes. This feature is still under development and may cause problems for your site. Not recommended for production use."
+    },
+    "enable_node_edit" : {
+      "title" :  "Enable editing node metadata (EXPERIMENTAL)",
+      "type" :  "boolean",
+      "group" : "config",
+      "default" : false,
+      "description" : "Enable editing node metadata in the admin interface. This experimental feature may not work as expected."
     }
   }
 }

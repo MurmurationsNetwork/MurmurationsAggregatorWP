@@ -3,7 +3,7 @@ function viewLocalSchema(){
 
   logContainer = document.getElementById('murmagg-admin-form-log-container');
 
-  logContainer.style.visibility = "visible";
+  logContainer.style.display = "block";
 
   logContainer.value = "Fetching local schema...\n";
 
