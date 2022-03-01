@@ -56,12 +56,17 @@ class Node {
 			return false;
 		}
 
+		if ( ! $this->data['primary_url'] && $this->data['url'] ){
+			$this->data['primary_url'] = $this->data['url'];
+		}
+
+		if ( $this->data['primary_url'] ){
+			$this->data['primary_url'] = self::canonicalize_url($this->data['primary_url']);
+		}
+
 		$this->url = $this->data['profile_url'];
 
-		$existing_post = $this->getPostFromProfileUrl(
-			$this->url,
-			array( 'post_status' => 'any' )
-		);
+		$existing_post = $this->getPostFromProfileUrl( $this->url );
 
 		if ( $existing_post ) {
 			$this->ID = $existing_post->ID;
@@ -231,8 +236,7 @@ class Node {
 		$post_data['post_type'] = 'murmurations_node';
 
 		$existing_post = $this->getPostFromProfileUrl(
-			$node_data['profile_url'],
-			array( 'post_status' => 'any' )
+			$node_data['profile_url']
 		);
 
 		if ( $existing_post ) {
@@ -284,6 +288,8 @@ class Node {
 					'compare' => '=',
 				),
 			),
+			// Default to all post statuses, even trashed
+			'post_status' => array_keys(get_post_stati())
 		);
 
 		$args = wp_parse_args( $args, $defaults );
@@ -297,6 +303,62 @@ class Node {
 		}
 
 	}
+
+	public static function canonicalize_url($url){
+
+		// If URL includes "://", split and use only right part (remove scheme)
+		if( strpos( $url, "://" ) !== false ){
+			$url = explode("://", $url)[1];
+		}
+
+		// Remove leading www if present
+		if( substr($url, 0, 4) === "www." ){
+			$url = substr($url, 4);
+		}
+
+		// Remove trailing slash if present
+		if( substr( $url, -1 ) === '/'){
+			$url = substr( $url, 0, -1 );
+		}
+
+		return $url;
+
+	}
+
+
+		/**
+		 * Get the node posts that match a primary URL
+		 *
+		 * @param string $url the primary_url of the node.
+		 * @param array  $args additional args for the post query.
+		 * @return mixed WP_Post object if successful, false on failure.
+		 */
+		public function getPostsByPrimaryUrl( $url, $args = null ) {
+
+			$url = self::canonicalize_url($url);
+
+			$defaults = array(
+				'post_type'  => 'murmurations_node',
+				'meta_query' => array(
+					array(
+						'key'     => Settings::get( 'meta_prefix' ) . 'primary_url',
+						'value'   => $url,
+						'compare' => '=',
+					),
+				),
+			);
+
+			$args = wp_parse_args( $args, $defaults );
+
+			$posts = get_posts( $args );
+
+			if ( count( $posts ) > 0 ) {
+				return $posts[0];
+			} else {
+				return false;
+			}
+
+		}
 
 	/**
 	 * Delete this node from the DB
