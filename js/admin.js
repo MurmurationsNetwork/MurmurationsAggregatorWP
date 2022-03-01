@@ -30,7 +30,7 @@ function ajaxUpdateNodes(){
 
 	logContainer = document.getElementById('murmagg-admin-form-log-container');
 
-	logContainer.style.visibility = "visible";
+	logContainer.style.display = "block";
 
   logContainer.value = "Fetching index data...\n";
 

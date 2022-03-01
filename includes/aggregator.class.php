@@ -286,39 +286,18 @@ class Aggregator {
 
 		$settings = Settings::get();
 
-		$filters = $settings['filters'];
-
-		llog( $filters, 'Filters from settings in get_index_nodes' );
-
 		$all_index_nodes = array();
 
 		foreach ( $settings['indices'] as $index_key => $index ) {
 
       if ( ( ! $index['disabled'] ) || ( $index['disabled'] === 'false' ) ){
 
-  			$index_fields = explode( ',', $index['queryable_fields'] );
-
-  			$index_filters = array();
-
-  			if ( is_array( $filters ) ) {
-  				foreach ( $filters as $key => $f ) {
-  					if ( in_array( $f['field'], $index_fields ) ) {
-  						$index_filters[] = array( $f['field'], $f['comparison'], $f['value'] );
-  					}
-  				}
-  			} else {
-  				$filters = array();
-  			}
-
   			$update_since = $settings['update_time'];
 
-  			if ( $settings['ignore_date'] != 'true' ) {
-          $index_filters[] = array( 'last_validated', 'isGreaterThan', $update_since );
-  			}
+				$query = array();
 
-  			$query = array();
-  			foreach ( $index_filters as $filter ) {
-  				$query[ $filter[0] ] = $filter[2];
+  			if ( $settings['ignore_date'] != 'true' ) {
+					$query['last_validated'] = $update_since;
   			}
 
         if( isset( $index['parameters'] ) ){

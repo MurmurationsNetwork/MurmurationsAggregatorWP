@@ -131,13 +131,6 @@
             "title" :  "Basic Auth password",
             "description" : "Password for data sources that are protected by Basic Authentication."
           },
-          "queryable_fields" : {
-            "title" :  "Queryable fields",
-            "default" : "country,location,schema",
-            "type" :  "string",
-            "group" : "config",
-            "description" : "Fields that can be used when querying this index, as a comma-delimited string"
-          },
           "parameters" : {
             "type" :  "array",
             "items" : {
