@@ -28,10 +28,6 @@ function viewLocalSchema(){
 
 function recursiveNodeUpdate(nodes, index){
 
-  console.log("REcursive node update called");
-  console.log(nodes);
-  console.log(index);
-
   var node = nodes[index];
 
   var data = {
@@ -49,8 +45,6 @@ function recursiveNodeUpdate(nodes, index){
     url: ajaxurl,
     data: data,
     success: function(response) {
-
-      console.log(response);
 
       if(response.status.toString() == 'success'){
         stats.success += 1;
@@ -102,8 +96,6 @@ function ajaxUpdateNodes(){
 	};
 
 	jQuery.post(ajaxurl, data, function(response) {
-
-    console.log(response);
 
 	  for (const message of response.messages){
       node_update_log(message.message.toString());
