@@ -11,84 +11,91 @@ namespace Murmurations\Aggregator;
  * OOP class for node objects
  */
 class Node {
+
 	/**
 	 * @var array $errors Holds errors for the object.
 	 */
-	private $errors = array();
+	private static $errors = array();
 
-	/**
-	 * Constructor
-	 *
-	 * @param mixed $arg Can be:
-	 * a post ID int (in which case will attempt to build from the post).
-	 * a post object (build from the post).
-	 * a JSON string (build from JSON, inserting or updating the post record).
-	 */
-	public function __construct( $arg = null ) {
-		if ( is_numeric( $arg ) ) {
-			$post = get_post( $arg );
-			$this->buildFromWPPost( $post );
-		} elseif ( is_a( $arg, 'WP_Post' ) ) {
-			$this->buildFromWPPost( $arg );
-		} elseif ( is_array( $arg ) ) {
-			$this->buildFromArray( $arg );
-		}
-	}
+  /**
+	* Insert or update a local nodei nthe DB from an array of node data
+	*
+	* @param  array $profile the node data
+	* @param  array $provenance information on where the profile came from
+	* @return boolean true if successful, false on failure
+	*/
+	public static function upsert( array $profile, array $provenance ){
 
-	/**
-	 * Build a local node from profile JSON
-	 *
-	 * @param  string $json Node profile JSON
-	 * @return boolean true on success, false on failure
-	 */
-	public function buildFromArray( $profile_array ) {
-		$this->data = $profile_array;
+		llog($profile,"Upserting node");
+	  llog($provenance,"Provenance");
 
-		if ( ! $this->data ) {
-			$this->error( 'Attempted to build from invalid JSON. Could not parse.');
-      llog( $json, "Failed to parse node JSON");
-			return false;
+		if ( ! $profile['primary_url'] && $profile['url'] ){
+			$profile['primary_url'] = $profile['url'];
 		}
 
-		if ( ! $this->data['profile_url'] ) {
-			$this->error( 'Attempted to build from invalid node data. Profile URL not found.' );
-			llog( $this->data, 'Node data missing profile url' );
-			return false;
+		// For profiles that have no primary_url, use the profile URL.
+		if ( ! $profile['primary_url'] ){
+			$profile['primary_url'] = $profile['profile_url'];
 		}
 
-		if ( ! $this->data['primary_url'] && $this->data['url'] ){
-			$this->data['primary_url'] = $this->data['url'];
-		}
+		$profile['primary_url'] = self::canonicalize_url( $profile['primary_url'] );
 
-		if ( $this->data['primary_url'] ){
-			$this->data['primary_url'] = self::canonicalize_url($this->data['primary_url']);
-		}
-
-		$this->url = $this->data['profile_url'];
-
-		$existing_post = $this->getPostFromProfileUrl( $this->url );
+		$existing_post = self::load_post_by_url( $profile['primary_url'] );
 
 		if ( $existing_post ) {
-			$this->ID = $existing_post->ID;
+			$profile['post_id'] = $existing_post->ID;
+			$profile['post_status'] = $existing_post->post_status;
+			$existing_data = get_post_meta( $existing_post->ID );
+		} else {
+			llog($profile['primary_url'], "No existing node found for primary_url");
+		}
+
+		$id = self::save_post( $profile );
+
+		if( ! $id ){
+			self::error( "Failed to save post" );
+			return false;
+		}
+
+		foreach ( $profile as $field => $value ) {
+
+			if( $existing_post ){
+				if( $existing_data[ Settings::get( 'meta_prefix' ) . $field ] ){
+
+					$existing_value = maybe_unserialize($existing_data[ Settings::get( 'meta_prefix' ) . $field ][0]);
+					$existing_provenance = maybe_unserialize($existing_data[ Settings::get( 'meta_provenance_prefix' ) . $field ][0]);
+
+					// If there's an existing profile for this node, and the profile includes this field, and the version of
+					// this field in the existing profile has a more authoritative provenance, don't use the new value for this field
+					if( ! Field::compare_provenance( $profile['primary_url'], $existing_provenance, $provenance) ){
+						continue;
+					}
+				}
+			}
+
+			self::update_field_value( $id, $field, $value, $provenance );
+
 		}
 
 		return true;
 
 	}
+
+
 	/**
 	 * Build the node object from a WP post
 	 *
 	 * @param  WP_Post $p WP post object
 	 * @return boolean true if successful, false on failure
 	 */
-	public function buildFromWPPost( $p ) {
+	public function build_from_wp_post( $p ) {
 
 		if ( ! is_a( $p, 'WP_Post' ) ) {
-			$this->error( 'Attempted to build from invalid WP Post.' );
+			self::error( 'Attempted to build from invalid WP Post.' );
 			return false;
 		}
 
-		$this->data = $p->to_array();
+		$data = $p->to_array();
 
 		$metas = get_post_meta( $p->ID );
 
@@ -98,43 +105,42 @@ class Node {
 				$key = substr( $key, strlen( Settings::get( 'meta_prefix' ) ) );
 			}
 
-			$this->data[ $key ] = maybe_unserialize( $value[0] );
+			$data[ $key ] = maybe_unserialize( $value[0] );
 		}
 
-		if(is_array($this->data['image'])){
-			if(isset($this->data['image'][0]['url'])){
-				$this->data['images'] = $this->data['image'];
-				$this->data['image'] = $this->data['image'][0]['url'];
+		if(is_array($data['image'])){
+			if(isset($data['image'][0]['url'])){
+				$data['images'] = $data['image'];
+				$data['image'] = $data['image'][0]['url'];
 			}
 		}
 
-		if(!isset($this->data['url']) && isset($this->data['primary_url'])){
-			$this->data['url'] = $this->data['primary_url'];
+		if(!isset($data['url']) && isset($data['primary_url'])){
+			$data['url'] = $data['primary_url'];
 		}
 
-		if ( ! $this->data['profile_url'] ) {
-			$this->error( 'Profile URL not found in WP Post data.' );
+		if ( ! $data['profile_url'] ) {
+			self::error( 'Profile URL not found in WP Post data.' );
 			return false;
 		}
 
-		$this->url = $this->data['profile_url'];
-
-		return true;
+		return $data;
 
 	}
 
 	/**
-	 * Check filter conditions against the post object
+	 * Check filter conditions against a node
 	 *
+	 * @param  array $node the node data
 	 * @param  array $filters the array of filters to check against.
 	 * @return boolean true if all filters match, otherwise false.
 	 */
-	public function checkFilters( array $filters ) {
+	public function check_filters( array $node, array $filters ) {
 
 		$matched = true;
 
 		foreach ( $filters as $condition ) {
-			if ( ! $this->checkCondition( $condition ) ) {
+			if ( ! self::check_condition( $node, $condition ) ) {
 				$matched = false;
 			}
 		}
@@ -144,40 +150,41 @@ class Node {
   /**
    * Check if this node matches a filter condition
    *
+   * @param  array  $node node data
    * @param  array  $condition (array with field, comparison, and value).
    * @return boolean True if condition is matched, false otherwise.
    */
-	private function checkCondition( array $condition ) {
+	private function check_condition( array $node, array $condition ) {
 
 		extract( $condition );
 
-		if ( ! isset( $this->data[ $field ] ) ) {
+		if ( ! isset( $node[ $field ] ) ) {
 			return false;
 		}
 
 		switch ( $comparison ) {
 			case 'equals':
-				if ( $this->data[ $field ] == $value ) {
+				if ( $node[ $field ] == $value ) {
 					return true;
 				}
 				break;
 			case 'isGreaterThan':
-				if ( $this->data[ $field ] > $value ) {
+				if ( $node[ $field ] > $value ) {
 					return true;
 				}
 				break;
 			case 'isLessThan':
-				if ( $this->data[ $field ] < $value ) {
+				if ( $node[ $field ] < $value ) {
 					return true;
 				}
 				break;
 			case 'isIn':
-				if ( strpos( $value, $this->data[ $field ] ) !== false ) {
+				if ( strpos( $value, $node[ $field ] ) !== false ) {
 					return true;
 				}
 				break;
 			case 'includes':
-				if ( strpos( $this->data[ $field ], $value ) !== false ) {
+				if ( strpos( $node[ $field ], $value ) !== false ) {
 					return true;
 				}
 				break;
@@ -190,9 +197,12 @@ class Node {
 	/**
 	 * Save the node to the DB
 	 *
+	 * @param array $data the node data
 	 * @return mixed ID of the post if successful, false on failure
 	 */
-	public function save() {
+	public function save_post( array $data ) {
+
+		llog( $data, "Saving post");
 
 		$fields = Schema::get_fields();
 
@@ -209,41 +219,37 @@ class Node {
 
 			if ( $map[ $field ]['callback'] ) {
 				if ( is_callable( $map[ $field ]['callback'] ) ) {
-					$value = call_user_func( $map[ $field ]['callback'], $this->data[ $field ], $field );
+					$value = call_user_func( $map[ $field ]['callback'], $data[ $field ], $field );
 				} else {
-					$this->error( 'Un-callable callback in field map: ' . $map[ $field ]['callback'] );
+					self::error( 'Un-callable callback in field map: ' . $map[ $field ]['callback'] );
 				}
 			}
 
 			if ( $map[ $field ]['post_field'] ) {
-				$post_data[ $map[ $field ]['post_field'] ] = $this->data[ $field ];
+				$post_data[ $map[ $field ]['post_field'] ] = $data[ $field ];
 			}
 		}
 
 		foreach ( $wp_field_fallbacks as $f => $sources ) {
 			if ( ! $post_data[ $f ] ) {
 				foreach ( $sources as $s ) {
-					if ( $this->data[ $s ] ) {
-						$post_data[ $f ] = $this->data[ $s ];
+					if ( $data[ $s ] ) {
+						$post_data[ $f ] = $data[ $s ];
 						break;
 					}
 				}
 			}
 		}
 
-		$node_data = $this->data;
-
 		$post_data['post_type'] = 'murmurations_node';
 
-		$existing_post = $this->getPostFromProfileUrl(
-			$node_data['profile_url']
-		);
-
-		if ( $existing_post ) {
-			$post_data['ID'] = $existing_post->ID;
+		// This method should only be called once the check for an existing post has already been done.
+		// If there is an existing post, the 'post_id' parameter will be set
+		if ( $data['post_id'] ) {
+			$post_data['ID'] = $data['post_id'];
 			if ( Settings::get( 'updated_node_post_status' ) == 'no_change' ) {
 				// wp_insert_post defaults to 'draft' status, even on existing published posts!
-				$post_data['post_status'] = $existing_post->post_status;
+				$post_data['post_status'] = $data['post_status'];
 			} else {
 				$post_data['post_status'] = Settings::get( 'updated_node_post_status' );
 			}
@@ -260,51 +266,20 @@ class Node {
 
 			$result === true ? $id = $post_data['ID'] : $id = $result;
 
-			foreach ( $node_data as $key => $value ) {
-				$meta_field = Settings::get( 'meta_prefix' ) . $key;
-				update_post_meta( $id, $meta_field, $value );
-			}
-
 			return $id;
 
 		}
 	}
 
-	/**
-	 * Get the node post from the profile URL of the node
-	 *
-	 * @param string $url the profile URL of the node.
-	 * @param array  $args additional args for the post query.
-	 * @return mixed WP_Post object if successful, false on failure.
-	 */
-	public function getPostFromProfileUrl( $url, $args = null ) {
-
-		$defaults = array(
-			'post_type'  => 'murmurations_node',
-			'meta_query' => array(
-				array(
-					'key'     => Settings::get( 'meta_prefix' ) . 'profile_url',
-					'value'   => $url,
-					'compare' => '=',
-				),
-			),
-			// Default to all post statuses, even trashed
-			'post_status' => array_keys(get_post_stati())
-		);
-
-		$args = wp_parse_args( $args, $defaults );
-
-		$posts = get_posts( $args );
-
-		if ( count( $posts ) > 0 ) {
-			return $posts[0];
-		} else {
-			return false;
+	public static function update_field_value( int $post_id, string $field, $value, $provenance = null ) {
+		llog($provenance,"Updating field value with provenance");
+		update_post_meta( $post_id, Settings::get( 'meta_prefix' ) . $field, $value );
+		if ( $provenance ) {
+			update_post_meta( $post_id, Settings::get( 'meta_provenance_prefix' ) . $field, $provenance );
 		}
-
 	}
 
-	public static function canonicalize_url($url){
+	public static function canonicalize_url( string $url){
 
 		// If URL includes "://", split and use only right part (remove scheme)
 		if( strpos( $url, "://" ) !== false ){
@@ -327,15 +302,17 @@ class Node {
 
 
 		/**
-		 * Get the node posts that match a primary URL
+		 * Get the node post that match a primary URL
 		 *
 		 * @param string $url the primary_url of the node.
 		 * @param array  $args additional args for the post query.
 		 * @return mixed WP_Post object if successful, false on failure.
 		 */
-		public function getPostsByPrimaryUrl( $url, $args = null ) {
+		public static function load_post_by_url( $url, $args = null ) {
 
 			$url = self::canonicalize_url($url);
+
+			llog($url, "Loading post from canonicalized URL");
 
 			$defaults = array(
 				'post_type'  => 'murmurations_node',
@@ -346,6 +323,8 @@ class Node {
 						'compare' => '=',
 					),
 				),
+				// Default to all post statuses, even trashed
+				'post_status' => array_keys(get_post_stati())
 			);
 
 			$args = wp_parse_args( $args, $defaults );
@@ -355,6 +334,7 @@ class Node {
 			if ( count( $posts ) > 0 ) {
 				return $posts[0];
 			} else {
+				Notices::set( "No node post found with primary_url " . $url );
 				return false;
 			}
 
@@ -363,14 +343,14 @@ class Node {
 	/**
 	 * Delete this node from the DB
 	 */
-	public function delete() {
-		if ( $this->ID ) {
-			$result = wp_delete_post( $this->ID );
+	public function delete( int $id ) {
+		if ( $id ) {
+			$result = wp_delete_post( $id );
 		}
 		if ( $result ) {
 			return true;
 		} else {
-			$this->error( 'Failed to delete node: ' . $this->ID );
+			self::error( 'Failed to delete node: ' . $id );
 			return false;
 		}
 	}
@@ -378,20 +358,18 @@ class Node {
 	/**
 	 * Deactivate this node (set status to draft)
 	 */
-	public function deactivate() {
-		if ( $this->ID ) {
-			$result = wp_update_post(
-				array(
-					'ID'          => $this->ID,
-					'post_status' => 'draft',
-				)
-			);
-			if ( $result ) {
-				  return true;
-			} else {
-				$this->error( 'Failed to deactivate node: ' . $this->ID );
-				return false;
-			}
+	public function deactivate( int $id ) {
+		$result = wp_update_post(
+			array(
+				'ID'          => $id,
+				'post_status' => 'draft',
+			)
+		);
+		if ( $result ) {
+			  return true;
+		} else {
+			self::error( 'Failed to deactivate node: ' . $id );
+			return false;
 		}
 	}
 
@@ -401,7 +379,7 @@ class Node {
 	 * @param string $error The error message.
 	 */
 	private function error( $error ) {
-		$this->errors[] = $error;
+		self::$errors[] = $error;
 		llog( $error, 'Node error' );
 	}
 
@@ -410,8 +388,8 @@ class Node {
 	 *
 	 * @return boolean true if errors, otherwise false.
 	 */
-	public function hasErrors() {
-		return count( $this->errors ) > 0;
+	public function has_errors() {
+		return count( self::$errors ) > 0;
 	}
 
 	/**
@@ -419,8 +397,8 @@ class Node {
 	 *
 	 * @return array Error array.
 	 */
-	public function getErrors() {
-		return $this->errors;
+	public function get_errors() {
+		return self::$errors;
 	}
 
 	/**
@@ -428,21 +406,12 @@ class Node {
 	 *
 	 * @return string HTML errors string.
 	 */
-	public function getErrorsText() {
+	public function get_errors_text() {
 		$text = '';
-		foreach ( $this->errors as $error ) {
+		foreach ( self::$errors as $key => $error ) {
 			$text .= $error . "<br />\n";
+			unset( self::$errors[$key] );
 		}
 		return $text;
-	}
-
-	/**
-	 * Set a property of the node object
-	 *
-	 * @param string $property property name.
-	 * @param mixed  $value The property value.
-	 */
-	public function setProperty( $property, $value ) {
-		$this->data[ $property ] = $value;
 	}
 }
