@@ -11,7 +11,6 @@ namespace Murmurations\Aggregator;
  * OOP class for node objects
  */
 class Node {
-
 	/**
 	 * @var array $errors Holds errors for the object.
 	 */
@@ -25,9 +24,6 @@ class Node {
 	* @return boolean true if successful, false on failure
 	*/
 	public static function upsert( array $profile, array $provenance ){
-
-		llog($profile,"Upserting node");
-	  llog($provenance,"Provenance");
 
 		if ( ! $profile['primary_url'] && $profile['url'] ){
 			$profile['primary_url'] = $profile['url'];
@@ -46,8 +42,6 @@ class Node {
 			$profile['post_id'] = $existing_post->ID;
 			$profile['post_status'] = $existing_post->post_status;
 			$existing_data = get_post_meta( $existing_post->ID );
-		} else {
-			llog($profile['primary_url'], "No existing node found for primary_url");
 		}
 
 		$id = self::save_post( $profile );
