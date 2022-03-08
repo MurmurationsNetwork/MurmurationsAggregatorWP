@@ -183,13 +183,12 @@ class Feeds {
 	}
 
 	public static function update_node_feed_url( $node ) {
-		if ( ! isset( $node->data['feed_url'] ) && isset( $node->data['url'] ) ) {
-			$feed_url = self::get_feed_url( $node->data['url'] );
+		if ( ! isset( $node['feed_url'] ) && isset( $node['primary_url'] ) ) {
+			$feed_url = self::get_feed_url( $node['primary_url'] );
 			if ( ! $feed_url ) {
 				$feed_url = 'not_found';
 			}
-			$node->setProperty( 'feed_url', $feed_url );
-			$node->save();
+			Node::update_field_value( $node, 'feed_url', $feed_url );
 		}
 		return $node;
 	}
@@ -197,13 +196,12 @@ class Feeds {
 	public static function update_feed_urls() {
 		$nodes = Aggregator::get_nodes();
 		foreach ( $nodes as $id => $node ) {
-			if ( ! isset( $node->data['feed_url'] ) && isset( $node->data['url'] ) ) {
-				$feed_url = self::get_feed_url( $node->data['url'] );
+			if ( ! isset( $node['feed_url'] ) && isset( $node['primary_url'] ) ) {
+				$feed_url = self::get_feed_url( $node['primary_url'] );
 				if ( ! $feed_url ) {
 					$feed_url = 'not_found';
 				}
-				$node->setProperty( 'feed_url', $feed_url );
-				$node->save();
+				Node::update_field_value( $node, 'feed_url', $feed_url );
 			}
 		}
 	}
@@ -234,20 +232,20 @@ class Feeds {
 
 		foreach ( $nodes as $node ) {
 
-			if ( ! $node->data['feed_url'] ) {
+			if ( ! $node['feed_url'] ) {
 				$node = self::update_node_feed_url( $node );
 			}
 
-			if ( $node->data['feed_url'] &&  $node->data['feed_url'] != 'not_found') {
-				$node_feed_items = self::get_remote_feed_items( $node->data['feed_url'] );
+			if ( $node['feed_url'] &&  $node['feed_url'] != 'not_found') {
+				$node_feed_items = self::get_remote_feed_items( $node['feed_url'] );
 
 				if ( count( $node_feed_items ) > 0 ) {
 					$results['nodes_with_feeds']++;
 
 					foreach ( $node_feed_items as $key => $item ) {
 
-						$item['node_name'] = $node->data['name'];
-						$item['node_url']  = $node->data['url'];
+						$item['node_name'] = $node['name'];
+						$item['node_url']  = $node['primary_url'];
 
 						$feed_items[] = $item;
 
