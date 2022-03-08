@@ -32,8 +32,7 @@ function recursiveNodeUpdate(nodes, index){
 
   var data = {
     'action': 'update_node',
-    'profile_url' : node.profile_url,
-    'index_options' : node.index_options
+    'node' : node
   };
 
   node_update_log("Fetching node " + (index + 1).toString() + " of " + nodes.length.toString());

@@ -172,7 +172,7 @@ class Aggregator {
 
     if ( count( $posts ) > 0 ) {
       foreach ( $posts as $key => $post ) {
-        $nodes[ $post->ID ] = new Node( $post );
+        $nodes[ $post->ID ] = Node::build_from_wp_post( $post );
       }
     } else {
 			llog( 'No node posts found in get_nodes using args: ' . print_r( $args, true ) );
@@ -318,7 +318,7 @@ class Aggregator {
   				$index_options['api_basic_auth_pass'] = $index['api_basic_auth_pass'];
   			}
 
-  			$index_nodes = API::getIndexJson( $index['url'], $query, $index_options );
+  			$index_nodes = Network::get_index_json( $index['url'], $query, $index_options );
 
   			$index_nodes = json_decode( $index_nodes, true );
 
@@ -345,13 +345,9 @@ class Aggregator {
 
   public static function ajax_update_node(){
 
-    $profile_url = $_POST['profile_url'];
-    $index_options = $_POST['index_options'];
+    $node = $_POST['node'];
 
-    $result = self::update_node( array(
-      'profile_url' => $profile_url,
-      'index_options' => $index_options
-    ) );
+    $result = self::update_node( $node );
 
     $feedback = array(
       'status'   => 'success',
@@ -368,6 +364,10 @@ class Aggregator {
 
 
   public static function update_node( $data ){
+
+		if ( ! isset( $data['last_updated'] ) && isset($data['last_validated']) ) {
+			$data['last_updated'] = $data['last_validated'];
+		}
 
     $url = $data['profile_url'];
 
@@ -387,7 +387,7 @@ class Aggregator {
 
     Notices::set( "Fetching node from $url" );
 
-    $node_json = API::getNodeJson( $url, $options );
+    $node_json = Network::get_node_json( $url, $options );
 
     if ( ! $node_json ) {
       error( "Could not fetch node from $url" );
@@ -405,32 +405,38 @@ class Aggregator {
 
       } else {
 
+				$provenance = array(
+					'profile_url' => $data['profile_url'],
+					'last_updated' =>  $data['last_updated'],
+					'index_url' => $data['index_options']['url'],
+				);
+
         // Make sure the profile URL is included in the node data
-        if( !isset( $node_array['profile_url'] ) ){
+        if ( ! isset( $node_array['profile_url'] ) ) {
           $node_array['profile_url'] = $data['profile_url'];
         }
 
         Notices::set("Fetched JSON");
 
-        $node = new Node( $node_array );
+				$filters = Settings::get('filters');
 
-        if ( $node->hasErrors() ) {
-          Notices::set( $node->getErrorsText(), 'error' );
-          return false;
-        }
 
-        $filters = Settings::get('filters');
-
-        if( is_array($filters) ){
-          $matched = $node->checkFilters( $filters );
+        if ( is_array($filters) ) {
+          $matched = Node::check_filters( $node_array, $filters );
         } else {
           $matched = true;
         }
 
+        if ( true === $matched ) {
 
-        if ( $matched == true ) {
+					llog("Filters passed. Saving node.");
 
-          $result = $node->save();
+          $result = Node::upsert( $node_array, $provenance );
+
+					if ( Node::has_errors() ) {
+						Notices::set( Node::get_errors_text(), 'error' );
+						return false;
+					}
 
           if ( ! $result ){
             Notices::set( 'Failed to save node: ' . $url, 'error' );
@@ -511,7 +517,7 @@ class Aggregator {
 			$html .= 'No records found';
 		} else {
 			foreach ( $nodes as $key => $node ) {
-				$html .= self::load_template( 'node_list_item.php', $node->data );
+				$html .= self::load_template( 'node_list_item.php', $node );
 			}
 		}
 
@@ -564,21 +570,21 @@ class Aggregator {
 
 			$has_coords = false;
 
-			if ( isset( $node->data['geolocation']['lat'] ) && isset( $node->data['geolocation']['lon'] ) ) {
-				$lat = $node->data['geolocation']['lat'];
-				$lon = $node->data['geolocation']['lon'];
+			if ( isset( $node['geolocation']['lat'] ) && isset( $node['geolocation']['lon'] ) ) {
+				$lat = $node['geolocation']['lat'];
+				$lon = $node['geolocation']['lon'];
 				$has_coords = true;
 			}
 
-			if ( isset( $node->data['latitude'] ) && isset( $node->data['longitude'] ) ) {
-				$lat = $node->data['latitude'];
-				$lon = $node->data['longitude'];
+			if ( isset( $node['latitude'] ) && isset( $node['longitude'] ) ) {
+				$lat = $node['latitude'];
+				$lon = $node['longitude'];
 				$has_coords = true;
 			}
 
 			if ( $has_coords ) {
 
-				$popup = trim( self::load_template( 'map_node_popup.php', $node->data ) );
+				$popup = trim( self::load_template( 'map_node_popup.php', $node ) );
 
 				$html .= 'var marker = L.marker([' . $lat . ', ' . $lon . "]).addTo(murmurations_map);\n";
 				$html .= "marker.bindPopup(\"$popup\");\n";
@@ -596,16 +602,17 @@ class Aggregator {
 	 */
 	public static function load_includes() {
 		$include_path = plugin_dir_path( __FILE__ );
-		require_once $include_path . 'api.class.php';
-		require_once $include_path . 'node.class.php';
-		require_once $include_path . 'admin.class.php';
-		require_once $include_path . 'geocode.class.php';
-		require_once $include_path . 'settings.class.php';
-		require_once $include_path . 'notices.class.php';
-		require_once $include_path . 'schema.class.php';
-		require_once $include_path . 'config.class.php';
+		require_once $include_path . 'class-network.php';
+		require_once $include_path . 'class-node.php';
+		require_once $include_path . 'class-field.php';
+		require_once $include_path . 'class-admin.php';
+		require_once $include_path . 'class-geocode.php';
+		require_once $include_path . 'class-settings.php';
+		require_once $include_path . 'class-notices.php';
+		require_once $include_path . 'class-schema.php';
+		require_once $include_path . 'class-config.php';
+		require_once $include_path . 'class-feeds.php';
 		require_once $include_path . 'logging.php';
-		require_once $include_path . 'feeds.class.php';
 	}
 
 	/**
@@ -716,18 +723,18 @@ class Aggregator {
 		foreach ( $nodes as $node ) {
       if ( 'HTML' === $req[ 'format' ] ){
 
-  			$rest_nodes[] = self::load_template( 'node_list_item.php', $node->data );
+  			$rest_nodes[] = self::load_template( 'node_list_item.php', $node );
 
-      }else if ( 'KUMU' === $req[ 'format' ] ){
+      } else if ( 'KUMU' === $req[ 'format' ] ){
 
-        if( !isset( $node->data['label'] ) && isset( $node->data['name'] ) ){
-          $node->data['label'] = $node->data['name'];
+        if ( ! isset( $node['label'] ) && isset( $node['name'] ) ) {
+          $node['label'] = $node['name'];
         }
 
-  			$rest_nodes[] = $node->data;
+  			$rest_nodes[] = $node;
 
-      }else{
-			  $rest_nodes[] = $node->data;
+      } else {
+			  $rest_nodes[] = $node;
       }
 		}
 

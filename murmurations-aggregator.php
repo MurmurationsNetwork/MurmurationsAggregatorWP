@@ -35,7 +35,7 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-require plugin_dir_path( __FILE__ ) . 'includes/aggregator.class.php';
+require plugin_dir_path( __FILE__ ) . 'includes/class-aggregator.php';
 
 define( 'MURMAG_ROOT_PATH', plugin_dir_path( __FILE__ ) );
 define( 'MURMAG_ROOT_URL', plugin_dir_url( __FILE__ ) );
