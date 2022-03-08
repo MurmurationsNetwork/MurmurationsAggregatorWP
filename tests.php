@@ -41,9 +41,15 @@ class Tests {
 
   }
 
-  public static function update_node( $url ){
+  public static function update_node(){
 
-    $result = Aggregator::update_node( array( 'profile_url' => $url ) );
+		$data = array(
+			'profile_url' => "https://www.open.coop/open.json",
+			'last_updated' =>  123123123,
+			'index_url' => "https://index.murmurations.network/v2/nodes",
+		);
+
+    $result = Aggregator::update_node( $data );
 
     return array($result, Notices::get());
 
@@ -59,20 +65,34 @@ class Tests {
 
     $out = "Node JSON from: " . $url . "\n";
 
-    $out .= API::getNodeJson( $url, $options );
+    $out .= Network::get_node_json( $url, $options );
 
     return $out;
+
+  }
+
+	public static function load_post_by_url( $primary_url = "open.coop" ){
+
+		$p = Node::load_post_by_url( $primary_url );
+
+		return array( Notices::get(), $p );
+
+  }
+
+
+  public static function inspect_local_node( $primary_url = "open.coop" ){
+
+		$p = Node::load_post_by_url( $primary_url );
+
+		$node = Node::build_from_wp_post( $p );
+
+		return array( Notices::get(), $node );
 
   }
 
   public static function get_settings_fields(){
     return Settings::get_fields();
   }
-
-  public static function node_from_id(){
-    return new Node(2113);
-  }
-
 
   public static function schema(){
     return Schema::get();
@@ -132,82 +152,11 @@ class Tests {
 		echo '<textarea style="width: 100%; height: 500px;">' . $log_content . '</textarea>';
 	}
 
-	public static function showNodes() {
-		$config = array(
-			'schema_file'    => plugin_dir_path( __FILE__ ) . 'schemas/default.json',
-			'field_map_file' => plugin_dir_path( __FILE__ ) . 'schemas/field_map.json',
-		);
-
-		$ag = new Aggregator( $config );
-
-		$result = $ag->load_nodes();
-
-		$out = array();
-
-		foreach ( $ag->nodes as $id => $node ) {
-			$out[ $id ] = $node->data;
-		}
-
-		return $out;
-
-	}
-
-	public static function updateNode() {
-
-		$config = array(
-			'schema_file'    => plugin_dir_path( __FILE__ ) . 'schemas/default.json',
-			'field_map_file' => plugin_dir_path( __FILE__ ) . 'schemas/field_map.json',
-		);
-
-		$ag = new Aggregator( $config );
-
-		$url = 'https://test-index.murmurations.network/v1/nodes';
-
-		$options['api_key'] = 'test_api_key';
-
-		$json = API::getIndexJson( $url, array(), $options );
-
-		$index = json_decode( $json, true );
-
-		$node = $index['data'][0];
-
-		$profile_url = $node['profile_url'];
-
-		$json = API::getNodeJson( $profile_url, $options );
-
-		$node = new Node( $ag->schema, $ag->field_map );
-
-		$build_result = $node->buildFromJson( $json );
-
-		echo llog( $node, 'Node after building from JSON' );
-
-		$id = $node->save();
-
-		echo llog( $id, 'ID after saving post' );
-
-		$profile_url = $node->data['profile_url'];
-
-		$db_node = new Node( $ag->schema, $ag->field_map );
-
-		$post = $db_node->getPostFromProfileUrl( $profile_url );
-
-		echo llog( $post, 'WP Post loaded' );
-
-		$db_node->buildFromWPPost( $post );
-
-		echo llog( $db_node, 'Node after build from WP post' );
-
-	}
-
-
-  public static function getSettings() {
+  public static function get_settings() {
     return Settings::get();
   }
 
-
-	public static function getIndexJson($index = 0) {
-
-		API::$logging_handler = array( 'MurmsAggregatorTests', 'print' );
+	public static function get_index_json($index = 0) {
 
     $indices = Settings::get('indices');
 
@@ -228,59 +177,26 @@ class Tests {
 		self::print( $options, 'Options' );
 		self::print( $query, 'Query' );
 
-		$json = API::getIndexJson( $url, $query, $options );
-    //$json = API::getIndexJson( $url, array(), null);
+		$json = Network::get_index_json( $url, $query, $options );
+    //$json = Network::getIndexJson( $url, array(), null);
 
 		self::print( $json, 'Index result' );
 
 	}
 
-	public static function getNodeJson( $value = 'node-identifier' ) {
+	public static function get_node_json( $value = 'node-identifier' ) {
 
 		$url = 'https://node/path' . $value;
 
 		$options['api_key'] = 'test_api_key';
 
-		$json = API::getNodeJson( $url, $options );
+		$json = Network::get_node_json( $url, $options );
 
 		return json_decode( $json, true );
 
 	}
 
-	public static function keyedApiRequest() {
-		$url = 'https://test-index.murmurations.network/v1/nodes';
-
-		$user = 'api_key';
-		$pass = null;
-
-		$ch = curl_init();
-
-		curl_setopt( $ch, CURLOPT_USERPWD, $user . ':' . $pass );
-		curl_setopt( $ch, CURLOPT_URL, $url );
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
-
-		$headers = array();
-		curl_setopt(
-			$ch,
-			CURLOPT_HEADERFUNCTION,
-			function( $curl, $header ) use ( &$headers ) {
-				$len    = strlen( $header );
-				$header = explode( ':', $header, 2 );
-				if ( count( $header ) < 2 ) {
-					return $len;
-				}
-
-				$headers[ strtolower( trim( $header[0] ) ) ][] = trim( $header[1] );
-
-				return $len;
-			}
-		);
-		$result = curl_exec( $ch );
-		return array( $result, print_r( $headers, true ) );
-
-	}
-
-	public static function basicAuthTest() {
+	public static function basic_auth_test() {
 
 		$url = 'https://test-index.murmurations.network/v1/nodes';
 
@@ -303,7 +219,7 @@ class Tests {
 
 	}
 
-	public static function indexRequest( $params = null ) {
+	public static function index_request( $params = null ) {
 		$url = 'https://test-index.murmurations.network/v1/nodes';
 
 		$query = array();

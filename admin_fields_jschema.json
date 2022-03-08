@@ -370,6 +370,13 @@
       "group" : "config",
       "description" : "Prefix for meta values saved to the WP DB."
     },
+    "meta_provenance_prefix" : {
+      "title" :  "Meta prefix for field provenance data",
+      "default" : "murm_field_provenance_",
+      "type" :  "string",
+      "group" : "config",
+      "description" : "Prefix for data provenance information saved to the WP DB."
+    },
     "api_route" : {
       "title" :  "API route",
       "default" : "murmurations-aggregator/v1",
