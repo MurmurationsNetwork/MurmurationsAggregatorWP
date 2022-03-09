@@ -50,9 +50,20 @@ class Aggregator {
 
 		$admin_fields = Settings::get_fields();
 
+		$find = array(
+			'{PLUGIN_DIR_PATH}',
+			'{PLUGIN_DIR_URL}',
+		);
+
+		$replace = array(
+			MURMAG_ROOT_PATH,
+			MURMAG_ROOT_URL,
+		);
+
 		foreach ( $admin_fields as $name => $field ) {
 			if ( $field['default'] ) {
-				Settings::set( $name, $field['default'] );
+				$default = str_replace( $find, $replace, $field['default'] );
+				Settings::set( $name, $default );
 			}
 		}
 
@@ -442,6 +453,12 @@ class Aggregator {
             Notices::set( 'Failed to save node: ' . $url, 'error' );
           } else {
             Notices::set( 'Node successfully saved', 'success' );
+
+						foreach ( $node_array['linked_schemas'] as $schema_name ) {
+							llog( $schema_name, "Adding schema" );
+							Schema::add( Schema::name_to_url( $schema_name ) );
+						}
+
             return $result;
           }
         } else {

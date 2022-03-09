@@ -284,4 +284,77 @@ class Schema {
 
 	}
 
+	/**
+	 * Check if a schema has been stored locally already
+	 *
+	 * @param string $name The schema name.
+	 */
+	public static function is_installed( $schema_url ) {
+		if ( is_array( Settings::get( 'schemas' ) ) ) {
+			$schemas = Settings::get( 'schemas' );
+			$exists = false;
+			foreach ( $schemas as $schema ) {
+				if ( $schema['location'] == $schema_url ) {
+					$exists = true;
+				}
+			}
+			return $exists;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Convert a schema name to URL by adding path and extension
+	 *
+	 * @param string $name The schema name, including version
+	 */
+	public static function name_to_url( string $name ) {
+		return self::$library_base_uri . "schemas/" . $name . ".json";
+	}
+
+	/**
+	 * Add a schema
+	 *
+	 * @param string $name The schema name.
+	 */
+	public static function add( $new_schema_url ) {
+		if ( ! self::is_installed( $new_schema_url ) ) {
+
+			$schema_urls = Settings::get( 'schemas' );
+
+			$schema_urls[] = array(
+				'location' => $new_schema_url,
+			);
+
+			llog( $schema_urls, "Saving new schemas setting" );
+
+			Settings::set( 'schemas', $schema_urls );
+		  Settings::save();
+
+			$schema = self::fetch( $new_schema_url );
+
+			if ( ! $schema ) {
+				Notices::set( "Failed to fetch new schema file from " . $new_schema_url );
+				llog( "Failed to fetch new schema file from " . $new_schema_url );
+				return false;
+			}
+
+			$schema = self::dereference( $schema );
+
+			llog($schema,"Dereferenced schema");
+
+			$local_schema = self::merge( array( self::get(), $schema ) );
+
+			update_option( 'murmurations_aggregator_local_schema', $local_schema );
+
+			Notices::set( 'New local schema saved' );
+
+			self::$schema = $local_schema;
+			self::$fields = $local_schema['properties'];
+
+			return true;
+
+		}
+	}
 }
