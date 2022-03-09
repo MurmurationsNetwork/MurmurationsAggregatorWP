@@ -138,6 +138,21 @@ class Admin {
 		<?php
 
 	}
+
+  public static function rjsf_set_empty_value( $field_attribs ) {
+
+    if ( isset( $field_attribs['default'] ) ) {
+      $value = $field_attribs['default'];
+    } elseif ( 'array' === $field_attribs['type'] ) {
+      $value = array();
+    } elseif ( 'string' === $field_attribs['type'] ) {
+      $value = "";
+    }
+
+    return $value;
+
+  }
+
 	/**
 	 * Pre-process current settings data to meet RJSF data type requirements
 	 *
@@ -146,18 +161,20 @@ class Admin {
 	 * @return array processed values.
 	 */
 	public static function fix_rjsf_data_types( $schema, $values ) {
+
+    $processed = array();
+
 		foreach ( $schema['properties'] as $field => $attribs ) {
 
-     if(isset($values[ $field ])){
+      if ( isset( $values[ $field ] ) ) {
 
   			$value = $values[ $field ];
 
-  			// Aggressively set default values.
-  			if ( $attribs['default'] ) {
-  				if ( $value === null || $value === '' || ( $value === false && $attribs['type'] !== 'boolean' ) ) {
-  					$value = $attribs['default'];
-  				}
-  			}
+        if ( $value === null || $value === '' || ( $value === false && $attribs['type'] !== 'boolean' ) ) {
+
+          $value = self::rjsf_set_empty_value( $attribs );
+
+        }
 
   			if ( is_array( $value ) ) {
   				foreach ( $value as $key => $item ) {
@@ -176,11 +193,14 @@ class Admin {
   			} elseif ( $attribs['type'] === 'integer' && is_string( $value ) ) {
   				$value = (int) $value;
   			}
-
-  			$values[ $field ] = $value;
+      } else {
+        $value = self::rjsf_set_empty_value( $attribs, $value );
       }
+
+			$processed[ $field ] = $value;
+
 		}
-		return $values;
+		return $processed;
 	}
 
 	/**
@@ -278,22 +298,43 @@ class Admin {
 
   	formOverlay.style.visibility = "visible";
 
+    // Copy the data so we can modify it without screwing up the form,
+    // using the bizarre nonsense that JS requires to do this...
+    var ajaxFormData = JSON.parse(JSON.stringify(Form.formData));
+
     for (field in Form.formData){
       if(typeof(Form.formData[field]) == 'object'){
         if(Object.keys(Form.formData[field]).length === 0){
-          Form.formData[field] = "empty_object";
+          ajaxFormData[field] = "empty_object";
         }
       }
       if(typeof(Form.formData[field]) == 'array'){
         if(Array.keys(Form.formData[field]).length === 0){
-          Form.formData[field] = "empty_array";
+          ajaxFormData[field] = "empty_array";
+        }
+      }
+      if(typeof(Form.formData[field]) == 'string'){
+        if(Form.formData[field].trim() == ""){
+          ajaxFormData[field] = "empty_string";
+        }
+      }
+
+      /*
+      console.log("Field", field);
+      console.log("Type", Form.schema.properties[field].type);
+      console.log("All properties", Form.schema.properties);
+      */
+
+      if(Form.schema.properties[field].type == 'string'){
+        if(typeof(Form.formData[field]) == 'undefined'){
+          ajaxFormData[field] = "empty_string";
         }
       }
     }
 
   	var data = {
   	  'action': 'save_settings',
-  	  'formData': Form.formData
+  	  'formData': ajaxFormData
   	};
 
   	jQuery.post(ajaxurl, data, function(response) {
@@ -356,7 +397,7 @@ class Admin {
 	  formData,
 	  onChange: log("changed"),
 	  onSubmit: murmagAdminFormSubmit,
-	  onError: log("errors")
+	  onError: log("errors",formData)
 	},
 	saveButton
   )
@@ -411,6 +452,9 @@ class Admin {
         if($data[ $key ] === "empty_array" || $data[ $key ] === "empty_object"){
           $data[ $key ] = array();
         }
+        if ( $data[ $key ] === "empty_string" ) {
+          $data[ $key ] = "";
+        }
 				Settings::set( $key, $data[ $key ] );
 			}
 		}
@@ -419,28 +463,15 @@ class Admin {
 
 		if ( $parse_new_schemas === true ) {
 
-			$schemas = array();
 			llog( 'New schema URLs found' );
 
 			foreach ( $data['schemas'] as $schema_info ) {
 
-				$schema = Schema::fetch( $schema_info['location'] );
+				Schema::add( $schema_info['location'] );
 
-				$schema    = Schema::dereference( $schema );
-				$schemas[] = $schema;
 			}
 
-			llog( 'Merging local schema out of ' . count( $schemas ) . ' fetched schema(s)' );
-
-			$local_schema = Schema::merge( $schemas );
-
-			llog( $local_schema, 'Local schema' );
-
-			update_option( 'murmurations_aggregator_local_schema', $local_schema );
-
 			Notices::set( 'New local schema saved', 'success' );
-
-			Schema::load();
 
 		}
 
