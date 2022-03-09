@@ -174,13 +174,13 @@
         }
       },
       "description" : "Schemas to use for local data model and add as options for queries. The schema file location can be local (on this server, for example uploaded to the WP media library), or remote (for example in the Murmurations schema repository or library service).",
-      "group" : "data_sources"
+      "group" : "config"
     },
     "field_map_url" : {
       "title" : "URL for field map file",
       "type" :  "string",
       "description" : "The web-accessible location for a JSON file that maps fields from the data schema to fields in the WP database.",
-      "group" : "data_sources"
+      "group" : "config"
     },
     "template_override_path" : {
       "type" :  "string",
