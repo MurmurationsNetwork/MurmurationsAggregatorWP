@@ -263,7 +263,7 @@
       "title" :  "Mapbox API key",
       "inputAs" : "text",
       "group" : "map_settings",
-      "description" : "API key for Mapbox, tile provider for Leaflet. See https://www.mapbox.com/studio/account/tokens/"
+      "description" : "Optional API key to use Mapbox tiles for Leaflet maps (can result in a more visually appealing map). Defaults to Open Street Map tiles if not provided. See https://www.mapbox.com/studio/account/tokens/"
     },
     "logging_mode" : {
       "type" :  "string",

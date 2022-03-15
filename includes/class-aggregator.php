@@ -153,13 +153,13 @@ class Aggregator {
 	 */
 	public static function leaflet_scripts() {
 		return '
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
-  integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
-  crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
-  integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
-  crossorigin=""></script>
-';
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+   crossorigin=""/>
+	 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+   crossorigin=""></script>
+	 ';
 	}
 
   /**
@@ -551,37 +551,37 @@ class Aggregator {
 		$nodes = self::get_nodes();
 
 		/*
-		Because of the cross-origin stuff, these don't fit WP's queue paradigm. In future, we should use this method, but for now loading scripts as HTML in the head via env
-		$this->env->add_css(array(
-		'href'=>"https://unpkg.com/leaflet@1.5.1/dist/leaflet.css",
-		'integrity' => "sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==",
-		'crossorigin' => "");
-
-		$this->env->add_script(array(
-		'href'=>"https://unpkg.com/leaflet@1.5.1/dist/leaflet.js",
-		'integrity' => "sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og==",
-		'crossorigin' => "");
+		This is a crude way to do this, done because cross origin things are not (yet)
+		well handled in WP enqueues
 		*/
-
-		// This API recently changed (https://docs.mapbox.com/help/troubleshooting/migrate-legacy-static-tiles-api)
 
 		$html = self::leaflet_scripts();
 
 		$map_origin = Settings::get( 'map_origin' );
 		$map_scale  = Settings::get( 'map_scale' );
 
+		$mapbox_key = Settings::get( 'mapbox_token' );
+
 		$html .= '<div id="murmurations-map" class="murmurations-map"></div>' . "\n";
 		$html .= '<script type="text/javascript">' . "\n";
 		$html .= "var murmurations_map = L.map('murmurations-map').setView([" . $map_origin . "], $map_scale);\n";
 
-		$html .= "L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-    attribution: 'Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>',
-    tileSize: 512,
-    maxZoom: 18,
-    zoomOffset: -1,
-    id: 'mapbox/streets-v11',
-    accessToken: '" . Settings::get( 'mapbox_token' ) . "'
-}).addTo(murmurations_map);\n";
+
+		if ( $mapbox_key ) {
+			$html .= "L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+	    	attribution: 'Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>',
+	    	tileSize: 512,
+	    	maxZoom: 18,
+	    	zoomOffset: -1,
+	    	id: 'mapbox/streets-v11',
+	    	accessToken: '" . $mapbox_key . "'
+			}).addTo(murmurations_map);\n";
+		} else {
+			$html .= "L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+				attribution: 'Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors',
+				maxZoom: 18
+			}).addTo(murmurations_map);\n";
+		}
 
 		foreach ( $nodes as $key => $node ) {
 
