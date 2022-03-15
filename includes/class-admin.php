@@ -44,6 +44,12 @@ class Admin {
 		?>
 	 <h1><?php echo esc_html( Config::get( 'plugin_name' ) ); ?> Settings</h1>
 
+    <div id="murmagg-admin-help-links">
+       <a href="https://docs.murmurations.network/technical/wp-aggregator.html">Documentation</a> |
+       <a href="https://murmurations.flarum.cloud/">Forum</a> |
+       <a href="https://github.com/MurmurationsNetwork/MurmurationsAggregatorWP">GitHub</a> |
+       <a href="https://murmurations.network">Murmurations</a>
+    </div>
 		<?php
 
 		if ( isset( $_POST['murmurations_ag'] ) ) {

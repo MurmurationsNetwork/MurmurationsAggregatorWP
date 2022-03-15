@@ -254,3 +254,7 @@ i.murms-icon-delete::before{
    font-size: 1.3em;
    color: #666;
  }
+
+#murmagg-admin-help-links {
+  margin-bottom: 1em;
+}
