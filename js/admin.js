@@ -9,12 +9,13 @@ function viewLocalSchema(){
 
 
   var data = {
-	  'action': 'get_local_schema'
+	  'action' : 'get_local_schema',
+    'nonce' : murmurmurations_aggregator_admin.ajaxnonce
 	};
 
   jQuery.ajax({
     type: "POST",
-    url: ajaxurl,
+    url: murmurmurations_aggregator_admin.ajaxurl,
     data: data,
     success: function(response) {
       if(response.status.toString() == 'success'){
@@ -32,6 +33,7 @@ function recursiveNodeUpdate(nodes, index){
 
   var data = {
     'action': 'update_node',
+    'nonce' : murmurmurations_aggregator_admin.ajaxnonce,
     'node' : node
   };
 
@@ -41,7 +43,7 @@ function recursiveNodeUpdate(nodes, index){
 
   jQuery.ajax({
     type: "POST",
-    url: ajaxurl,
+    url: murmurmurations_aggregator_admin.ajaxurl,
     data: data,
     success: function(response) {
 
@@ -61,10 +63,11 @@ function recursiveNodeUpdate(nodes, index){
       }else{
 
         var data = {
-          'action': 'set_update_time'
+          'action': 'set_update_time',
+			    'nonce' : murmurmurations_aggregator_admin.ajaxnonce,
         };
 
-        jQuery.post(ajaxurl, data, function(response) {
+        jQuery.post(murmurmurations_aggregator_admin.ajaxurl, data, function(response) {
           if(response.status.toString() == 'success'){
             node_update_log("Set update time");
           } else {
@@ -91,10 +94,11 @@ function ajaxUpdateNodes(){
   logContainer.value = "Fetching index data...\n";
 
 	var data = {
-	  'action': 'get_index_nodes'
+	  'action': 'get_index_nodes',
+    'nonce' : murmurmurations_aggregator_admin.ajaxnonce
 	};
 
-	jQuery.post(ajaxurl, data, function(response) {
+	jQuery.post(murmurmurations_aggregator_admin.ajaxurl, data, function(response) {
 
 	  for (const message of response.messages){
       node_update_log(message.message.toString());
@@ -124,4 +128,68 @@ function ajaxUpdateNodes(){
 function node_update_log(message){
   var logContainer = document.getElementById('murmagg-admin-form-log-container');
   logContainer.value += message + "\n";
+}
+
+
+const murmagAdminFormSubmit = (Form, e) => {
+
+	formOverlay = document.getElementById('murmagg-admin-form-overlay');
+
+	formOverlay.style.visibility = "visible";
+
+	// Copy the data so we can modify it without screwing up the form,
+	// using the bizarre nonsense that JS requires to do this...
+	var ajaxFormData = JSON.parse(JSON.stringify(Form.formData));
+
+	for (field in Form.formData){
+		if(typeof(Form.formData[field]) == 'object'){
+			if(Object.keys(Form.formData[field]).length === 0){
+				ajaxFormData[field] = "empty_object";
+			}
+		}
+		if(typeof(Form.formData[field]) == 'array'){
+			if(Array.keys(Form.formData[field]).length === 0){
+				ajaxFormData[field] = "empty_array";
+			}
+		}
+		if(typeof(Form.formData[field]) == 'string'){
+			if(Form.formData[field].trim() == ""){
+				ajaxFormData[field] = "empty_string";
+			}
+		}
+
+		/*
+		console.log("Field", field);
+		console.log("Type", Form.schema.properties[field].type);
+		console.log("All properties", Form.schema.properties);
+		*/
+
+		if(Form.schema.properties[field].type == 'string'){
+			if(typeof(Form.formData[field]) == 'undefined'){
+				ajaxFormData[field] = "empty_string";
+			}
+		}
+	}
+
+	var data = {
+		'action': 'save_settings',
+		'formData': ajaxFormData,
+		'nonce' : murmurmurations_aggregator_admin.ajaxnonce
+	};
+
+	jQuery.post(murmurmurations_aggregator_admin.ajaxurl, data, function(response) {
+
+		formOverlay.style.visibility = "hidden";
+		var noticeContainer = document.getElementById('murmagg-admin-form-notice');
+
+		noticeContainer.innerHTML = "";
+
+		for (const message of response.messages){
+			var notice = document.createElement("div");
+			notice.innerHTML = '<p>'+message.message+'</p>';
+			notice.className = "notice notice-"+message.type;
+			noticeContainer.appendChild(notice);
+		}
+		noticeContainer.style.display = "block";
+	});
 }

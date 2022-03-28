@@ -144,8 +144,9 @@ class Schema {
 			if ( $field_map_url ) {
 				$field_map = self::fetch( $field_map_url );
 			} else {
-				// Load the default field map
-				$json = file_get_contents( MURMAG_ROOT_PATH . 'schemas/field_map.json' );
+				// Load the default field map.
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+				$json      = file_get_contents( MURMAG_ROOT_PATH . 'schemas/field_map.json' );
 				$field_map = json_decode( $json, true );
 				llog( $field_map, 'Loaded default field map' );
 			}
@@ -222,12 +223,9 @@ class Schema {
 
 			}
 
-      if ( isset($schema['properties'][ $key ]['items']['properties']) ){
-
-        $schema['properties'][ $key ]['items'] = self::dereference( $schema['properties'][ $key ]['items'] );
-
-      }
-
+			if ( isset( $schema['properties'][ $key ]['items']['properties'] ) ) {
+				$schema['properties'][ $key ]['items'] = self::dereference( $schema['properties'][ $key ]['items'] );
+			}
 		}
 
 		$output_schema = array_replace_recursive( $output_schema, $schema );
@@ -249,10 +247,12 @@ class Schema {
 
 		llog( home_url( $wp->request ), 'Current URL' );
 
-		if ( home_url( $wp->request ) == $url ) {
+		if ( home_url( $wp->request ) === $url ) {
 			llog( 'Problematic recursion detected in Schema::fetch()' );
 			return;
 		}
+
+		// phpcs:disable WordPress.WP.AlternativeFunctions
 
 		$ch = curl_init();
 
@@ -263,7 +263,7 @@ class Schema {
 
 		$result = curl_exec( $ch );
 
-		if ( $result === false ) {
+		if ( false === $result ) {
 			Notices::set( 'Request to fetch schema from ' . $url . ' failed. cURL error: ' . curl_error( $ch ) );
 			llog( 'Request to fetch schema from ' . $url . ' failed. cURL error: ' . curl_error( $ch ) );
 		} else {
@@ -287,14 +287,14 @@ class Schema {
 	/**
 	 * Check if a schema has been stored locally already
 	 *
-	 * @param string $name The schema name.
+	 * @param string $schema_url The schema URL.
 	 */
 	public static function is_installed( $schema_url ) {
 		if ( is_array( Settings::get( 'schemas' ) ) ) {
 			$schemas = Settings::get( 'schemas' );
-			$exists = false;
+			$exists  = false;
 			foreach ( $schemas as $schema ) {
-				if ( $schema['location'] == $schema_url ) {
+				if ( $schema['location'] === $schema_url ) {
 					$exists = true;
 				}
 			}
@@ -307,16 +307,16 @@ class Schema {
 	/**
 	 * Convert a schema name to URL by adding path and extension
 	 *
-	 * @param string $name The schema name, including version
+	 * @param string $name The schema name, including version.
 	 */
 	public static function name_to_url( string $name ) {
-		return self::$library_base_uri . "schemas/" . $name . ".json";
+		return self::$library_base_uri . 'schemas/' . $name . '.json';
 	}
 
 	/**
 	 * Add a schema
 	 *
-	 * @param string $name The schema name.
+	 * @param string $new_schema_url The schema URL.
 	 */
 	public static function add( $new_schema_url ) {
 		if ( ! self::is_installed( $new_schema_url ) ) {
@@ -327,22 +327,22 @@ class Schema {
 				'location' => $new_schema_url,
 			);
 
-			llog( $schema_urls, "Saving new schemas setting" );
+			llog( $schema_urls, 'Saving new schemas setting' );
 
 			Settings::set( 'schemas', $schema_urls );
-		  Settings::save();
+			Settings::save();
 
 			$schema = self::fetch( $new_schema_url );
 
 			if ( ! $schema ) {
-				Notices::set( "Failed to fetch new schema file from " . $new_schema_url );
-				llog( "Failed to fetch new schema file from " . $new_schema_url );
+				Notices::set( 'Failed to fetch new schema file from ' . $new_schema_url );
+				llog( 'Failed to fetch new schema file from ' . $new_schema_url );
 				return false;
 			}
 
 			$schema = self::dereference( $schema );
 
-			llog($schema,"Dereferenced schema");
+			llog( $schema, 'Dereferenced schema' );
 
 			$local_schema = self::merge( array( self::get(), $schema ) );
 

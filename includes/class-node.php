@@ -8,29 +8,31 @@
 namespace Murmurations\Aggregator;
 
 /**
- * OOP class for node objects
+ * Class for node objects
  */
 class Node {
 	/**
+	 * Holds errors for the object.
+	 *
 	 * @var array $errors Holds errors for the object.
 	 */
 	private static $errors = array();
 
-  /**
-	* Insert or update a local nodei nthe DB from an array of node data
-	*
-	* @param  array $profile the node data
-	* @param  array $provenance information on where the profile came from
-	* @return boolean true if successful, false on failure
-	*/
-	public static function upsert( array $profile, array $provenance ){
+	/**
+	 * Insert or update a local nodei nthe DB from an array of node data
+	 *
+	 * @param  array $profile the node data.
+	 * @param  array $provenance information on where the profile came from.
+	 * @return boolean true if successful, false on failure
+	 */
+	public static function upsert( array $profile, array $provenance ) {
 
-		if ( ! $profile['primary_url'] && $profile['url'] ){
+		if ( ! $profile['primary_url'] && $profile['url'] ) {
 			$profile['primary_url'] = $profile['url'];
 		}
 
 		// For profiles that have no primary_url, use the profile URL.
-		if ( ! $profile['primary_url'] ){
+		if ( ! $profile['primary_url'] ) {
 			$profile['primary_url'] = $profile['profile_url'];
 		}
 
@@ -39,29 +41,29 @@ class Node {
 		$existing_post = self::load_post_by_url( $profile['primary_url'] );
 
 		if ( $existing_post ) {
-			$profile['post_id'] = $existing_post->ID;
+			$profile['post_id']     = $existing_post->ID;
 			$profile['post_status'] = $existing_post->post_status;
-			$existing_data = get_post_meta( $existing_post->ID );
+			$existing_data          = get_post_meta( $existing_post->ID );
 		}
 
 		$id = self::save_post( $profile );
 
-		if( ! $id ){
-			self::error( "Failed to save post" );
+		if ( ! $id ) {
+			self::error( 'Failed to save post' );
 			return false;
 		}
 
 		foreach ( $profile as $field => $value ) {
 
-			if( $existing_post ){
-				if( $existing_data[ Settings::get( 'meta_prefix' ) . $field ] ){
+			if ( $existing_post ) {
+				if ( $existing_data[ Settings::get( 'meta_prefix' ) . $field ] ) {
 
-					$existing_value = maybe_unserialize($existing_data[ Settings::get( 'meta_prefix' ) . $field ][0]);
-					$existing_provenance = maybe_unserialize($existing_data[ Settings::get( 'meta_provenance_prefix' ) . $field ][0]);
+					$existing_value      = maybe_unserialize( $existing_data[ Settings::get( 'meta_prefix' ) . $field ][0] );
+					$existing_provenance = maybe_unserialize( $existing_data[ Settings::get( 'meta_provenance_prefix' ) . $field ][0] );
 
 					// If there's an existing profile for this node, and the profile includes this field, and the version of
-					// this field in the existing profile has a more authoritative provenance, don't use the new value for this field
-					if( ! Field::compare_provenance( $profile['primary_url'], $existing_provenance, $provenance) ){
+					// this field in the existing profile has a more authoritative provenance, don't use the new value for this field.
+					if ( ! Field::compare_provenance( $profile['primary_url'], $existing_provenance, $provenance ) ) {
 						continue;
 					}
 				}
@@ -79,7 +81,7 @@ class Node {
 	/**
 	 * Build the node object from a WP post
 	 *
-	 * @param  WP_Post $p WP post object
+	 * @param  WP_Post $p WP post object.
 	 * @return boolean true if successful, false on failure
 	 */
 	public function build_from_wp_post( $p ) {
@@ -102,14 +104,14 @@ class Node {
 			$data[ $key ] = maybe_unserialize( $value[0] );
 		}
 
-		if(is_array($data['image'])){
-			if(isset($data['image'][0]['url'])){
+		if ( is_array( $data['image'] ) ) {
+			if ( isset( $data['image'][0]['url'] ) ) {
 				$data['images'] = $data['image'];
-				$data['image'] = $data['image'][0]['url'];
+				$data['image']  = $data['image'][0]['url'];
 			}
 		}
 
-		if(!isset($data['url']) && isset($data['primary_url'])){
+		if ( ! isset( $data['url'] ) && isset( $data['primary_url'] ) ) {
 			$data['url'] = $data['primary_url'];
 		}
 
@@ -125,7 +127,7 @@ class Node {
 	/**
 	 * Check filter conditions against a node
 	 *
-	 * @param  array $node the node data
+	 * @param  array $node the node data.
 	 * @param  array $filters the array of filters to check against.
 	 * @return boolean true if all filters match, otherwise false.
 	 */
@@ -141,16 +143,18 @@ class Node {
 
 		return $matched;
 	}
-  /**
-   * Check if this node matches a filter condition
-   *
-   * @param  array  $node node data
-   * @param  array  $condition (array with field, comparison, and value).
-   * @return boolean True if condition is matched, false otherwise.
-   */
+	/**
+	 * Check if this node matches a filter condition
+	 *
+	 * @param  array $node node data.
+	 * @param  array $condition (array with field, comparison, and value).
+	 * @return boolean True if condition is matched, false otherwise.
+	 */
 	private function check_condition( array $node, array $condition ) {
 
-		extract( $condition );
+		$field       = $condition['field'];
+		$comparision = $condition['comparison'];
+		$value       = $condition['value'];
 
 		if ( ! isset( $node[ $field ] ) ) {
 			return false;
@@ -158,6 +162,7 @@ class Node {
 
 		switch ( $comparison ) {
 			case 'equals':
+				// phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison -- this should be non-strict
 				if ( $node[ $field ] == $value ) {
 					return true;
 				}
@@ -191,12 +196,12 @@ class Node {
 	/**
 	 * Save the node to the DB
 	 *
-	 * @param array $data the node data
+	 * @param array $data the node data.
 	 * @return mixed ID of the post if successful, false on failure
 	 */
 	public function save_post( array $data ) {
 
-		llog( $data, "Saving post");
+		llog( $data, 'Saving post' );
 
 		$fields = Schema::get_fields();
 
@@ -238,10 +243,10 @@ class Node {
 		$post_data['post_type'] = 'murmurations_node';
 
 		// This method should only be called once the check for an existing post has already been done.
-		// If there is an existing post, the 'post_id' parameter will be set
+		// If there is an existing post, the 'post_id' parameter will be set.
 		if ( $data['post_id'] ) {
 			$post_data['ID'] = $data['post_id'];
-			if ( Settings::get( 'updated_node_post_status' ) == 'no_change' ) {
+			if ( Settings::get( 'updated_node_post_status' ) === 'no_change' ) {
 				// wp_insert_post defaults to 'draft' status, even on existing published posts!
 				$post_data['post_status'] = $data['post_status'];
 			} else {
@@ -253,40 +258,52 @@ class Node {
 
 		$result = wp_insert_post( $post_data, true );
 
-		if ( $result === false ) {
+		if ( false === $result ) {
 			$this->error( 'Failed to insert post.' );
 			return false;
 		} else {
 
-			$result === true ? $id = $post_data['ID'] : $id = $result;
+			true === $result ? $id = $post_data['ID'] : $id = $result;
 
 			return $id;
 
 		}
 	}
-
+	/**
+	 * Update a specific meta value for a node
+	 *
+	 * @param  int    $post_id ID of the node post.
+	 * @param  string $field field name.
+	 * @param  mixed  $value new value.
+	 * @param  array  $provenance provenance information for the new data.
+	 */
 	public static function update_field_value( int $post_id, string $field, $value, $provenance = null ) {
-		llog($provenance,"Updating field value with provenance");
+		llog( $provenance, 'Updating field value with provenance' );
 		update_post_meta( $post_id, Settings::get( 'meta_prefix' ) . $field, $value );
 		if ( $provenance ) {
 			update_post_meta( $post_id, Settings::get( 'meta_provenance_prefix' ) . $field, $provenance );
 		}
 	}
+	/**
+	 * Convert a URL to its canonical form
+	 *
+	 * @param  string $url Input URL.
+	 * @return string The canonicalized URL.
+	 */
+	public static function canonicalize_url( string $url ) {
 
-	public static function canonicalize_url( string $url){
-
-		// If URL includes "://", split and use only right part (remove scheme)
-		if( strpos( $url, "://" ) !== false ){
-			$url = explode("://", $url)[1];
+		// If URL includes "://", split and use only right part (remove scheme).
+		if ( strpos( $url, '://' ) !== false ) {
+			$url = explode( '://', $url )[1];
 		}
 
-		// Remove leading www if present
-		if( substr($url, 0, 4) === "www." ){
-			$url = substr($url, 4);
+		// Remove leading www if present.
+		if ( substr( $url, 0, 4 ) === 'www.' ) {
+			$url = substr( $url, 4 );
 		}
 
-		// Remove trailing slash if present
-		if( substr( $url, -1 ) === '/'){
+		// Remove trailing slash if present.
+		if ( substr( $url, -1 ) === '/' ) {
 			$url = substr( $url, 0, -1 );
 		}
 
@@ -295,47 +312,48 @@ class Node {
 	}
 
 
-		/**
-		 * Get the node post that match a primary URL
-		 *
-		 * @param string $url the primary_url of the node.
-		 * @param array  $args additional args for the post query.
-		 * @return mixed WP_Post object if successful, false on failure.
-		 */
-		public static function load_post_by_url( $url, $args = null ) {
+	/**
+	 * Get the node post that match a primary URL
+	 *
+	 * @param string $url the primary_url of the node.
+	 * @param array  $args additional args for the post query.
+	 * @return mixed WP_Post object if successful, false on failure.
+	 */
+	public static function load_post_by_url( $url, $args = null ) {
 
-			$url = self::canonicalize_url($url);
+		$url = self::canonicalize_url( $url );
 
-			llog($url, "Loading post from canonicalized URL");
+		llog( $url, 'Loading post from canonicalized URL' );
 
-			$defaults = array(
-				'post_type'  => 'murmurations_node',
-				'meta_query' => array(
-					array(
-						'key'     => Settings::get( 'meta_prefix' ) . 'primary_url',
-						'value'   => $url,
-						'compare' => '=',
-					),
+		$defaults = array(
+			'post_type'   => 'murmurations_node',
+			'meta_query'  => array( // phpcs:ignore
+				array(
+					'key'     => Settings::get( 'meta_prefix' ) . 'primary_url',
+					'value'   => $url,
+					'compare' => '=',
 				),
-				// Default to all post statuses, even trashed
-				'post_status' => array_keys(get_post_stati())
-			);
+			),
+			// Default to all post statuses, even trashed.
+			'post_status' => array_keys( get_post_stati() ),
+		);
 
-			$args = wp_parse_args( $args, $defaults );
+		$args = wp_parse_args( $args, $defaults );
 
-			$posts = get_posts( $args );
+		$posts = get_posts( $args );
 
-			if ( count( $posts ) > 0 ) {
-				return $posts[0];
-			} else {
-				Notices::set( "No node post found with primary_url " . $url );
-				return false;
-			}
-
+		if ( count( $posts ) > 0 ) {
+			return $posts[0];
+		} else {
+			return false;
 		}
+
+	}
 
 	/**
 	 * Delete this node from the DB
+	 *
+	 * @param int $id The ID of the node post to be deleted.
 	 */
 	public function delete( int $id ) {
 		if ( $id ) {
@@ -351,6 +369,9 @@ class Node {
 
 	/**
 	 * Deactivate this node (set status to draft)
+	 *
+	 * @param int $id The ID of the node post to deactive.
+	 * @return boolean true if successful, false on failure.
 	 */
 	public function deactivate( int $id ) {
 		$result = wp_update_post(
@@ -360,7 +381,7 @@ class Node {
 			)
 		);
 		if ( $result ) {
-			  return true;
+			return true;
 		} else {
 			self::error( 'Failed to deactivate node: ' . $id );
 			return false;
@@ -404,7 +425,7 @@ class Node {
 		$text = '';
 		foreach ( self::$errors as $key => $error ) {
 			$text .= $error . "<br />\n";
-			unset( self::$errors[$key] );
+			unset( self::$errors[ $key ] );
 		}
 		return $text;
 	}

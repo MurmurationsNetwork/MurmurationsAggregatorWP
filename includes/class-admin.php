@@ -13,55 +13,52 @@ namespace Murmurations\Aggregator;
 class Admin {
 	/**
 	 * Initialize if this is an admin page
-	 *
 	 */
-  public static function init(){
+	public static function init() {
 
-    self::register_things();
+		self::register_things();
 
-
-
-  }
+	}
 
 	/**
 	 * Method called by WP hook to show the aggregator admin
 	 */
 	public static function show_admin_settings_page() {
 
-		if ( isset($_POST['action']) ) {
+		if ( isset( $_POST['action'] ) ) {
 			check_admin_referer( 'murmurations_ag_actions_form' );
-			if ( $_POST['action'] === 'update_murms_feed_items' ) {
+			if ( 'update_murms_feed_items' === $_POST['action'] ) {
 				Feeds::update_feeds();
 			}
-			if ( $_POST['action'] === 'update_nodes' ) {
+			if ( 'update_nodes' === $_POST['action'] ) {
 				Aggregator::update_nodes();
 			}
-			if ( $_POST['action'] === 'delete_all_nodes' ) {
+			if ( 'delete_all_nodes' === $_POST['action'] ) {
 				Aggregator::delete_all_nodes();
 			}
 		}
 
 		?>
-	 <h1><?php echo esc_html( Config::get( 'plugin_name' ) ); ?> Settings</h1>
+<h1><?php Utils::e( Config::get( 'plugin_name' ) . ' Settings' ); ?></h1>
 
-    <div id="murmagg-admin-help-links">
-       <a href="https://docs.murmurations.network/technical/wp-aggregator.html">Documentation</a> |
-       <a href="https://murmurations.flarum.cloud/">Forum</a> |
-       <a href="https://github.com/MurmurationsNetwork/MurmurationsAggregatorWP">GitHub</a> |
-       <a href="https://murmurations.network">Murmurations</a>
-    </div>
+<div id="murmagg-admin-help-links">
+	<a href="https://docs.murmurations.network/technical/wp-aggregator.html">Documentation</a> |
+	<a href="https://murmurations.flarum.cloud/">Forum</a> |
+	<a href="https://github.com/MurmurationsNetwork/MurmurationsAggregatorWP">GitHub</a> |
+	<a href="https://murmurations.network">Murmurations</a>
+</div>
 		<?php
 
 		if ( isset( $_POST['murmurations_ag'] ) ) {
 			self::process_admin_form();
 		}
 
-		echo Notices::show();
+		Utils::e( Notices::show() );
 
 		$tabs = array(
 			'general'       => 'Dashboard',
 			'data_sources'  => 'Data Sources',
-			'interface' => 'Interface',
+			'interface'     => 'Interface',
 			'map_settings'  => 'Map',
 			'feed_settings' => 'Feeds',
 			'config'        => 'Advanced',
@@ -72,7 +69,7 @@ class Admin {
 		$tab = 'general';
 
 		if ( isset( $_GET['tab'] ) && isset( $tabs[ $_GET['tab'] ] ) ) {
-			$tab = $_GET['tab'];
+			$tab = Utils::input( 'tab', 'GET' );
 		}
 
 		?>
@@ -80,62 +77,58 @@ class Admin {
 	<nav class="nav-tab-wrapper">
 		<?php
 		foreach ( $tabs as $slug => $title ) {
-      if( "feed_settings" != $slug || Settings::get('enable_feeds') === "true" ){
-			   $class = $slug == $tab ? 'nav-tab-active' : '';
-			   echo '<a href="?page=' . Config::get( 'plugin_slug' ) . '-settings&tab=' . $slug . '" class="nav-tab ' . $class . '">' . $title . ' </a>';
-      }
+			if ( 'feed_settings' !== $slug || Settings::get( 'enable_feeds' ) === 'true' ) {
+				$class = $slug === $tab ? 'nav-tab-active' : '';
+				Utils::e( '<a href="?page=' . Config::get( 'plugin_slug' ) . '-settings&tab=' . $slug . '" class="nav-tab ' . $class . '">' . $title . ' </a>' );
+			}
 		}
 		?>
 	</nav>
 
-	<div class="murmag-admin-form-group-container" id="murmag-admin-group-<?php echo $tab; ?>">
+	<div class="murmag-admin-form-group-container" id="murmag-admin-group-<?php Utils::e( $tab ); ?>">
 
 		<?php
 
-    if( 'general' === $tab ){
+		if ( 'general' === $tab ) {
 
-      ?>
-      <div id="murms-dashboard-stats">
-        <b>Local <?php echo Settings::get( 'node_name_plural' ); ?>:</b> <?php
-        $count = wp_count_posts('murmurations_node');
-        echo $count->publish . " ";
-        if( Settings::get('update_time') ){
-          echo "<b>Last updated:</b> ". date('Y-m-d G:i:s T', Settings::get('update_time'));
+			?>
+		<div id="murms-dashboard-stats">
+		<b><?php Utils::e( 'Local ' . Settings::get( 'node_name_plural' ) ); ?>:</b>
+			<?php
+			$count = wp_count_posts( 'murmurations_node' );
+			Utils::e( $count->publish . ' ' );
+			if ( Settings::get( 'update_time' ) ) {
+				Utils::e( '<b>Last updated:</b> ' . gmdate( 'Y-m-d G:i:s T', Settings::get( 'update_time' ) ) );
 
-        }
-        ?>
+			}
+			?>
 
-      </div>
-      <form method="POST">
-       <?php
-       wp_nonce_field( 'murmurations_ag_actions_form' );
-       ?>
-        <button onclick="ajaxUpdateNodes()" type="button" class="murms-update murms-has-icon"><i class="murms-icon murms-icon-update"></i>Update nodes from the network</button>
+		</div>
+		<form method="POST">
+			<?php
+			wp_nonce_field( 'murmurations_ag_actions_form' );
+			?>
+		<button onclick="ajaxUpdateNodes()" type="button" class="murms-update murms-has-icon"><i class="murms-icon murms-icon-update"></i>Update nodes from the network</button>
 
-       <?php
-       if ( Settings::get( 'enable_feeds' ) === 'true' ) :
-         ?>
+			<?php
+			if ( Settings::get( 'enable_feeds' ) === 'true' ) :
+				?>
 
-          <button type="submit" name="action" class="murms-update murms-has-icon" value="update_murms_feed_items"><i class="murms-icon murms-icon-update"></i>Update feeds</button>
+				<button type="submit" name="action" class="murms-update murms-has-icon" value="update_murms_feed_items"><i class="murms-icon murms-icon-update"></i>Update feeds</button>
 
-         <?php
-        endif;
-       ?>
+				<?php
+			endif;
+			?>
 
-      <button type="submit"  onclick="return confirm('Are you sure you would like to delete all locally stored nodes?')"  name="action" class="murms-delete murms-has-icon" value="delete_all_nodes"><i class="murms-icon murms-icon-delete"></i>Delete all stored nodes</button>
+			<button type="submit"  onclick="return confirm('Are you sure you would like to delete all locally stored nodes?')"  name="action" class="murms-delete murms-has-icon" value="delete_all_nodes"><i class="murms-icon murms-icon-delete"></i>Delete all stored nodes</button>
+			<button onclick="viewLocalSchema()" type="button" class="murms-update">View local schema</button>
 
-       <button onclick="viewLocalSchema()" type="button" class="murms-update">View local schema</button>
+		</form>
+		<textarea id="murmagg-admin-form-log-container" style="width:100%; height: 400px; display: none;"></textarea>
+			<?php
+		}
 
-      </form>
-      <textarea id="murmagg-admin-form-log-container" style="width:100%; height: 400px; display: none;"></textarea>
-      <?php
-
-    }
-
-
-    self::show_rjsf_admin_form( $tab );
-
-
+		self::show_rjsf_admin_form( $tab );
 
 		?>
 
@@ -145,19 +138,25 @@ class Admin {
 
 	}
 
-  public static function rjsf_set_empty_value( $field_attribs ) {
+	/**
+	 * Set empty values for RJSF
+	 *
+	 * @param array $field_attribs attributes for the field.
+	 * @return string the empty value for the field
+	 */
+	public static function rjsf_set_empty_value( $field_attribs ) {
 
-    if ( isset( $field_attribs['default'] ) ) {
-      $value = $field_attribs['default'];
-    } elseif ( 'array' === $field_attribs['type'] ) {
-      $value = array();
-    } elseif ( 'string' === $field_attribs['type'] ) {
-      $value = "";
-    }
+		if ( isset( $field_attribs['default'] ) ) {
+			$value = $field_attribs['default'];
+		} elseif ( 'array' === $field_attribs['type'] ) {
+			$value = array();
+		} elseif ( 'string' === $field_attribs['type'] ) {
+			$value = '';
+		}
 
-    return $value;
+		return $value;
 
-  }
+	}
 
 	/**
 	 * Pre-process current settings data to meet RJSF data type requirements
@@ -168,40 +167,40 @@ class Admin {
 	 */
 	public static function fix_rjsf_data_types( $schema, $values ) {
 
-    $processed = array();
+		$processed = array();
 
 		foreach ( $schema['properties'] as $field => $attribs ) {
 
-      if ( isset( $values[ $field ] ) ) {
+			if ( isset( $values[ $field ] ) ) {
 
-  			$value = $values[ $field ];
+				$value = $values[ $field ];
 
-        if ( $value === null || $value === '' || ( $value === false && $attribs['type'] !== 'boolean' ) ) {
+				if ( null === $value || '' === $value || ( false === $value && 'boolean' !== $attribs['type'] ) ) {
 
-          $value = self::rjsf_set_empty_value( $attribs );
+					$value = self::rjsf_set_empty_value( $attribs );
 
-        }
+				}
 
-  			if ( is_array( $value ) ) {
-  				foreach ( $value as $key => $item ) {
-  					// Sometimes array fields have their own "properties" property, and sometimes they don't.
-  					if ( ! isset( $attribs['items']['properties'] ) ) {
-  						$attribs['items']['properties'] = array( $attribs['items'] );
-  					}
-  					$value[ $key ] = self::fix_rjsf_data_types( $attribs['items'], $item );
-  				}
-  			} elseif ( $attribs['type'] === 'boolean' && is_string( $value ) ) {
-  				if ( $value === 'true' ) {
-  					$value = true;
-  				} else {
-  					$value = false;
-  				}
-  			} elseif ( $attribs['type'] === 'integer' && is_string( $value ) ) {
-  				$value = (int) $value;
-  			}
-      } else {
-        $value = self::rjsf_set_empty_value( $attribs, $value );
-      }
+				if ( is_array( $value ) ) {
+					foreach ( $value as $key => $item ) {
+						// Sometimes array fields have their own "properties" property, and sometimes they don't.
+						if ( ! isset( $attribs['items']['properties'] ) ) {
+							$attribs['items']['properties'] = array( $attribs['items'] );
+						}
+						$value[ $key ] = self::fix_rjsf_data_types( $attribs['items'], $item );
+					}
+				} elseif ( 'boolean' === $attribs['type'] && is_string( $value ) ) {
+					if ( 'true' === $value ) {
+								$value = true;
+					} else {
+						$value = false;
+					}
+				} elseif ( 'integer' === $attribs['type'] && is_string( $value ) ) {
+					$value = (int) $value;
+				}
+			} else {
+				$value = self::rjsf_set_empty_value( $attribs, $value );
+			}
 
 			$processed[ $field ] = $value;
 
@@ -233,40 +232,40 @@ class Admin {
 					$attribs['title']    = isset( $attribs['title'] ) ? $attribs['title'] . ' (read only)' : $field . ' (read only)';
 				}
 
-				if ( $attribs['type'] === 'array' && ! is_array( $current_values[ $field ] ) ) {
+				if ( 'array' === $attribs['type'] && ! is_array( $current_values[ $field ] ) ) {
 					$current_values[ $field ] = array();
 				}
 
 				/* Build filter field select from data schema */
 
-				if ( $field === 'filters' ) {
+				if ( 'filters' === $field ) {
 
-					$enum      = array();
+					$enum       = array();
 					$enum_names = array();
 
 					foreach ( Schema::get_fields() as $schema_field => $schema_field_attribs ) {
-						$enum[]      = $schema_field;
+						$enum[]       = $schema_field;
 						$enum_names[] = $schema_field_attribs['title'];
 					}
 
 					$attribs['items']['properties']['field']['enum']      = $enum;
 					$attribs['items']['properties']['field']['enumNames'] = $enum_names;
 
-				} elseif ( $field === 'filter_fields' ) {
+				} elseif ( 'filter_fields' === $field ) {
 					// Add fields to the options for front-end filters.
 
-					$enum      = array();
+					$enum       = array();
 					$enum_names = array();
 
 					foreach ( Schema::get_fields() as $schema_field => $schema_field_attribs ) {
-            $enum[]      = $schema_field;
-            $enum_names[] = $schema_field_attribs['title'];
+						$enum[]       = $schema_field;
+						$enum_names[] = $schema_field_attribs['title'];
 					}
 
-          if (count($enum) > 0){
-    					$attribs['items']['enum']      = $enum;
-    					$attribs['items']['enumNames'] = $enum_names;
-          }
+					if ( count( $enum ) > 0 ) {
+						$attribs['items']['enum']      = $enum;
+						$attribs['items']['enumNames'] = $enum_names;
+					}
 				}
 
 				$admin_schema['properties'][ $field ] = $attribs;
@@ -277,137 +276,69 @@ class Admin {
 
 		$admin_schema = apply_filters( 'murmurations_aggregator_admin_schema', $admin_schema );
 
-		$admin_schema_json = json_encode( $admin_schema );
+		$admin_schema_json = wp_json_encode( $admin_schema );
 
-    $current_values_json = json_encode( $current_values );
+		$current_values_json = wp_json_encode( $current_values );
 
 		$nonce_field = wp_nonce_field( 'murmurations_ag_admin_form', 'murmurations_ag_admin_form_nonce', true, false );
 
 		?>
 <div id="murmagg-admin-form-container">
-  <div id="murmagg-admin-form-overlay"></div>
-  <div id="murmagg-admin-form-notice"></div>
-  <div id="murmagg-admin-form"></div>
+	<div id="murmagg-admin-form-overlay"></div>
+	<div id="murmagg-admin-form-notice"></div>
+	<div id="murmagg-admin-form"></div>
 </div>
 
-
+<?php // phpcs:disable WordPress.WP.EnqueuedResources.NonEnqueuedScript ?>
 
 <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
 <script src="https://unpkg.com/react-jsonschema-form/dist/react-jsonschema-form.js"></script>
 
+<?php // phpcs:enable ?>
+
 <script>
 
-  const murmagAdminFormSubmit = (Form, e) => {
-
-  	formOverlay = document.getElementById('murmagg-admin-form-overlay');
-
-  	formOverlay.style.visibility = "visible";
-
-    // Copy the data so we can modify it without screwing up the form,
-    // using the bizarre nonsense that JS requires to do this...
-    var ajaxFormData = JSON.parse(JSON.stringify(Form.formData));
-
-    for (field in Form.formData){
-      if(typeof(Form.formData[field]) == 'object'){
-        if(Object.keys(Form.formData[field]).length === 0){
-          ajaxFormData[field] = "empty_object";
-        }
-      }
-      if(typeof(Form.formData[field]) == 'array'){
-        if(Array.keys(Form.formData[field]).length === 0){
-          ajaxFormData[field] = "empty_array";
-        }
-      }
-      if(typeof(Form.formData[field]) == 'string'){
-        if(Form.formData[field].trim() == ""){
-          ajaxFormData[field] = "empty_string";
-        }
-      }
-
-      /*
-      console.log("Field", field);
-      console.log("Type", Form.schema.properties[field].type);
-      console.log("All properties", Form.schema.properties);
-      */
-
-      if(Form.schema.properties[field].type == 'string'){
-        if(typeof(Form.formData[field]) == 'undefined'){
-          ajaxFormData[field] = "empty_string";
-        }
-      }
-    }
-
-  	var data = {
-  	  'action': 'save_settings',
-  	  'formData': ajaxFormData
-  	};
-
-  	jQuery.post(ajaxurl, data, function(response) {
-
-  	  formOverlay.style.visibility = "hidden";
-  	  var noticeContainer = document.getElementById('murmagg-admin-form-notice');
-
-  	  noticeContainer.innerHTML = "";
-
-  	  for (const message of response.messages){
-    		var notice = document.createElement("div");
-    		notice.innerHTML = '<p>'+message.message+'</p>';
-    		notice.className = "notice notice-"+message.type;
-    		noticeContainer.appendChild(notice);
-  	  }
-  	  noticeContainer.style.display = "block";
-  	});
-
-  }
-
-  const Form = JSONSchemaForm.default;
-
-  const schema = <?php echo $admin_schema_json; ?>;
-
-  const uiSchema = {
+	const Form = JSONSchemaForm.default;
+	const schema = <?php Utils::e( $admin_schema_json ); ?>;
+	const uiSchema = {
 	filters: {
-	  classNames: "murmag-filter-field"
+		classNames: "murmag-filter-field"
 	},
 
 	schemas: {
-	  classNames: "murmag-schemas-field"
+		classNames: "murmag-schemas-field"
 	},
 
 	indices: {
-	  classNames: "murmag-indices-field"
-	}
-  };
+		classNames: "murmag-indices-field"
+	}	};
 
+	const formData = <?php Utils::e( $current_values_json ); ?>;
+	const log = (type) => console.log.bind(console, type);
 
-  const formData = <?php echo $current_values_json; ?>;
+	const saveButton = React.createElement(
+		'button',
+		{
+			type:"submit",
+			className : "button button-primary button-large"
+		},
+		'Save Settings'
+	);
+	const element = React.createElement(
+		Form,
+		{
+			schema,
+			uiSchema,
+			formData,
+			onChange: log("changed"),
+			onSubmit: murmagAdminFormSubmit,
+			onError: log("errors",formData)
+		},
+		saveButton
+	)
 
-  console.log("Current values", formData);
-
-  const log = (type) => console.log.bind(console, type);
-
-  const saveButton = React.createElement(
-	'button',
-	{
-	  type:"submit",
-	  className : "button button-primary button-large"
-	},
-	'Save Settings'
-  );
-
-  const element = React.createElement(
-	Form,
-	{
-	  schema,
-	  uiSchema,
-	  formData,
-	  onChange: log("changed"),
-	  onSubmit: murmagAdminFormSubmit,
-	  onError: log("errors",formData)
-	},
-	saveButton
-  )
-  ReactDOM.render(element, document.getElementById("murmagg-admin-form"));
+	ReactDOM.render(element, document.getElementById("murmagg-admin-form"));
 
 </script>
 		<?php
@@ -421,31 +352,33 @@ class Admin {
 
 		llog( 'Saving settings' );
 
-		$data = $_POST['formData'];
+		check_ajax_referer( 'ajax_validation', 'nonce' );
 
-    llog($data, "Settings data in ajax_save");
+		$data = Utils::input( 'formData', 'POST' );
 
-		if ( $data['node_update_interval'] != Settings::get( 'node_update_interval' ) ) {
+		llog( $data, 'Settings data in ajax_save' );
+
+		if ( Settings::get( 'node_update_interval' ) !== $data['node_update_interval'] ) {
 			$new_interval = $data['node_update_interval'];
 			$timestamp    = wp_next_scheduled( 'murmurations_node_update' );
 			wp_unschedule_event( $timestamp, 'murmurations_node_update' );
-			if ( $new_interval != 'manual' ) {
+			if ( 'manual' !== $new_interval ) {
 				wp_schedule_event( time(), $new_interval, 'murmurations_node_update' );
 			}
 		}
 
 		$parse_new_schemas = false;
 
-		if ( $data['schemas'] != Settings::get( 'schemas' ) ) {
+		if ( Settings::get( 'schemas' ) !== $data['schemas'] ) {
 			$parse_new_schemas = true;
 		}
 
 		if ( Settings::get( 'enable_feeds' ) === 'true' ) {
-			if ( $data['feed_update_interval'] != Settings::get( 'feed_update_interval' ) ) {
+			if ( Settings::get( 'feed_update_interval' ) !== $data['feed_update_interval'] ) {
 				$new_interval = $data['feed_update_interval'];
 				$timestamp    = wp_next_scheduled( 'murmurations_feed_update' );
 				wp_unschedule_event( $timestamp, 'murmurations_feed_update' );
-				if ( $new_interval != 'manual' ) {
+				if ( 'manual' !== $new_interval ) {
 					wp_schedule_event( time(), $new_interval, 'murmurations_feed_update' );
 				}
 			}
@@ -455,19 +388,19 @@ class Admin {
 
 		foreach ( $admin_fields as $key => $f ) {
 			if ( isset( $data[ $key ] ) ) {
-        if($data[ $key ] === "empty_array" || $data[ $key ] === "empty_object"){
-          $data[ $key ] = array();
-        }
-        if ( $data[ $key ] === "empty_string" ) {
-          $data[ $key ] = "";
-        }
+				if ( 'empty_array' === $data[ $key ] || 'empty_object' === $data[ $key ] ) {
+					$data[ $key ] = array();
+				}
+				if ( 'empty_string' === $data[ $key ] ) {
+					$data[ $key ] = '';
+				}
 				Settings::set( $key, $data[ $key ] );
 			}
 		}
 
 		Settings::save();
 
-		if ( $parse_new_schemas === true ) {
+		if ( true === $parse_new_schemas ) {
 
 			llog( 'New schema URLs found' );
 
@@ -485,7 +418,6 @@ class Admin {
 
 		$result = array(
 			'data'     => $data,
-			'dataStr'  => print_r( $data, true ),
 			'status'   => 'success',
 			'messages' => Notices::get(),
 		);
@@ -519,262 +451,282 @@ class Admin {
 		);
 
 	}
+	/**
+	 * Enqueue admin script, with nonce
+	 */
+	public static function enqueue_admin_script() {
+		wp_register_script(
+			'murmurmurations-aggregator-admin',
+			MURMAG_ROOT_URL . '/js/admin.js',
+			array( 'jquery' ),
+			'1.0.0',
+			false
+		);
+		wp_enqueue_script( 'murmurmurations-aggregator-admin' );
+		wp_localize_script(
+			'murmurmurations-aggregator-admin',
+			'murmurmurations_aggregator_admin',
+			array(
+				'ajaxurl'   => admin_url( 'admin-ajax.php' ),
+				'ajaxnonce' => wp_create_nonce( 'ajax_validation' ),
+			)
+		);
 
-  public static function enqueue_admin_script(){
-    wp_enqueue_script( 'murmurations_aggregator_admin_js', plugin_dir_url( __FILE__ ) . '../js/admin.js');
-  }
+	}
 
+	/**
+	 * Register actions
+	 */
+	public static function register_things() {
 
-  public static function register_things(){
+		add_action(
+			'admin_menu',
+			array(
+				'Murmurations\Aggregator\Admin',
+				'add_settings_page',
+			)
+		);
 
-   add_action(
-      'admin_menu',
-      array(
-        'Murmurations\Aggregator\Admin',
-        'add_settings_page',
-      )
-    );
+		add_action(
+			'wp_ajax_save_settings',
+			array(
+				'Murmurations\Aggregator\Admin',
+				'ajax_save_settings',
+			)
+		);
 
+		add_action(
+			'wp_ajax_update_node',
+			array(
+				'Murmurations\Aggregator\Aggregator',
+				'ajax_update_node',
+			)
+		);
 
-    add_action(
-      'wp_ajax_save_settings',
-      array(
-        'Murmurations\Aggregator\Admin',
-        'ajax_save_settings'
-      )
-    );
+		add_action(
+			'wp_ajax_get_index_nodes',
+			array(
+				'Murmurations\Aggregator\Aggregator',
+				'ajax_get_index_nodes',
+			)
+		);
 
-    add_action(
-      'wp_ajax_update_node',
-      array(
-        'Murmurations\Aggregator\Aggregator',
-        'ajax_update_node'
-      )
-    );
+		add_action(
+			'wp_ajax_set_update_time',
+			array(
+				'Murmurations\Aggregator\Aggregator',
+				'ajax_set_update_time',
+			)
+		);
 
-    add_action(
-      'wp_ajax_get_index_nodes',
-      array(
-        'Murmurations\Aggregator\Aggregator',
-        'ajax_get_index_nodes'
-      )
-    );
+		add_action(
+			'wp_ajax_get_local_schema',
+			array(
+				'Murmurations\Aggregator\Aggregator',
+				'ajax_get_local_schema',
+			)
+		);
 
-    add_action(
-      'wp_ajax_set_update_time',
-      array(
-        'Murmurations\Aggregator\Aggregator',
-        'ajax_set_update_time'
-      )
-    );
+		add_action(
+			'wp_ajax_save_node',
+			array(
+				'Murmurations\Aggregator\Admin',
+				'ajax_save_node',
+			)
+		);
 
-    add_action(
-      'wp_ajax_get_local_schema',
-      array(
-        'Murmurations\Aggregator\Aggregator',
-        'ajax_get_local_schema'
-      )
-    );
+		add_action(
+			'admin_enqueue_scripts',
+			array(
+				__CLASS__,
+				'enqueue_admin_script',
+			)
+		);
 
-    add_action(
-      'wp_ajax_save_node',
-      array(
-        'Murmurations\Aggregator\Admin',
-        'ajax_save_node'
-      )
-    );
+		if ( Settings::get( 'enable_node_edit' ) === 'true' ) {
+			add_action(
+				'add_meta_boxes_murmurations_node',
+				array(
+					__CLASS__,
+					'add_admin_node_edit_form',
+				)
+			);
+		}
+	}
+	/**
+	 * Add the edit form meta box
+	 */
+	public static function add_admin_node_edit_form() {
+		add_meta_box(
+			'murmurations-node-edit',
+			__( 'Edit Node Data' ),
+			array( __CLASS__, 'show_admin_node_edit_form' ),
+			'murmurations_node',
+			'normal',
+			'default'
+		);
+	}
+	/**
+	 * Show the RJSF form for node editing
+	 */
+	public static function show_admin_node_edit_form() {
 
-    add_action(
-      'admin_enqueue_scripts',
-      array(
-        __CLASS__,
-        'enqueue_admin_script'
-      )
-    );
+		self::show_rjsf_node_form();
 
-    if( Settings::get( "enable_node_edit" ) === "true" ){
-      add_action(
-        'add_meta_boxes_murmurations_node',
-        array(
-          __CLASS__,
-          'add_admin_node_edit_form'
-        )
-      );
-    }
-  }
-
-  public static function add_admin_node_edit_form( $node_post ){
-    add_meta_box(
-      'murmurations-node-edit',
-      __( 'Edit Node Data' ),
-      array( __CLASS__, 'show_admin_node_edit_form' ),
-      'murmurations_node',
-      'normal',
-      'default'
-    );
-  }
-
-  public static function show_admin_node_edit_form(){
-
-    self::show_rjsf_node_form();
-
-  }
-
-
-  	/**
-  	 * Show the RJSF form for editing a node (experimental!)
-  	 *
-  	 */
-  	public static function show_rjsf_node_form() {
-
-  		$local_schema = Schema::get();
-
-      unset(
-        $local_schema['$schema'],
-        $local_schema['id'],
-        $local_schema['title'],
-        $local_schema['description']
-      );
-
-      $node = new Node( (int) $_GET['post'] );
-
-  		$current_values = $node->data;
-
-      $local_schema['properties']['profile_url'] = array(
-        'type' => 'string',
-        'title' => 'profile_url'
-      );
-
-  		$node_schema_json = json_encode( $local_schema );
-
-      $current_values_json = json_encode( $current_values );
-
-  		?>
-  <div id="murmagg-admin-form-container">
-    <div id="murmagg-admin-form-overlay"></div>
-    <div id="murmagg-admin-form-notice"></div>
-    <div id="murmagg-admin-form"></div>
-  </div>
+	}
 
 
+	/**
+	 * Show the RJSF form for editing a node (experimental!)
+	 */
+	public static function show_rjsf_node_form() {
 
-  <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
-  <script src="https://unpkg.com/react-jsonschema-form/dist/react-jsonschema-form.js"></script>
+		$local_schema = Schema::get();
 
-  <script>
+		unset(
+			$local_schema['$schema'],
+			$local_schema['id'],
+			$local_schema['title'],
+			$local_schema['description']
+		);
 
-    const murmagNodeFormSubmit = (Form, e) => {
+		$node = new Node( (int) Utils::input( 'post', 'GET' ) );
 
-    	formOverlay = document.getElementById('murmagg-admin-form-overlay');
+		$current_values = $node->data;
 
-    	formOverlay.style.visibility = "visible";
+		$local_schema['properties']['profile_url'] = array(
+			'type'  => 'string',
+			'title' => 'profile_url',
+		);
 
-    	var data = {
-    	  'action': 'save_node',
-    	  'formData': Form.formData
-    	};
+		$node_schema_json = wp_json_encode( $local_schema );
 
-    	jQuery.post(ajaxurl, data, function(response) {
+		$current_values_json = wp_json_encode( $current_values );
 
-    	  formOverlay.style.visibility = "hidden";
-    	  var noticeContainer = document.getElementById('murmagg-admin-form-notice');
+		?>
 
-    	  noticeContainer.innerHTML = "";
+	<div id="murmagg-admin-form-container">
+		<div id="murmagg-admin-form-overlay"></div>
+		<div id="murmagg-admin-form-notice"></div>
+		<div id="murmagg-admin-form"></div>
+	</div>
+	<?php // phpcs:disable WordPress.WP.EnqueuedResources.NonEnqueuedScript ?>
+	<script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+	<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+	<script src="https://unpkg.com/react-jsonschema-form/dist/react-jsonschema-form.js"></script>
+	<?php // phpcs:enable ?>
+	<script>
 
-    	  for (const message of response.messages){
-      		var notice = document.createElement("div");
-      		notice.innerHTML = '<p>'+message.message+'</p>';
-      		notice.className = "notice notice-"+message.type;
-      		noticeContainer.appendChild(notice);
-    	  }
-    	  noticeContainer.style.display = "block";
-    	});
+	const murmagNodeFormSubmit = (Form, e) => {
 
-    }
+		formOverlay = document.getElementById('murmagg-admin-form-overlay');
 
-    const Form = JSONSchemaForm.default;
+		formOverlay.style.visibility = "visible";
 
-    const schema = <?php echo $node_schema_json; ?>;
+		var data = {
+			'action': 'save_node',
+			'formData': Form.formData
+		};
 
-    const uiSchema = {
-  	filters: {
-  	  classNames: "murmag-filter-field"
-  	},
+		jQuery.post(ajaxurl, data, function(response) {
 
-  	schemas: {
-  	  classNames: "murmag-schemas-field"
-  	},
+			formOverlay.style.visibility = "hidden";
+			var noticeContainer = document.getElementById('murmagg-admin-form-notice');
 
-  	indices: {
-  	  classNames: "murmag-indices-field"
-  	}
-    };
+			noticeContainer.innerHTML = "";
 
+			for (const message of response.messages){
+				var notice = document.createElement("div");
+				notice.innerHTML = '<p>'+message.message+'</p>';
+				notice.className = "notice notice-"+message.type;
+				noticeContainer.appendChild(notice);
+			}
+			noticeContainer.style.display = "block";
+		});
 
-    const formData = <?php echo $current_values_json; ?>;
+	}
 
-    const log = (type) => console.log.bind(console, type);
+	const Form = JSONSchemaForm.default;
 
-    const saveButton = React.createElement(
-  	'button',
-  	{
-  	  type:"submit",
-  	  className : "button button-primary button-large"
-  	},
-  	'Save Node'
-    );
+	const schema = <?php Utils::e( $node_schema_json ); ?>;
 
-    const element = React.createElement(
-  	Form,
-  	{
-  	  schema,
-  	  uiSchema,
-  	  formData,
-  	  onChange: log("changed"),
-  	  onSubmit: murmagNodeFormSubmit,
-  	  onError: log("errors")
-  	},
-  	saveButton
-    )
-    ReactDOM.render(element, document.getElementById("murmagg-admin-form"));
+	const uiSchema = {
+		filters: {
+			classNames: "murmag-filter-field"
+		},
 
-  </script>
-  		<?php
+		schemas: {
+			classNames: "murmag-schemas-field"
+		},
 
-  	}
-
-    /**
-     * Save the output from the RJSF node form, submitted by XHR
-     */
-    public static function ajax_save_node() {
-
-      llog( 'Saving node' );
-
-      $data = $_POST['formData'];
-
-      $node = new Node( $data );
-
-      $result = $node->save();
-
-      if( $result ){
-        $status = 'success';
-        Notices::set( 'Node '.$result.' saved', 'success' );
-      }else{
-        $status = 'fail';
-        Notices::set( 'Node '.$result.' could not be saved', 'failure' );
-      }
+		indices: {
+			classNames: "murmag-indices-field"
+		}
+	};
 
 
-      $result = array(
-        'data'     => $data,
-        'dataStr'  => print_r( $data, true ),
-        'status'   => $status,
-        'messages' => Notices::get()
-      );
+	const formData = <?php Utils::e( $current_values_json ); ?>;
 
-      wp_send_json( $result );
-    }
+	const log = (type) => console.log.bind(console, type);
+
+	const saveButton = React.createElement(
+		'button',
+		{
+			type:"submit",
+			className : "button button-primary button-large"
+		},
+		'Save Node'
+	);
+
+	const element = React.createElement(
+		Form,
+		{
+			schema,
+			uiSchema,
+			formData,
+			onChange: log("changed"),
+			onSubmit: murmagNodeFormSubmit,
+			onError: log("errors")
+		},
+		saveButton
+	)
+	ReactDOM.render(element, document.getElementById("murmagg-admin-form"));
+	</script>
+		<?php
+
+	}
+
+	/**
+	 * Save the output from the RJSF node form, submitted by XHR
+	 */
+	public static function ajax_save_node() {
+
+		check_ajax_referer( 'ajax_validation', 'nonce' );
+
+		llog( 'Saving node' );
+
+		$data = Utils::input( 'formData', 'POST' );
+
+		$node = new Node( $data );
+
+		$result = $node->save();
+
+		if ( $result ) {
+			$status = 'success';
+			Notices::set( 'Node ' . $result . ' saved', 'success' );
+		} else {
+			$status = 'fail';
+			Notices::set( 'Node ' . $result . ' could not be saved', 'failure' );
+		}
+
+		$result = array(
+			'data'     => $data,
+			'status'   => $status,
+			'messages' => Notices::get(),
+		);
+
+		wp_send_json( $result );
+	}
 
 }
 ?>

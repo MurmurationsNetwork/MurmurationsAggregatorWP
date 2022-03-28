@@ -12,6 +12,13 @@ namespace Murmurations\Aggregator;
  */
 class Network {
 
+	// We'd rather use PHP's cURL here instead of relying on WP functions, for now.
+	// phpcs:disable WordPress.WP.AlternativeFunctions.curl_curl_init
+	// phpcs:disable WordPress.WP.AlternativeFunctions.curl_curl_setopt
+	// phpcs:disable WordPress.WP.AlternativeFunctions.curl_curl_exec
+	// phpcs:disable WordPress.WP.AlternativeFunctions.curl_curl_error
+	// phpcs:disable WordPress.WP.AlternativeFunctions.curl_curl_getinfo
+
 	/**
 	 * Fetch a node profile as JSON
 	 *
@@ -45,7 +52,7 @@ class Network {
 
 		$result = curl_exec( $ch );
 
-		if ( $result === false ) {
+		if ( false === $result ) {
 			Notices::set( 'No result returned from cURL request to node. cURL error: ' . curl_error( $ch ) );
 			return false;
 		}
@@ -96,7 +103,7 @@ class Network {
 
 		$result = curl_exec( $ch );
 
-		if ( $result === false ) {
+		if ( false === $result ) {
 			Notices::set( 'No result returned from cURL request to index. cURL error: ' . curl_error( $ch ) );
 			llog( curl_getinfo( $ch ), 'Failed index request.' );
 			return false;

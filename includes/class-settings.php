@@ -75,7 +75,7 @@ class Settings {
 			if ( $attribs['value'] ) {
 				$settings[ $field ] = $attribs['value'];
 			} elseif ( $attribs['default'] ) {
-				if ( $settings[ $field ] === null || $settings[ $field ] === '' || ( $settings[ $field ] === false && $attribs['type'] !== 'boolean' ) ) {
+				if ( null === $settings[ $field ] || '' === $settings[ $field ] || ( false === $settings[ $field ] && 'boolean' !== $attribs['type'] ) ) {
 					$settings[ $field ] = $attribs['default'];
 				}
 			}
@@ -103,6 +103,7 @@ class Settings {
 	 * @return string Schema JSON
 	 */
 	private static function get_schema_json() {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		return file_get_contents( MURMAG_ROOT_PATH . 'admin_fields_jschema.json' );
 	}
 

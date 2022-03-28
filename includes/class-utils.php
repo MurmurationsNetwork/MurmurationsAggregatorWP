@@ -18,9 +18,11 @@ class Utils {
 	 * @param string $escape_format what WP escaping function to use.
 	 * Options are html, url, js, and attr (for attributes of HTML elements).
 	 */
-	public static function e( string $output, $escape_format = 'html' ) {
+	public static function e( $output, $escape_format = 'html' ) {
 		if ( 'html' === $escape_format ) {
-			echo esc_html( $output );
+			echo wp_kses_post( $output );
+		} elseif ( 'no-html' === $escape_format ) {
+			echo esc_html( $output ); // This function has a very confusing name.
 		} elseif ( 'url' === $escape_format ) {
 			echo esc_url( $output );
 		} elseif ( 'attr' === $escape_format ) {
@@ -38,10 +40,26 @@ class Utils {
 	 * @return mixed the value of the input parmater if present.
 	 */
 	public static function input( $param, $method = 'POST', $filter = FILTER_DEFAULT ) {
-		if ( 'POST' === $method ) {
-			return filter_input( FILTER_POST, $param, $filter );
-		} elseif ( 'GET' === $method ) {
-			return filter_input( FILTER_GET, $param, $filter );
+		/*
+		Nonce check for incoming data has already been performed before this is called,
+		so we need to ignore PHPCS's opinions about this.
+		*/
+	  // phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
+		if ( 'POST' === $method && isset( $_POST[ $param ] ) ) {
+			if ( is_array( $_POST[ $param ] ) ) {
+				return filter_input( INPUT_POST, $param, $filter, FILTER_REQUIRE_ARRAY );
+			} else {
+				return filter_input( INPUT_POST, $param, $filter );
+			}
+		} elseif ( 'GET' === $method && isset( $_GET[ $param ] ) ) {
+			if ( is_array( $_GET[ $param ] ) ) {
+				return filter_input( INPUT_GET, $param, $filter, FILTER_REQUIRE_ARRAY );
+			} else {
+				return filter_input( INPUT_GET, $param, $filter );
+			}
+		} else {
+			return false;
 		}
+		// phpcs:enable
 	}
 }

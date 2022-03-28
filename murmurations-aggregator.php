@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Plugin Name:       Murmurations Aggregator
  * Plugin URI:        https://murmurations.network
@@ -8,9 +7,11 @@
  * Author:            A. McKenty / Photosynthesis
  * Author URI:        Photosynthesis.ca
  * License:           GPLv3
- * License URI:				https://www.gnu.org/licenses/gpl-3.0.html
- * Text Domain:       murmurations
+ * License URI:       https://www.gnu.org/licenses/gpl-3.0.html
+ * Text Domain:       murmurations-aggregator
  * GitHub Plugin URI: https://github.com/MurmurationsNetwork/MurmurationsAggregatorWP
+ *
+ * @package murmurations-aggregator
  */
 
 /*

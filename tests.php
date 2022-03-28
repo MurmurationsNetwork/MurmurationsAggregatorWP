@@ -1,4 +1,12 @@
 <?php
+/**
+ * Informal tests for aggregator functionality
+ *
+ * @package murmurations-aggregator
+ */
+
+// phpcs:disable
+
 namespace Murmurations\Aggregator;
 
 error_reporting( E_ALL );
@@ -24,6 +32,16 @@ if ( $_GET['t'] ) {
 
 
 class Tests {
+
+	public static function utils_input( $param, $method = 'GET', $filter = FILTER_DEFAULT ){
+		$out = array(
+			'input_param' => $param,
+			'POST' => $_POST,
+			'GET' => $_GET,
+			'result' => Utils::input( $param, $method, $filter )
+		);
+		return $out;
+	}
 
   public static function get_template_location( $template ){
 
