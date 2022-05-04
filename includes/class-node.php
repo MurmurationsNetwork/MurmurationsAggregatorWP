@@ -367,6 +367,48 @@ class Node {
 		}
 	}
 
+
+	/**
+	 * Update list of local values for filters
+	 *
+	 * @return boolean true if successful, false on failure.
+	 */
+	public function update_filter_options() {
+		$filter_fields = Settings::get( 'filter_fields' );
+		$options = array();
+		global $wpdb;
+		foreach ( $filter_fields as $field ) {
+			$meta_values = $wpdb->get_results(
+				$wpdb->prepare( "SELECT meta_value FROM $wpdb->postmeta where meta_key = %s", Settings::get( 'meta_prefix' ) . $field ),
+				ARRAY_A
+			);
+
+			foreach ( $meta_values as $key => $row ) {
+				$value = maybe_unserialize( $row['meta_value'] );
+				if ( is_array( $value ) ) {
+					foreach ( $value as $item ) {
+						$options[ $field ][] = $item;
+					}
+				}else{
+					$options[ $field ][] = $value;
+				}
+
+			}
+			if ( isset( $options[ $field ] ) ){
+				$options[ $field ] = array_unique( $options[ $field ] );
+			}
+		}
+
+		$result = update_option( 'murmurations_aggregator_filter_options', $options );
+
+		if ( $result ) {
+			return true;
+		} else {
+			self::error( 'Failed to update filter options' );
+			return false;
+		}
+	}
+
 	/**
 	 * Deactivate this node (set status to draft)
 	 *

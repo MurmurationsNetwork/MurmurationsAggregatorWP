@@ -33,6 +33,10 @@ if ( $_GET['t'] ) {
 
 class Tests {
 
+	public static function node_update_filter_options(){
+		return Node::update_filter_options();
+	}
+
 	public static function utils_input( $param, $method = 'GET', $filter = FILTER_DEFAULT ){
 		$out = array(
 			'input_param' => $param,
@@ -42,7 +46,6 @@ class Tests {
 		);
 		return $out;
 	}
-
   public static function get_template_location( $template ){
 
     $result = Aggregator::get_template_location( $template );
