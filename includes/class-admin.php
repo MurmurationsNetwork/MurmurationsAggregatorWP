@@ -182,12 +182,31 @@ class Admin {
 				}
 
 				if ( is_array( $value ) ) {
-					foreach ( $value as $key => $item ) {
-						// Sometimes array fields have their own "properties" property, and sometimes they don't.
-						if ( ! isset( $attribs['items']['properties'] ) ) {
-							$attribs['items']['properties'] = array( $attribs['items'] );
+
+					// If the type is 'object', it means we've already recursed into an array,
+					// and the items are objects, so we can send the attribs as the schema
+					// directly for the next recursion
+
+					if( 'object' === $attribs['type'] ) {
+
+						$value = self::fix_rjsf_data_types( $attribs, $value );
+
+					} else {
+
+						// Otherwise, we're at an array layer, and we need to make a very simple
+						// schema that defines the (numeric) keys as fields, so the processor will
+						// know what to do with it
+
+						// Note that these eight lines of code took about six hours to get right.
+						// So if you ever need to adjust them, give yourself a day :)
+
+						$field_schema = array();
+						foreach ($value as $key => $item_value) {
+							$field_schema['properties'][ $key ] = $attribs['items'];
 						}
-						$value[ $key ] = self::fix_rjsf_data_types( $attribs['items'], $item );
+
+						$value = self::fix_rjsf_data_types( $field_schema, $value );
+
 					}
 				} elseif ( 'boolean' === $attribs['type'] && is_string( $value ) ) {
 					if ( 'true' === $value ) {
