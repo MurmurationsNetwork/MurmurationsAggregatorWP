@@ -248,7 +248,7 @@ class Aggregator {
 
 
 	/**
-	 * Set the last node update time after client-side node updates
+	 * Set the last node update time and filter value options after client-side node updates
 	 */
 	public static function ajax_wrap_up_nodes_update() {
 
@@ -566,8 +566,21 @@ class Aggregator {
 
 		Notices::set( $message, $class );
 
-		Settings::set( 'update_time', time() );
-		Settings::save();
+		$update_time_result = self::set_update_time();
+
+		$filter_options_result = Node::update_filter_options();
+
+		if ( ! $filter_options_result ) {
+			Notices::set("Failed to update filter options");
+		} else {
+			Notices::set("Updated filter options");
+		}
+
+		if ( ! $update_time_result ) {
+			Notices::set("Failed to set update time");
+		} else {
+			Notices::set("Set update time");
+		}
 
 	}
 

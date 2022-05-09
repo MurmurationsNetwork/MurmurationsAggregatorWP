@@ -392,6 +392,13 @@ class Admin {
 			$parse_new_schemas = true;
 		}
 
+
+		$update_filter_options = false;
+
+		if ( Settings::get( 'filter_fields' ) !== $data['filter_fields'] ) {
+			$update_filter_options = true;
+		}
+
 		if ( Settings::get( 'enable_feeds' ) === 'true' ) {
 			if ( Settings::get( 'feed_update_interval' ) !== $data['feed_update_interval'] ) {
 				$new_interval = $data['feed_update_interval'];
@@ -432,6 +439,16 @@ class Admin {
 			Notices::set( 'New local schema saved', 'success' );
 
 		}
+
+		if ( true === $update_filter_options ) {
+			$filter_options_result = Node::update_filter_options();
+			if ( $filter_options_result ) {
+				Notices::set( 'Filter option values updated', 'success' );
+			} else {
+				Notices::set( 'Could not update filter option values', 'notice' );
+			}
+		}
+
 
 		Notices::set( 'Settings saved', 'success' );
 
