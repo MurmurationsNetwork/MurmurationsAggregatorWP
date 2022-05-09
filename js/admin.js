@@ -63,15 +63,15 @@ function recursiveNodeUpdate(nodes, index){
       }else{
 
         var data = {
-          'action': 'set_update_time',
+          'action': 'wrap_up_nodes_update',
 			    'nonce' : murmurmurations_aggregator_admin.ajaxnonce,
         };
 
         jQuery.post(murmurmurations_aggregator_admin.ajaxurl, data, function(response) {
           if(response.status.toString() == 'success'){
-            node_update_log("Set update time");
+            node_update_log("Set update time and updated filter options");
           } else {
-            node_update_log("Failed to set update time!");
+            node_update_log("Failed to set update time or update filter options!");
           }
         });
 

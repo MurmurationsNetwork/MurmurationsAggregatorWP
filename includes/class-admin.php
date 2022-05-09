@@ -531,10 +531,10 @@ class Admin {
 		);
 
 		add_action(
-			'wp_ajax_set_update_time',
+			'wp_ajax_wrap_up_nodes_update',
 			array(
 				'Murmurations\Aggregator\Aggregator',
-				'ajax_set_update_time',
+				'ajax_wrap_up_nodes_update',
 			)
 		);
 

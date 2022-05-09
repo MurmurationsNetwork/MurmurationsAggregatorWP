@@ -245,15 +245,32 @@ class Aggregator {
 
 	}
 
+
+
 	/**
 	 * Set the last node update time after client-side node updates
 	 */
-	public static function ajax_set_update_time() {
+	public static function ajax_wrap_up_nodes_update() {
 
-		Settings::set( 'update_time', time() );
-		$result = Settings::save();
+		$update_time_result = self::set_update_time();
 
-		if ( ! $result ) {
+		$filter_options_result = Node::update_filter_options();
+
+		if ( ! $filter_options_result ) {
+			Notices::set("Failed to update filter options");
+			llog("Failed to update filter options");
+		} else {
+			Notices::set("Updated filter options");
+		}
+
+		if ( ! $update_time_result ) {
+			Notices::set("Failed to set update time");
+			llog("Failed to set update time");
+		} else {
+			Notices::set("Set update time");
+		}
+
+		if ( ! ( $update_time_result && $filter_options_result ) ) {
 			$status = 'failed';
 		} else {
 			$status = 'success';
@@ -266,6 +283,22 @@ class Aggregator {
 			)
 		);
 
+	}
+
+
+	/**
+	 * Set the last node update time after client-side node updates
+	 */
+	public static function set_update_time() {
+
+		Settings::set( 'update_time', time() );
+		$result = Settings::save();
+
+		if ( $result ) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 

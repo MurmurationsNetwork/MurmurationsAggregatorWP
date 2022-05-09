@@ -399,7 +399,16 @@ class Node {
 			}
 		}
 
-		$result = update_option( 'murmurations_aggregator_filter_options', $options );
+		// Strangely, if the updated value is the same as the current value, update_option
+		// returns false. So, in order to know what's actually going on, check the value first.
+
+		$existing = get_option('murmurations_aggregator_filter_options');
+
+		if ( $existing === $options ) {
+			$result = true;
+		} else {
+			$result = update_option( 'murmurations_aggregator_filter_options', $options );
+		}
 
 		if ( $result ) {
 			return true;

@@ -33,8 +33,23 @@ if ( $_GET['t'] ) {
 
 class Tests {
 
+	public static function agg_set_update_time(){
+		$out = array();
+		$out['result'] = Aggregator::set_update_time();
+		return $out;
+	}
+
+	public static function get_filter_options(){
+		return get_option('murmurations_aggregator_filter_options');
+	}
+
 	public static function node_update_filter_options(){
-		return Node::update_filter_options();
+		$out = array();
+		$out['existing'] = get_option('murmurations_aggregator_filter_options');
+		//$out['result'] = Node::update_filter_options();
+	  update_option( 'murmurations_aggregator_filter_options', "test_value" );
+		$out['updated'] = get_option('murmurations_aggregator_filter_options');
+		return $out;
 	}
 
 	public static function utils_input( $param, $method = 'GET', $filter = FILTER_DEFAULT ){
