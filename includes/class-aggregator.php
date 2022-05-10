@@ -37,6 +37,8 @@ class Aggregator {
 			Feeds::init();
 		}
 
+		Interfaces::init();
+
 		if ( is_admin() ) {
 			Admin::init();
 		}
@@ -692,6 +694,7 @@ class Aggregator {
 		require_once $include_path . 'class-config.php';
 		require_once $include_path . 'class-feeds.php';
 		require_once $include_path . 'class-utils.php';
+		require_once $include_path . 'class-interfaces.php';
 		require_once $include_path . 'logging.php';
 	}
 
