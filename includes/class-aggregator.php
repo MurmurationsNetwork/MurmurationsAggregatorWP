@@ -259,17 +259,17 @@ class Aggregator {
 		$filter_options_result = Node::update_filter_options();
 
 		if ( ! $filter_options_result ) {
-			Notices::set("Failed to update filter options");
-			llog("Failed to update filter options");
+			Notices::set( 'Failed to update filter options' );
+			llog( 'Failed to update filter options' );
 		} else {
-			Notices::set("Updated filter options");
+			Notices::set( 'Updated filter options' );
 		}
 
 		if ( ! $update_time_result ) {
-			Notices::set("Failed to set update time");
-			llog("Failed to set update time");
+			Notices::set( 'Failed to set update time' );
+			llog( 'Failed to set update time' );
 		} else {
-			Notices::set("Set update time");
+			Notices::set( 'Set update time' );
 		}
 
 		if ( ! ( $update_time_result && $filter_options_result ) ) {
@@ -573,15 +573,15 @@ class Aggregator {
 		$filter_options_result = Node::update_filter_options();
 
 		if ( ! $filter_options_result ) {
-			Notices::set("Failed to update filter options");
+			Notices::set( 'Failed to update filter options' );
 		} else {
-			Notices::set("Updated filter options");
+			Notices::set( 'Updated filter options' );
 		}
 
 		if ( ! $update_time_result ) {
-			Notices::set("Failed to set update time");
+			Notices::set( 'Failed to set update time' );
 		} else {
-			Notices::set("Set update time");
+			Notices::set( 'Set update time' );
 		}
 
 	}

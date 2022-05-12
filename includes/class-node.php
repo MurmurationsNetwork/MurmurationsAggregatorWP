@@ -375,9 +375,10 @@ class Node {
 	 */
 	public function update_filter_options() {
 		$filter_fields = Settings::get( 'filter_fields' );
-		$options = array();
+		$options       = array();
 		global $wpdb;
 		foreach ( $filter_fields as $field ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$meta_values = $wpdb->get_results(
 				$wpdb->prepare( "SELECT meta_value FROM $wpdb->postmeta where meta_key = %s", Settings::get( 'meta_prefix' ) . $field ),
 				ARRAY_A
@@ -389,12 +390,11 @@ class Node {
 					foreach ( $value as $item ) {
 						$options[ $field ][] = $item;
 					}
-				}else{
+				} else {
 					$options[ $field ][] = $value;
 				}
-
 			}
-			if ( isset( $options[ $field ] ) ){
+			if ( isset( $options[ $field ] ) ) {
 				$options[ $field ] = array_unique( $options[ $field ] );
 			}
 		}
@@ -402,7 +402,7 @@ class Node {
 		// Strangely, if the updated value is the same as the current value, update_option
 		// returns false. So, in order to know what's actually going on, check the value first.
 
-		$existing = get_option('murmurations_aggregator_filter_options');
+		$existing = get_option( 'murmurations_aggregator_filter_options' );
 
 		if ( $existing === $options ) {
 			$result = true;

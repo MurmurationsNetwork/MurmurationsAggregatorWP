@@ -94,8 +94,8 @@ class Settings {
 	 */
 	public static function save() {
 		$settings = apply_filters( 'murmurations_aggregator_save_settings', self::$settings );
-		$existing = get_option( 'murmurations_aggregator_settings');
-		if( $existing !== $settings ) {
+		$existing = get_option( 'murmurations_aggregator_settings' );
+		if ( $existing !== $settings ) {
 			return update_option( 'murmurations_aggregator_settings', $settings );
 		} else {
 			return true;
