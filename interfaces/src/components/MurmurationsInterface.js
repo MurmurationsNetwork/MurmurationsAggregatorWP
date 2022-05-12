@@ -10,6 +10,7 @@ function MurmurationsInterface({settings, interfaceComp}){
   const [nodes, setNodes] = useState([]);
   const [search, setSearch] = useState(null);
   const [filterFormData, setFilterFormData] = useState(settings.formData);
+  const [filterString, setFilterString] = useState(null);
 
   useEffect(() => {
     fetchNodes()
@@ -21,6 +22,12 @@ function MurmurationsInterface({settings, interfaceComp}){
 
     setIsLoaded(false);
     setNodes([]);
+
+		if(filters){
+			setFilterString(filters);
+		} else if (filterString){
+			filters = filterString;
+		}
 
     var params = new URLSearchParams(filters);
 

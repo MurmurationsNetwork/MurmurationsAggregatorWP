@@ -1,23 +1,23 @@
 {
   "files": {
     "main.css": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/css/main.022a37d0.chunk.css",
-    "main.js": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/main.51a8eb70.chunk.js",
-    "main.js.map": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/main.51a8eb70.chunk.js.map",
+    "main.js": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/main.eedf9507.chunk.js",
+    "main.js.map": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/main.eedf9507.chunk.js.map",
     "runtime-main.js": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/runtime-main.3015f774.js",
     "runtime-main.js.map": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/runtime-main.3015f774.js.map",
     "static/css/2.c1e28d34.chunk.css": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/css/2.c1e28d34.chunk.css",
-    "static/js/2.d6ede555.chunk.js": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/2.d6ede555.chunk.js",
-    "static/js/2.d6ede555.chunk.js.map": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/2.d6ede555.chunk.js.map",
+    "static/js/2.160c8d4d.chunk.js": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/2.160c8d4d.chunk.js",
+    "static/js/2.160c8d4d.chunk.js.map": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/2.160c8d4d.chunk.js.map",
     "index.html": "/wp-content/plugins/murmurations-aggregator/interfaces/build/index.html",
     "static/css/2.c1e28d34.chunk.css.map": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/css/2.c1e28d34.chunk.css.map",
     "static/css/main.022a37d0.chunk.css.map": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/css/main.022a37d0.chunk.css.map",
-    "static/js/2.d6ede555.chunk.js.LICENSE.txt": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/2.d6ede555.chunk.js.LICENSE.txt"
+    "static/js/2.160c8d4d.chunk.js.LICENSE.txt": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/2.160c8d4d.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.3015f774.js",
     "static/css/2.c1e28d34.chunk.css",
-    "static/js/2.d6ede555.chunk.js",
+    "static/js/2.160c8d4d.chunk.js",
     "static/css/main.022a37d0.chunk.css",
-    "static/js/main.51a8eb70.chunk.js"
+    "static/js/main.eedf9507.chunk.js"
   ]
 }
