@@ -185,9 +185,9 @@ class Admin {
 
 					// If the type is 'object', it means we've already recursed into an array,
 					// and the items are objects, so we can send the attribs as the schema
-					// directly for the next recursion
+					// directly for the next recursion.
 
-					if( 'object' === $attribs['type'] ) {
+					if ( 'object' === $attribs['type'] ) {
 
 						$value = self::fix_rjsf_data_types( $attribs, $value );
 
@@ -195,13 +195,13 @@ class Admin {
 
 						// Otherwise, we're at an array layer, and we need to make a very simple
 						// schema that defines the (numeric) keys as fields, so the processor will
-						// know what to do with it
+						// know what to do with it.
 
 						// Note that these eight lines of code took about six hours to get right.
-						// So if you ever need to adjust them, give yourself a day :)
+						// So if you ever need to adjust them, give yourself a day :).
 
 						$field_schema = array();
-						foreach ($value as $key => $item_value) {
+						foreach ( $value as $key => $item_value ) {
 							$field_schema['properties'][ $key ] = $attribs['items'];
 						}
 
@@ -392,7 +392,6 @@ class Admin {
 			$parse_new_schemas = true;
 		}
 
-
 		$update_filter_options = false;
 
 		if ( Settings::get( 'filter_fields' ) !== $data['filter_fields'] ) {
@@ -448,7 +447,6 @@ class Admin {
 				Notices::set( 'Could not update filter option values', 'notice' );
 			}
 		}
-
 
 		Notices::set( 'Settings saved', 'success' );
 
