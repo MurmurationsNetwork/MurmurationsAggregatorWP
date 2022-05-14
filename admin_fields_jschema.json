@@ -118,6 +118,7 @@
           },
           "use_api_key_for_nodes" : {
             "type" :  "boolean",
+            "default" : false,
             "title" :  "Include API key in node requests",
             "description" : "If checked, the API key will also be sent when requesting individual nodes. This should only be used for centralized providers of node data!"
           },
