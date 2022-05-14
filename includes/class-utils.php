@@ -62,4 +62,34 @@ class Utils {
 		}
 		// phpcs:enable
 	}
+
+	/**
+	 * Get the label for an enum value
+	 * 
+	 * @param  array  $enums array of enum values.
+	 * @param  array  $labels array of enum labels.
+	 * @param  mixed $value Enum value to match
+	 * @return mixed Enum label if found, otherwise input value.
+	 */
+	public static function enum_label( array $enums, array $labels, $value ) {
+		$labels = self::enum_labels( $enums, $labels );
+		if ( $labels ) {
+			if ( isset( $labels[ $value ] ) ) {
+				return $labels[ $value ];
+			} else {
+				error( "Enum label not found ", "notice" );
+				return $value;
+			}
+		} else {
+			error( "Enum values and labels don't match", "notice" );
+			return $value;
+		}
+	}
+	public static function enum_labels( array $enums, array $labels ) {
+		if ( count( $enums ) === count( $labels ) ) {
+			return array_combine( $enums, $labels );
+		} else {
+			return false;
+		}
+	}
 }
