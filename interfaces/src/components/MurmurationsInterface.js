@@ -9,34 +9,29 @@ function MurmurationsInterface({settings, interfaceComp}){
   const [error, setError] = useState(false);
   const [nodes, setNodes] = useState([]);
   const [search, setSearch] = useState(null);
+  const [searchSubmission, setSearchSubmission] = useState(null);
   const [filterFormData, setFilterFormData] = useState(settings.formData);
   const [filterString, setFilterString] = useState(null);
 
   useEffect(() => {
     fetchNodes()
-  }, []);
+  }, [filterString,searchSubmission]);
 
-  const fetchNodes = (filters) => {
+  const fetchNodes = () => {
     var api_url = settings.apiUrl;
     var api_node_format = settings.apiNodeFormat;
 
     setIsLoaded(false);
     setNodes([]);
 
-		if(filters){
-			setFilterString(filters);
-		} else if (filterString){
-			filters = filterString;
-		}
+    var params = new URLSearchParams(filterString);
 
-    var params = new URLSearchParams(filters);
-
-    if( interfaceComp == 'directory' ){
+    if( interfaceComp === 'directory' ){
       params.set('format', api_node_format);
     }
 
-    if(search){
-      params.set('search', search);
+    if(searchSubmission){
+      params.set('search', searchSubmission);
     }
 
     fetch(api_url+'?'+params.toString())
@@ -52,7 +47,6 @@ function MurmurationsInterface({settings, interfaceComp}){
         }
       )
 
-
   }
 
   const handleSearchChange = (event) => {
@@ -61,7 +55,7 @@ function MurmurationsInterface({settings, interfaceComp}){
 
   const handleSearchSubmit = (event) => {
     event.preventDefault();
-    fetchNodes();
+		setSearchSubmission(search);
   }
 
   const handleErrors = () => {
@@ -77,7 +71,7 @@ function MurmurationsInterface({settings, interfaceComp}){
 
     Object.keys(formData).forEach((key,index) => {
       if(formData[key]){
-        if (formData[key] != "any" && formData[key] != ""){
+        if (formData[key] !== "any" && formData[key] !== ""){
           if('operator' in settings.filterSchema.properties[key]){
             var op = settings.filterSchema.properties[key].operator;
           }else{
@@ -90,7 +84,7 @@ function MurmurationsInterface({settings, interfaceComp}){
       }
     });
 
-    fetchNodes(filters);
+		setFilterString(filters)
 
   }
 
@@ -101,9 +95,9 @@ function MurmurationsInterface({settings, interfaceComp}){
   if (error) {
     interfaceComponent = <div>Error: {error.message}</div>;
   } else {
-    if (interfaceComp == 'directory' ){
+    if (interfaceComp === 'directory' ){
       interfaceComponent = <Directory nodes={nodes} settings={settings} loaded={isLoaded} />
-    } else if (interfaceComp == 'map' ){
+    } else if (interfaceComp === 'map' ){
       interfaceComponent = <Map nodes={nodes} settings={settings} loaded={isLoaded} />
     }
   }
@@ -121,7 +115,7 @@ function MurmurationsInterface({settings, interfaceComp}){
       <div className="mri-content-container">
         <div className="mri-search-form">
           <form action="/" onSubmit={handleSearchSubmit} >
-            <input type="text" name="search"  onChange={handleSearchChange} value={search} />
+            <input type="text" name="search" onChange={handleSearchChange} value={search} />
             <button type="submit">Search</button>
           </form>
         </div>
