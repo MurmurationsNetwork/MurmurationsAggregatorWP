@@ -163,7 +163,7 @@
       "group" : "data_sources",
 			"default" : [
 				{
-					"url" : "index.murmurations.network/v1/nodes",
+					"url" : "https://index.murmurations.network/v1/nodes",
 					"parameters" : [
 						{
 							"parameter" : "page_size",
