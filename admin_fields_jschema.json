@@ -159,7 +159,18 @@
       "title" :  "Data sources",
       "description" : "Parameters for the data sources from which to fetch node data.",
       "required" : ["url"],
-      "group" : "data_sources"
+      "group" : "data_sources",
+			"default" : [
+				{
+					"url" : "index.murmurations.network/v1/nodes",
+					"parameters" : [
+						{
+							"parameter" : "page_size",
+							"value" : "100"
+						}
+					]
+				}
+			]
     },
     "schemas" : {
       "title" : "Schema files",
@@ -337,7 +348,7 @@
       "description" : "Array of fields to include in list display (may be irrelevant in custom templates)."
     },
     "api_node_format" : {
-      "default" : "JSON",
+      "default" : "HTML",
       "type" :  "string",
       "enum" : ["JSON","HTML"],
       "title" :  "Node format sent to front-end interfaces",
