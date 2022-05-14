@@ -201,6 +201,10 @@ class Admin {
 						// So if you ever need to adjust them, give yourself a day :).
 
 						$field_schema = array();
+						// This is necessary because otherwise if the value is an empty array,
+						// no properties are set, and the recursion chokes on the fact that it's
+						// not an array.
+						$field_schema['properties'] = array();
 						foreach ( $value as $key => $item_value ) {
 							$field_schema['properties'][ $key ] = $attribs['items'];
 						}

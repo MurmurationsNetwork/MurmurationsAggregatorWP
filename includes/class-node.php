@@ -36,9 +36,9 @@ class Node {
 			$profile['primary_url'] = $profile['profile_url'];
 		}
 
-		$profile['primary_url'] = self::canonicalize_url( $profile['primary_url'] );
+		$profile['canonical_url'] = self::canonicalize_url( $profile['primary_url'] );
 
-		$existing_post = self::load_post_by_url( $profile['primary_url'] );
+		$existing_post = self::load_post_by_url( $profile['canonical_url'] );
 
 		if ( $existing_post ) {
 			$profile['post_id']     = $existing_post->ID;
@@ -82,7 +82,7 @@ class Node {
 	 * Build the node object from a WP post
 	 *
 	 * @param  WP_Post $p WP post object.
-	 * @return boolean true if successful, false on failure
+	 * @return mixed node data if successful, false on failure
 	 */
 	public function build_from_wp_post( $p ) {
 
@@ -242,6 +242,8 @@ class Node {
 
 		$post_data['post_type'] = 'murmurations_node';
 
+		$post_data['canonical_url'] = $data['canonical_url'];
+
 		// This method should only be called once the check for an existing post has already been done.
 		// If there is an existing post, the 'post_id' parameter will be set.
 		if ( $data['post_id'] ) {
@@ -313,7 +315,7 @@ class Node {
 
 
 	/**
-	 * Get the node post that match a primary URL
+	 * Get the node post that match a canonical URL
 	 *
 	 * @param string $url the primary_url of the node.
 	 * @param array  $args additional args for the post query.
@@ -329,7 +331,7 @@ class Node {
 			'post_type'   => 'murmurations_node',
 			'meta_query'  => array( // phpcs:ignore
 				array(
-					'key'     => Settings::get( 'meta_prefix' ) . 'primary_url',
+					'key'     => Settings::get( 'meta_prefix' ) . 'canonical_url',
 					'value'   => $url,
 					'compare' => '=',
 				),
