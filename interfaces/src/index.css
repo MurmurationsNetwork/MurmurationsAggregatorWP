@@ -120,7 +120,7 @@
 
 .mri-map {
   position: relative;
-  height: 100%
+  height: 80vh;
 }
 
 .mri-map .leaflet-container{
