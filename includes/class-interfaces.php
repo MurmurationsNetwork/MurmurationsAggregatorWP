@@ -30,9 +30,9 @@ class Interfaces {
 				$default_atts = array();
 				$args         = shortcode_atts( $default_atts, $atts );
 
-				Interfaces::prepare();
+				$code = Interfaces::prepare();
 
-				return "<div id='murmurations-react-directory'></div>";
+				return $code . "<div id='murmurations-react-directory'></div>";
 			}
 		);
 
@@ -42,9 +42,9 @@ class Interfaces {
 				$default_atts = array();
 				$args         = shortcode_atts( $default_atts, $atts );
 
-				Interfaces::prepare();
+				$code = Interfaces::prepare();
 
-				return "<div id='murmurations-react-map'></div>";
+				return $code . "<div id='murmurations-react-map'></div>";
 			}
 		);
 
@@ -90,7 +90,7 @@ class Interfaces {
 		// Run filters, in case wrappers or other plugins are modifying settings.
 		$settings = apply_filters( 'murmurations_interfaces_settings', $settings );
 
-		// Output the settings to client.
+		ob_start();
 		?>
 	<script>
 
@@ -115,6 +115,7 @@ class Interfaces {
 	</script>
 
 		<?php
+		return ob_get_clean();
 	}
 
 	/**
