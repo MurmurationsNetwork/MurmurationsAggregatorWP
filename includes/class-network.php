@@ -10,60 +10,14 @@ namespace Murmurations\Aggregator;
 /**
  * Class that handles communications with the Murmurations network
  */
-class API {
-	/**
-	 * Optional callback for logging
-	 * TODO: Remove this and use global logging by default
-	 */
-	public static $logging_handler = false;
+class Network {
 
-	/**
-	 * Check if a node matches a filter condition
-	 *
-	 * @param  array $node The node to check.
-	 * @param  array $condition Condition to check the node against.
-	 * @return boolean Whether the node matched the condition.
-	 */
-	public static function checkNodeCondition( $node, $condition ) {
-
-		list($subject, $predicate, $object) = $condition;
-
-		if ( ! isset( $node[ $subject ] ) ) {
-			return false;
-		}
-
-		switch ( $predicate ) {
-			case 'equals':
-				if ( $node[ $subject ] == $object ) {
-					return true;
-				}
-				break;
-			case 'isGreaterThan':
-				if ( $node[ $subject ] > $object ) {
-					return true;
-				}
-				break;
-			case 'isLessThan':
-				if ( $node[ $subject ] < $object ) {
-					return true;
-				}
-				break;
-			case 'isIn':
-				if ( strpos( $object, $node[ $subject ] ) !== false ) {
-					return true;
-				}
-				break;
-			case 'includes':
-				if ( strpos( $node[ $subject ], $object ) !== false ) {
-					return true;
-				}
-				break;
-
-			default:
-				return false;
-		}
-
-	}
+	// We'd rather use PHP's cURL here instead of relying on WP functions, for now.
+	// phpcs:disable WordPress.WP.AlternativeFunctions.curl_curl_init
+	// phpcs:disable WordPress.WP.AlternativeFunctions.curl_curl_setopt
+	// phpcs:disable WordPress.WP.AlternativeFunctions.curl_curl_exec
+	// phpcs:disable WordPress.WP.AlternativeFunctions.curl_curl_error
+	// phpcs:disable WordPress.WP.AlternativeFunctions.curl_curl_getinfo
 
 	/**
 	 * Fetch a node profile as JSON
@@ -72,7 +26,7 @@ class API {
 	 * @param  array  $options Options for the request.
 	 * @return string/boolean The returned JSON or false on failure.
 	 */
-	public static function getNodeJson( $url, $options = null ) {
+	public static function get_node_json( $url, $options = null ) {
 
 		$ch = curl_init();
 
@@ -98,7 +52,7 @@ class API {
 
 		$result = curl_exec( $ch );
 
-		if ( $result === false ) {
+		if ( false === $result ) {
 			Notices::set( 'No result returned from cURL request to node. cURL error: ' . curl_error( $ch ) );
 			return false;
 		}
@@ -114,7 +68,7 @@ class API {
 	 * @param  array  $options Options for the request.
 	 * @return string|boolean JSON result or false on failure.
 	 */
-	public static function getIndexJson( $url, $query, $options = null ) {
+	public static function get_index_json( $url, $query, $options = null ) {
 
 		$ch = curl_init();
 
@@ -149,7 +103,7 @@ class API {
 
 		$result = curl_exec( $ch );
 
-		if ( $result === false ) {
+		if ( false === $result ) {
 			Notices::set( 'No result returned from cURL request to index. cURL error: ' . curl_error( $ch ) );
 			llog( curl_getinfo( $ch ), 'Failed index request.' );
 			return false;

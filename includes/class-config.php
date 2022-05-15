@@ -13,13 +13,17 @@ namespace Murmurations\Aggregator;
  * Replaced by consolidated Settings API
  */
 class Config {
-
+	/**
+	 * Array for configuration variables
+	 *
+	 * @var array $config Holds config variables.
+	 */
 	public static $config;
 
 	/**
 	 * Get a configuration value, or all values
 	 *
-	 * @param  string $var The property name
+	 * @param  string $var The property name.
 	 * @return mixed  The property value
 	 */
 	public static function get( $var = null ) {

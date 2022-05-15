@@ -1,0 +1,23 @@
+{
+  "files": {
+    "main.css": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/css/main.ec3c3f90.chunk.css",
+    "main.js": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/main.c22e42bd.chunk.js",
+    "main.js.map": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/main.c22e42bd.chunk.js.map",
+    "runtime-main.js": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/runtime-main.3015f774.js",
+    "runtime-main.js.map": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/runtime-main.3015f774.js.map",
+    "static/css/2.c1e28d34.chunk.css": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/css/2.c1e28d34.chunk.css",
+    "static/js/2.93e2e877.chunk.js": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/2.93e2e877.chunk.js",
+    "static/js/2.93e2e877.chunk.js.map": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/2.93e2e877.chunk.js.map",
+    "index.html": "/wp-content/plugins/murmurations-aggregator/interfaces/build/index.html",
+    "static/css/2.c1e28d34.chunk.css.map": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/css/2.c1e28d34.chunk.css.map",
+    "static/css/main.ec3c3f90.chunk.css.map": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/css/main.ec3c3f90.chunk.css.map",
+    "static/js/2.93e2e877.chunk.js.LICENSE.txt": "/wp-content/plugins/murmurations-aggregator/interfaces/build/static/js/2.93e2e877.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.3015f774.js",
+    "static/css/2.c1e28d34.chunk.css",
+    "static/js/2.93e2e877.chunk.js",
+    "static/css/main.ec3c3f90.chunk.css",
+    "static/js/main.c22e42bd.chunk.js"
+  ]
+}
