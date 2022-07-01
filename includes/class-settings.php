@@ -39,7 +39,7 @@ class Settings {
 	public static function get( $var = null ) {
 		if ( $var ) {
 			$field = self::get_field( $var );
-			if ( $field['value'] ) {
+			if ( isset( $field['value'] ) ) {
 				return $field['value'];
 			} elseif ( isset( self::$settings[ $var ] ) ) {
 				return apply_filters( 'murmurations_aggregator_get_setting', self::$settings[ $var ], $var );
@@ -72,7 +72,7 @@ class Settings {
 		$schema_fields = self::get_fields();
 
 		foreach ( $schema_fields as $field => $attribs ) {
-			if ( $attribs['value'] ) {
+			if ( isset( $attribs['value'] ) ) {
 				$settings[ $field ] = $attribs['value'];
 			} elseif ( $attribs['default'] ) {
 				if ( null === $settings[ $field ] || '' === $settings[ $field ] || ( false === $settings[ $field ] && 'boolean' !== $attribs['type'] ) ) {
