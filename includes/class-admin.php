@@ -466,7 +466,7 @@ class Admin {
 	/**
 	 * Add the settings page callback
 	 */
-	public function add_settings_page() {
+	public static function add_settings_page() {
 
 		$args = array(
 			'page_title' => Config::get( 'plugin_name' ) . ' Settings',

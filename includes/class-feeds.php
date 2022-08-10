@@ -150,7 +150,7 @@ class Feeds {
 	/**
 	 * Delete all the locally stored feed items
 	 */
-	public function delete_all_feed_items() {
+	public static function delete_all_feed_items() {
 
 		$args = array(
 			'post_type'      => 'murms_feed_item',
@@ -172,7 +172,7 @@ class Feeds {
 	 * @param  string $url the feed item URL.
 	 * @return mixed WP_Post or false on failure
 	 */
-	public function load_feed_item( $url ) {
+	public static function load_feed_item( $url ) {
 
 		$args = array(
 			'post_type'   => 'murms_feed_item',

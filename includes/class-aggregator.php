@@ -730,7 +730,7 @@ class Aggregator {
 	/**
 	 * Register the aggregator's hooks and enqueues and such
 	 */
-	public function register_hooks() {
+	public static function register_hooks() {
 
 		add_action( 'init', array( __CLASS__, 'register_cpts_and_taxes' ) );
 
@@ -856,7 +856,7 @@ class Aggregator {
 	/**
 	 * Register custom post types and taxonomies
 	 */
-	public function register_cpts_and_taxes() {
+	public static function register_cpts_and_taxes() {
 
 		register_post_type(
 			'murmurations_node',

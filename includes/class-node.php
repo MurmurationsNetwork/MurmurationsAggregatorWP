@@ -84,7 +84,7 @@ class Node {
 	 * @param  WP_Post $p WP post object.
 	 * @return mixed node data if successful, false on failure
 	 */
-	public function build_from_wp_post( $p ) {
+	public static function build_from_wp_post( $p ) {
 
 		if ( ! is_a( $p, 'WP_Post' ) ) {
 			self::error( 'Attempted to build from invalid WP Post.' );
@@ -131,7 +131,7 @@ class Node {
 	 * @param  array $filters the array of filters to check against.
 	 * @return boolean true if all filters match, otherwise false.
 	 */
-	public function check_filters( array $node, array $filters ) {
+	public static function check_filters( array $node, array $filters ) {
 
 		$matched = true;
 
@@ -150,7 +150,7 @@ class Node {
 	 * @param  array $condition (array with field, comparison, and value).
 	 * @return boolean True if condition is matched, false otherwise.
 	 */
-	private function check_condition( array $node, array $condition ) {
+	private static function check_condition( array $node, array $condition ) {
 
 		$field       = $condition['field'];
 		$comparision = $condition['comparison'];
@@ -199,7 +199,7 @@ class Node {
 	 * @param array $data the node data.
 	 * @return mixed ID of the post if successful, false on failure
 	 */
-	public function save_post( array $data ) {
+	public static function save_post( array $data ) {
 
 		llog( $data, 'Saving post' );
 
@@ -357,7 +357,7 @@ class Node {
 	 *
 	 * @param int $id The ID of the node post to be deleted.
 	 */
-	public function delete( int $id ) {
+	public static function delete( int $id ) {
 		if ( $id ) {
 			$result = wp_delete_post( $id );
 		}
@@ -375,7 +375,7 @@ class Node {
 	 *
 	 * @return boolean true if successful, false on failure.
 	 */
-	public function update_filter_options() {
+	public static function update_filter_options() {
 		$filter_fields = Settings::get( 'filter_fields' );
 		$options       = array();
 		global $wpdb;
@@ -426,7 +426,7 @@ class Node {
 	 * @param int $id The ID of the node post to deactive.
 	 * @return boolean true if successful, false on failure.
 	 */
-	public function deactivate( int $id ) {
+	public static function deactivate( int $id ) {
 		$result = wp_update_post(
 			array(
 				'ID'          => $id,
@@ -446,7 +446,7 @@ class Node {
 	 *
 	 * @param string $error The error message.
 	 */
-	private function error( $error ) {
+	private static function error( $error ) {
 		self::$errors[] = $error;
 		llog( $error, 'Node error' );
 	}
@@ -456,7 +456,7 @@ class Node {
 	 *
 	 * @return boolean true if errors, otherwise false.
 	 */
-	public function has_errors() {
+	public static function has_errors() {
 		return count( self::$errors ) > 0;
 	}
 
@@ -465,7 +465,7 @@ class Node {
 	 *
 	 * @return array Error array.
 	 */
-	public function get_errors() {
+	public static function get_errors() {
 		return self::$errors;
 	}
 
@@ -474,7 +474,7 @@ class Node {
 	 *
 	 * @return string HTML errors string.
 	 */
-	public function get_errors_text() {
+	public static function get_errors_text() {
 		$text = '';
 		foreach ( self::$errors as $key => $error ) {
 			$text .= $error . "<br />\n";
