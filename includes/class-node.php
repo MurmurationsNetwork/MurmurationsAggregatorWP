@@ -104,10 +104,12 @@ class Node {
 			$data[ $key ] = maybe_unserialize( $value[0] );
 		}
 
-		if ( is_array( $data['image'] ) ) {
-			if ( isset( $data['image'][0]['url'] ) ) {
-				$data['images'] = $data['image'];
-				$data['image']  = $data['image'][0]['url'];
+		if ( isset( $data['image'] ) ) {
+			if ( is_array( $data['image'] ) ) {
+				if ( isset( $data['image'][0]['url'] ) ) {
+					$data['images'] = $data['image'];
+					$data['image']  = $data['image'][0]['url'];
+				}
 			}
 		}
 

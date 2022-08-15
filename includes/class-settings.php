@@ -74,7 +74,7 @@ class Settings {
 		foreach ( $schema_fields as $field => $attribs ) {
 			if ( isset( $attribs['value'] ) ) {
 				$settings[ $field ] = $attribs['value'];
-			} elseif ( $attribs['default'] ) {
+			} elseif ( isset( $attribs['default'] ) ) {
 				if ( null === $settings[ $field ] || '' === $settings[ $field ] || ( false === $settings[ $field ] && 'boolean' !== $attribs['type'] ) ) {
 					$settings[ $field ] = $attribs['default'];
 				}
