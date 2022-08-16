@@ -23,6 +23,7 @@ Configure the aggregator by setting at least:
  - The filters that limit nodes collected from the network.
  - One or more data sources (indices) that the aggregator should connect to. By default, the main Mururations index is used.
  - One or more schemas that match the data collected.
+ - If your map has more than 2000 nodes you will need to set the PHP Memeory of your Wordpress installation to 512MB to enable the map to load
 
 ## More help
 
