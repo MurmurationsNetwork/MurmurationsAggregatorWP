@@ -16,6 +16,7 @@ The model for data collected from the network is determined by one or more JSON-
 ## Installation
 
 To install, download a zip of this repo and upload into your plugins directory. Activate through the WP admin.
+NB. Use PHP 7.4
 
 ## Set up
 
