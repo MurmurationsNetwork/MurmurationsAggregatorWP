@@ -1,49 +1,68 @@
 <?php
 /**
  * Plugin Name:       Murmurations Aggregator
- * Plugin URI:        https://murmurations.network
+ * Plugin URI:        https://github.com/MurmurationsNetwork/MurmurationsAggregatorWP
  * Description:       Collect and display data from the Murmurations network
- * Version:           0.2.0
- * Author:            A. McKenty / Photosynthesis
- * Author URI:        Photosynthesis.ca
- * License:           GPLv3
- * License URI:       https://www.gnu.org/licenses/gpl-3.0.html
+ * Version:           1.0.0-beta.0
  * Text Domain:       murmurations-aggregator
- * GitHub Plugin URI: https://github.com/MurmurationsNetwork/MurmurationsAggregatorWP
- *
- * @package murmurations-aggregator
+ * Author:            Murmurations Network
+ * Author URI:        https://murmurations.network
+ * License:           GPLv3
  */
 
 /*
-The Murmurations Aggregator plugin is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+The Murmurations Aggregator plugin is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
 
-Murmurations Aggregator is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+Murmurations Aggregator is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with the Murmurations Aggregator plugin. If not, see https://www.gnu.org/licenses/gpl-3.0.html.
+You should have received a copy of the GNU General Public License along with the Murmurations Aggregator plugin. If not, see https://www.gnu.org/licenses/gpl-3.0.html.
 */
 
-namespace Murmurations\Aggregator;
-
-// If this file is called directly, abort.
-if ( ! defined( 'WPINC' ) ) {
-	die;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
-require plugin_dir_path( __FILE__ ) . 'includes/class-aggregator.php';
+if ( ! class_exists( 'MurmurationsAggregator' ) ) {
+	define( 'MURMURATIONS_AGGREGATOR_URL', plugin_dir_url( __FILE__ ) );
+	define( 'MURMURATIONS_AGGREGATOR_DIR', __DIR__ );
+	define( 'MURMURATIONS_AGGREGATOR_TABLE', 'murmurations_maps');
 
-define( 'MURMAG_ROOT_PATH', plugin_dir_path( __FILE__ ) );
-define( 'MURMAG_ROOT_URL', plugin_dir_url( __FILE__ ) );
+	class MurmurationsAggregator {
+		public function __construct() {
+			$this->register_autoloads();
+			$this->register_admin_page();
+			$this->register_upgrade();
+		}
 
-add_action(
-	'plugins_loaded',
-	function() {
-		Aggregator::init();
+		private function register_autoloads() {
+			spl_autoload_register(function($name){
+				$name = strtolower($name);
+				$name = str_replace('_', '-', $name);
+				$name = 'class-' . $name;
+				$file = __DIR__ . '/admin/classes/' . $name . '.php';
+
+				if ( file_exists( $file ) ) {
+					require_once $file;
+				}
+			});
+		}
+
+		public function register_admin_page() {
+			new Murmurations_Aggregator_Admin_Page();
+		}
+
+		public function register_upgrade() {
+			new Murmurations_Aggregator_Upgrade();
+		}
 	}
-);
+
+	new MurmurationsAggregator();
+}
+
+if ( class_exists('Murmurations_Aggregator_Activation') ) {
+	register_activation_hook( __FILE__, array('Murmurations_Aggregator_Activation', 'activate' ) );
+}
+
+if ( class_exists('Murmurations_Node_Uninstall') ) {
+	register_uninstall_hook( __FILE__, array('Murmurations_Aggregator_Uninstall', 'uninstall' ));
+}

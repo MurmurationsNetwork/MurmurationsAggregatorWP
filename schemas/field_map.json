@@ -1,8 +1,0 @@
-{
-  "name":{
-    "post_field":"post_title"
-  },
-  "description" :{
-    "post_field":"post_content"
-  }
-}
