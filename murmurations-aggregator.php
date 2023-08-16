@@ -32,6 +32,7 @@ if ( ! class_exists( 'MurmurationsAggregator' ) ) {
 			$this->register_autoloads();
 			$this->register_admin_page();
 			$this->register_upgrade();
+			$this->register_custom_post();
 		}
 
 		private function register_autoloads() {
@@ -53,6 +54,10 @@ if ( ! class_exists( 'MurmurationsAggregator' ) ) {
 
 		public function register_upgrade() {
 			new Murmurations_Aggregator_Upgrade();
+		}
+
+		public function register_custom_post() {
+			new Murmurations_Aggregator_Custom_Post();
 		}
 	}
 
