@@ -1,40 +1,67 @@
 import { useEffect, useState } from 'react'
 
+const schemas = [
+  { title: 'An Organization', name: 'organizations_schema-v1.0.0' },
+  { title: 'A Person', name: 'people_schema-v0.1.0' },
+  { title: 'An Offer or Want', name: 'offers_wants_schema-v0.1.0' }
+]
+
 export default function App() {
   const [formData, setFormData] = useState({
     data_url: '',
-    schema: '',
+    schema: 'organizations_schema-v1.0.0',
     name: '',
     lat: '',
     lon: '',
     range: '',
     locality: '',
     region: '',
-    country: '',
     tags: '',
     tags_filter: 'or',
     tags_exact: false,
     primary_url: '',
-    last_updated: '',
-    page: '',
-    page_size: ''
+    last_updated: ''
   })
+  const [countries, setCountries] = useState([])
+  const [selectedCountry, setSelectedCountry] = useState([])
 
   useEffect(() => {
-    console.log('formData', formData)
-  }, [formData])
+    getCountries().then(countries => {
+      const countryKeys = Object.keys(countries)
+      setCountries(countryKeys)
+    })
+  }, [])
+
+  const getCountries = async () => {
+    try {
+      const res = await fetch(
+        'https://test-library.murmurations.network/v2/countries'
+      )
+      return await res.json()
+    } catch (error) {
+      alert(
+        `Error getting countries, please contact the administrator, error: ${error}`
+      )
+    }
+  }
 
   const handleInputChange = event => {
     const { name, value, type, checked } = event.target
     const newValue = type === 'checkbox' ? checked : value
-
-    console.log(newValue)
 
     setFormData(prevData => {
       const newData = Object.assign({}, prevData)
       newData[name] = newValue
       return newData
     })
+  }
+
+  const handleCountryChange = event => {
+    const selected = Array.from(event.target.options)
+      .filter(option => option.selected)
+      .map(option => option.value)
+
+    setSelectedCountry(selected)
   }
 
   const handleSubmit = event => {
@@ -72,14 +99,20 @@ export default function App() {
               >
                 Schema
               </label>
-              <input
+              <select
                 type="text"
                 id="schema"
                 name="schema"
                 value={formData.schema}
                 onChange={handleInputChange}
                 className="w-full border rounded py-2 px-3"
-              />
+              >
+                {schemas.map(schema => (
+                  <option key={schema.name} value={schema.name}>
+                    {schema.title}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="mb-4">
               <label
@@ -190,14 +223,24 @@ export default function App() {
               >
                 Country
               </label>
-              <input
-                type="text"
+              <select
+                multiple={true}
                 id="country"
                 name="country"
-                value={formData.country}
-                onChange={handleInputChange}
+                value={selectedCountry}
+                onChange={handleCountryChange}
                 className="w-full border rounded py-2 px-3"
-              />
+              >
+                {countries.map(country => (
+                  <option
+                    key={country}
+                    value={country}
+                    selected={selectedCountry.includes(country)}
+                  >
+                    {country}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="mb-4">
               <label
@@ -277,38 +320,6 @@ export default function App() {
                 id="last_updated"
                 name="last_updated"
                 value={formData.last_updated}
-                onChange={handleInputChange}
-                className="w-full border rounded py-2 px-3"
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                className="block text-gray-700 font-bold mb-2"
-                htmlFor="page"
-              >
-                Page
-              </label>
-              <input
-                type="number"
-                id="page"
-                name="page"
-                value={formData.page}
-                onChange={handleInputChange}
-                className="w-full border rounded py-2 px-3"
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                className="block text-gray-700 font-bold mb-2"
-                htmlFor="page_size"
-              >
-                Page Size
-              </label>
-              <input
-                type="number"
-                id="page_size"
-                name="page_size"
-                value={formData.page_size}
                 onChange={handleInputChange}
                 className="w-full border rounded py-2 px-3"
               />
