@@ -136,6 +136,13 @@ export default function App() {
 
   const handleProfilesSubmit = async event => {
     event.preventDefault()
+
+    const selectedProfiles = profileList.filter(profile =>
+      selectedIds.includes(profile.id)
+    )
+
+    // todo: send selectedProfiles to WordPress server
+    console.log(selectedProfiles)
   }
 
   return (
