@@ -31,6 +31,15 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 					'callback' => array( $this, 'post_map' ),
 				)
 			);
+
+			register_rest_route(
+				'murmurations-aggregator/v1',
+				'/node',
+				array(
+					'methods'  => 'POST',
+					'callback' => array( $this, 'post_node' ),
+				)
+			);
 		}
 
 		public function get_map( $request ) {
@@ -70,18 +79,46 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'tag_slug'  => $data['tag_slug'],
 			) );
 
-			$response = $this->handle_response( $result, 'Map created successfully.', 'Failed to create a map.' );
+			if ( ! $result ) {
+				return new WP_Error( 'map_creation_failed', 'Failed to create map.', array( 'status' => 500 ) );
+			}
 
-			return rest_ensure_response( $response );
+			return rest_ensure_response( 'Map created successfully.' );
 		}
 
-		private function handle_response( $update_result, $message, $error_message ) {
-			if ( $update_result === false ) {
-				return new WP_Error( 'update_failed', esc_html__( $error_message, 'text-domain' ), array( 'status' => 500 ) );
+		public function post_node($request) {
+			$data = $request->get_json_params();
+
+			$post_title = sanitize_text_field( $data['name'] );
+			$tag_slug = sanitize_text_field( $data['tag_slug'] );
+
+			// create a post
+			$post_id = wp_insert_post( array(
+				'post_title' => $post_title,
+				'post_type' => 'murmurations_node',
+				'post_status' => 'publish',
+			) );
+
+			// set tags
+			if ( ! is_wp_error( $post_id ) && taxonomy_exists( 'murmurations_node_tags' ) ) {
+				$tag = get_term_by( 'slug', $tag_slug, 'murmurations_node_tags' );
+				if ( !$tag ) {
+					wp_insert_term( $tag_slug, 'murmurations_node_tags' );
+					$tag = get_term_by( 'slug', $tag_slug, 'murmurations_node_tags' );
+				}
+
+				wp_set_post_terms( $post_id, array( $tag->term_id ), 'murmurations_node_tags' );
+			}
+
+			// todo: set custom fields
+
+			if ( is_wp_error( $post_id ) ) {
+				return new WP_Error( 'post_creation_failed', 'Failed to create post.', array( 'status' => 500 ) );
 			}
 
 			return array(
-				'message' => esc_html__( $message, 'text-domain' ),
+				'message' => 'Node created successfully.',
+				'post_id' => $post_id,
 			);
 		}
 	}

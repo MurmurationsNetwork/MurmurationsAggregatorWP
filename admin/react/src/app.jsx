@@ -169,8 +169,27 @@ export default function App() {
       selectedIds.includes(profile.id)
     )
 
-    // todo: send selectedProfiles to WordPress server
-    console.log(selectedProfiles)
+    for (const profile of selectedProfiles) {
+      const profileData = {
+        tag_slug: formData.tag_slug,
+        name: profile.name
+      }
+
+      const profileResponse = await fetchRequest(
+        `${apiUrl}/node`,
+        'POST',
+        profileData
+      )
+      // todo: needs to summarize errors and display them in once
+      if (!profileResponse.ok) {
+        const profileResponseData = await profileResponse.json()
+        alert(
+          `Profile Error: ${profileResponse.status} ${JSON.stringify(
+            profileResponseData
+          )}`
+        )
+      }
+    }
   }
 
   const fetchRequest = async (url, method, body) => {
