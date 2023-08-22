@@ -8,7 +8,13 @@ const schemas = [
 ]
 
 export default function App() {
+  // eslint-disable-next-line no-undef
+  const wordpressUrl = murmurations_aggregator.wordpress_url
+  const apiUrl = `${wordpressUrl}/wp-json/murmurations-aggregator/v1`
+
   const [formData, setFormData] = useState({
+    map_name: '',
+    tag_slug: '',
     data_url: '',
     schema: 'organizations_schema-v1.0.0',
     name: '',
@@ -88,7 +94,12 @@ export default function App() {
 
     const queryParams = []
     for (const key in formData) {
-      if (formData[key] !== '' && key !== 'data_url') {
+      if (
+        formData[key] !== '' &&
+        key !== 'data_url' &&
+        key !== 'map_name' &&
+        key !== 'tag_slug'
+      ) {
         queryParams.push(
           `${encodeURIComponent(key)}=${encodeURIComponent(formData[key])}`
         )
@@ -102,8 +113,6 @@ export default function App() {
       '?' +
       (queryString ? `${queryString}&` : '') +
       pageQueries
-
-    console.log(urlWithParams)
 
     try {
       const response = await fetch(urlWithParams)
@@ -121,6 +130,22 @@ export default function App() {
           alert('Error: Too many pages of data. Please narrow your search.')
           return
         }
+        // we have a valid response, we can save the map to the server
+        const mapData = {
+          name: formData.map_name,
+          tag_slug: formData.tag_slug,
+          index_url: formData.data_url,
+          query_url: urlWithParams.replace(formData.data_url, '')
+        }
+
+        const mapResponse = await fetchRequest(`${apiUrl}/map`, 'POST', mapData)
+        if (!mapResponse.ok) {
+          alert(
+            `Map Error: ${mapResponse.status} ${JSON.stringify(mapResponse)}`
+          )
+          return
+        }
+
         const dataWithIds = responseData.data.map((item, index) => {
           item.id = index + 1
           return item
@@ -145,6 +170,20 @@ export default function App() {
     console.log(selectedProfiles)
   }
 
+  const fetchRequest = async (url, method, body) => {
+    try {
+      return await fetch(url, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      })
+    } catch (error) {
+      alert(`Fetch Request error: ${error}`)
+    }
+  }
+
   return (
     <div>
       <h1 className="text-3xl">Murmurations Aggregator</h1>
@@ -155,6 +194,40 @@ export default function App() {
             <div>
               <h2 className="text-xl">Create Data Source</h2>
               <form onSubmit={handleSubmit} className="p-6">
+                <div className="mb-4">
+                  <label
+                    className="block text-gray-700 font-bold mb-2"
+                    htmlFor="map_name"
+                  >
+                    Map Name
+                  </label>
+                  <input
+                    type="text"
+                    id="map_name"
+                    name="map_name"
+                    value={formData.map_name}
+                    onChange={handleInputChange}
+                    className="w-full border rounded py-2 px-3"
+                    required={true}
+                  />
+                </div>
+                <div className="mb-4">
+                  <label
+                    className="block text-gray-700 font-bold mb-2"
+                    htmlFor="tag_slug"
+                  >
+                    Tag Slug (The tag will be applied to all nodes)
+                  </label>
+                  <input
+                    type="text"
+                    id="tag_slug"
+                    name="tag_slug"
+                    value={formData.tag_slug}
+                    onChange={handleInputChange}
+                    className="w-full border rounded py-2 px-3"
+                    required={true}
+                  />
+                </div>
                 <div className="mb-4">
                   <label
                     className="block text-gray-700 font-bold mb-2"

@@ -12,13 +12,15 @@ if ( ! class_exists('Murmurations_Aggregator_Activation') ) {
 
 			$charset_collate = $wpdb->get_charset_collate();
 
+			// Default map center is France
 			$sql = "CREATE TABLE $table_name (
 		        id INT NOT NULL AUTO_INCREMENT,
 		        name VARCHAR(100) NOT NULL,
 		        index_url VARCHAR(100) NOT NULL,
 		        query_url VARCHAR(100) NOT NULL,
-		        tag_slug VARCHAR(100) NOT NULL,
-		        map_center POINT NOT NULL,
+		        tag_slug VARCHAR(100) NOT NULL UNIQUE,
+		        map_center_lat DECIMAL(10, 7) DEFAULT 46.603354 NOT NULL,
+		        map_center_lon DECIMAL(10, 7) DEFAULT 1.888334 NOT NULL,
 		        map_scale INT DEFAULT 5 NOT NULL,
 				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
