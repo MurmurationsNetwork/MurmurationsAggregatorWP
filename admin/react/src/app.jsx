@@ -140,8 +140,11 @@ export default function App() {
 
         const mapResponse = await fetchRequest(`${apiUrl}/map`, 'POST', mapData)
         if (!mapResponse.ok) {
+          const mapResponseData = await mapResponse.json()
           alert(
-            `Map Error: ${mapResponse.status} ${JSON.stringify(mapResponse)}`
+            `Map Error: ${mapResponse.status} ${JSON.stringify(
+              mapResponseData
+            )}`
           )
           return
         }

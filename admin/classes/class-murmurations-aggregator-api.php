@@ -6,21 +6,31 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		private $table_name;
 
 		public function __construct() {
-			add_action( 'rest_api_init', function () {
-				global $wpdb;
-				$this->wpdb       = $wpdb;
-				$this->table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_TABLE;
+			global $wpdb;
+			$this->wpdb       = $wpdb;
+			$this->table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_TABLE;
 
-				register_rest_route( 'murmurations-aggregator/v1', '/map/(?P<tag_slug>[\w]+)', array(
+			add_action( 'rest_api_init', array( $this, 'register_api_routes' ));
+		}
+
+		public function register_api_routes() {
+			register_rest_route(
+				'murmurations-aggregator/v1',
+				'/map/(?P<tag_slug>[\w]+)',
+				array(
 					'methods'  => 'GET',
 					'callback' => array( $this, 'get_map' ),
-				) );
+				)
+			);
 
-				register_rest_route( 'murmurations-aggregator/v1', '/map', array(
+			register_rest_route(
+				'murmurations-aggregator/v1',
+				'/map',
+				array(
 					'methods'  => 'POST',
 					'callback' => array( $this, 'post_map' ),
-				) );
-			} );
+				)
+			);
 		}
 
 		public function get_map( $request ) {
