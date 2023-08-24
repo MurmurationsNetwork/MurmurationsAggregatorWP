@@ -48,10 +48,10 @@ export default function App() {
 
   const getCountries = async () => {
     try {
-      const res = await fetch(
+      const response = await fetch(
         'https://test-library.murmurations.network/v2/countries'
       )
-      return await res.json()
+      return await response.json()
     } catch (error) {
       alert(
         `Error getting countries, please contact the administrator, error: ${error}`
@@ -61,19 +61,19 @@ export default function App() {
 
   const getMaps = async () => {
     try {
-      const res = await fetch(`${apiUrl}/map`)
-      const resData = await res.json()
-      if (!res.ok) {
-        if (res.status === 404) {
+      const response = await fetch(`${apiUrl}/map`)
+      const responseData = await response.json()
+      if (!response.ok) {
+        if (response.status === 404) {
           setMaps([])
           return
         }
 
-        alert(`Error fetching map with response: ${JSON.stringify(res)}`)
+        alert(`Error fetching map with response: ${JSON.stringify(response)}`)
         return
       }
 
-      setMaps(resData)
+      setMaps(responseData)
     } catch (error) {
       alert(
         `Error getting maps, please contact the administrator, error: ${error}`
@@ -177,6 +177,8 @@ export default function App() {
           return
         }
 
+        // todo: save data to WordPress DB - nodes
+
         const dataWithIds = responseData.data.map((item, index) => {
           item.id = index + 1
           return item
@@ -204,7 +206,7 @@ export default function App() {
       }
 
       const profileResponse = await fetchRequest(
-        `${apiUrl}/node`,
+        `${apiUrl}/wp_node`,
         'POST',
         profileData
       )

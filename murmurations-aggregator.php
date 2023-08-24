@@ -26,6 +26,7 @@ if ( ! class_exists( 'MurmurationsAggregator' ) ) {
 	define( 'MURMURATIONS_AGGREGATOR_URL', plugin_dir_url( __FILE__ ) );
 	define( 'MURMURATIONS_AGGREGATOR_DIR', __DIR__ );
 	define( 'MURMURATIONS_AGGREGATOR_TABLE', 'murmurations_maps');
+	define( 'MURMURATIONS_AGGREGATOR_NODE_TABLE', 'murmurations_nodes');
 
 	class MurmurationsAggregator {
 		public function __construct() {

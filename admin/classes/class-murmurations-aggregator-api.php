@@ -40,6 +40,15 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			register_rest_route(
 				'murmurations-aggregator/v1',
+				'/wp_node',
+				array(
+					'methods'  => 'POST',
+					'callback' => array( $this, 'post_wp_node' ),
+				)
+			);
+
+			register_rest_route(
+				'murmurations-aggregator/v1',
 				'/node',
 				array(
 					'methods'  => 'POST',
@@ -103,7 +112,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			return rest_ensure_response( 'Map created successfully.' );
 		}
 
-		public function post_node( $request ) {
+		public function post_wp_node( $request ) {
 			$data = $request->get_json_params();
 
 			$post_title = sanitize_text_field( $data['name'] );
@@ -137,6 +146,36 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'message' => 'Node created successfully.',
 				'post_id' => $post_id,
 			);
+		}
+
+		public function post_node( $request ) {
+			$data = $request->get_json_params();
+
+			// validate data
+			if ( ! isset( $data['profile_url'] ) || ! isset( $data['data'] ) || ! isset( $data['tag_slug'] ) ) {
+				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
+			}
+
+			// check if node already exists
+			$query     = $this->wpdb->prepare( "SELECT * FROM $this->table_name WHERE profile_url = %s", $data['profile_url'] );
+			$node_data = $this->wpdb->get_results( $query );
+
+			if ( $node_data ) {
+				return new WP_Error( 'node_already_exists', 'Node already exists for the provided profile_url', array( 'status' => 400 ) );
+			}
+
+			// insert data
+			$result = $this->wpdb->insert( $this->table_name, array(
+				'profile_url' => $data['profile_url'],
+				'tag_slug'    => $data['tag_slug'],
+				'data'        => $data['data'],
+			) );
+
+			if ( ! $result ) {
+				return new WP_Error( 'node_creation_failed', 'Failed to create node.', array( 'status' => 500 ) );
+			}
+
+			return rest_ensure_response( 'Node created successfully.' );
 		}
 	}
 }
