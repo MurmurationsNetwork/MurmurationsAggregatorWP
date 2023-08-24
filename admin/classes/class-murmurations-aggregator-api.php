@@ -10,7 +10,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$this->wpdb       = $wpdb;
 			$this->table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_TABLE;
 
-			add_action( 'rest_api_init', array( $this, 'register_api_routes' ));
+			add_action( 'rest_api_init', array( $this, 'register_api_routes' ) );
 		}
 
 		public function register_api_routes() {
@@ -27,8 +27,14 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'murmurations-aggregator/v1',
 				'/map',
 				array(
-					'methods'  => 'POST',
-					'callback' => array( $this, 'post_map' ),
+					array(
+						'methods'  => 'GET',
+						'callback' => array( $this, 'get_maps' ),
+					),
+					array(
+						'methods'  => 'POST',
+						'callback' => array( $this, 'post_map' )
+					),
 				)
 			);
 
@@ -50,6 +56,17 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			if ( ! $map_data ) {
 				return new WP_Error( 'no_data_found', 'No map data found for the provided tag_slug', array( 'status' => 404 ) );
+			}
+
+			return rest_ensure_response( $map_data );
+		}
+
+		public function get_maps() {
+			$query    = "SELECT * FROM $this->table_name";
+			$map_data = $this->wpdb->get_results( $query );
+
+			if ( ! $map_data ) {
+				return new WP_Error( 'no_data_found', 'No map data found', array( 'status' => 404 ) );
 			}
 
 			return rest_ensure_response( $map_data );
@@ -86,23 +103,23 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			return rest_ensure_response( 'Map created successfully.' );
 		}
 
-		public function post_node($request) {
+		public function post_node( $request ) {
 			$data = $request->get_json_params();
 
 			$post_title = sanitize_text_field( $data['name'] );
-			$tag_slug = sanitize_text_field( $data['tag_slug'] );
+			$tag_slug   = sanitize_text_field( $data['tag_slug'] );
 
 			// create a post
 			$post_id = wp_insert_post( array(
-				'post_title' => $post_title,
-				'post_type' => 'murmurations_node',
+				'post_title'  => $post_title,
+				'post_type'   => 'murmurations_node',
 				'post_status' => 'publish',
 			) );
 
 			// set tags
 			if ( ! is_wp_error( $post_id ) && taxonomy_exists( 'murmurations_node_tags' ) ) {
 				$tag = get_term_by( 'slug', $tag_slug, 'murmurations_node_tags' );
-				if ( !$tag ) {
+				if ( ! $tag ) {
 					wp_insert_term( $tag_slug, 'murmurations_node_tags' );
 					$tag = get_term_by( 'slug', $tag_slug, 'murmurations_node_tags' );
 				}

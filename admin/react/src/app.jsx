@@ -7,36 +7,42 @@ const schemas = [
   { title: 'An Offer or Want', name: 'offers_wants_schema-v0.1.0' }
 ]
 
+const formDefaults = {
+  map_name: '',
+  tag_slug: '',
+  data_url: '',
+  schema: 'organizations_schema-v1.0.0',
+  name: '',
+  lat: '',
+  lon: '',
+  range: '',
+  locality: '',
+  region: '',
+  tags: '',
+  tags_filter: 'or',
+  tags_exact: false,
+  primary_url: ''
+}
+
 export default function App() {
   // eslint-disable-next-line no-undef
   const wordpressUrl = murmurations_aggregator.wordpress_url
   const apiUrl = `${wordpressUrl}/wp-json/murmurations-aggregator/v1`
 
-  const [formData, setFormData] = useState({
-    map_name: '',
-    tag_slug: '',
-    data_url: '',
-    schema: 'organizations_schema-v1.0.0',
-    name: '',
-    lat: '',
-    lon: '',
-    range: '',
-    locality: '',
-    region: '',
-    tags: '',
-    tags_filter: 'or',
-    tags_exact: false,
-    primary_url: ''
-  })
+  const [formData, setFormData] = useState(formDefaults)
   const [countries, setCountries] = useState([])
   const [selectedCountry, setSelectedCountry] = useState([])
   const [profileList, setProfileList] = useState([])
   const [selectedIds, setSelectedIds] = useState([])
+  const [maps, setMaps] = useState([])
 
   useEffect(() => {
     getCountries().then(countries => {
       const countryKeys = Object.keys(countries)
       setCountries(countryKeys)
+    })
+    getMaps().then(() => {
+      console.log('maps fetched')
     })
   }, [])
 
@@ -49,6 +55,28 @@ export default function App() {
     } catch (error) {
       alert(
         `Error getting countries, please contact the administrator, error: ${error}`
+      )
+    }
+  }
+
+  const getMaps = async () => {
+    try {
+      const res = await fetch(`${apiUrl}/map`)
+      const resData = await res.json()
+      if (!res.ok) {
+        if (res.status === 404) {
+          setMaps([])
+          return
+        }
+
+        alert(`Error fetching map with response: ${JSON.stringify(res)}`)
+        return
+      }
+
+      setMaps(resData)
+    } catch (error) {
+      alert(
+        `Error getting maps, please contact the administrator, error: ${error}`
       )
     }
   }
@@ -190,6 +218,15 @@ export default function App() {
         )
       }
     }
+
+    // set everything back to default
+    setFormData(formDefaults)
+    setSelectedCountry([])
+    setProfileList([])
+    setSelectedIds([])
+
+    // refresh maps
+    await getMaps()
   }
 
   const fetchRequest = async (url, method, body) => {
@@ -516,6 +553,37 @@ export default function App() {
         </div>
         <div className="w-1/2 mt-4">
           <h2 className="text-xl">Map Data</h2>
+          {maps.length > 0 ? (
+            maps.map((map, index) => (
+              <div className="bg-white p-4 rounded shadow-md mt-4" key={index}>
+                <h2 className="text-xl font-semibold mb-2">{map.name}</h2>
+                <p>
+                  <strong>Index URL:</strong> {map.index_url}
+                </p>
+                <p>
+                  <strong>Query URL:</strong> {map.query_url}
+                </p>
+                <p>
+                  <strong>Tag Slug:</strong> {map.tag_slug}
+                </p>
+                <p>
+                  <strong>Map Center:</strong>{' '}
+                  {map.map_center_lon + ',' + map.map_center_lat}
+                </p>
+                <p>
+                  <strong>Map Scale:</strong> {map.map_scale}
+                </p>
+                <p>
+                  <strong>Created At:</strong> {map.created_at}
+                </p>
+                <p>
+                  <strong>Updated At:</strong> {map.updated_at}
+                </p>
+              </div>
+            ))
+          ) : (
+            <p>No maps found.</p>
+          )}
         </div>
       </div>
     </div>
