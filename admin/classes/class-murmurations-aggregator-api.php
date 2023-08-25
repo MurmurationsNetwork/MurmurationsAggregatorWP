@@ -4,11 +4,15 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 	class Murmurations_Aggregator_API {
 		private $wpdb;
 		private $table_name;
+		private $node_table_name;
+		private $hash_algorithm;
 
 		public function __construct() {
 			global $wpdb;
-			$this->wpdb       = $wpdb;
-			$this->table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_TABLE;
+			$this->wpdb            = $wpdb;
+			$this->table_name      = $wpdb->prefix . MURMURATIONS_AGGREGATOR_TABLE;
+			$this->node_table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_NODE_TABLE;
+			$this->hash_algorithm  = 'sha256';
 
 			add_action( 'rest_api_init', array( $this, 'register_api_routes' ) );
 		}
@@ -151,24 +155,32 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		public function post_node( $request ) {
 			$data = $request->get_json_params();
 
+//			return $this->wpdb->last_error;
+
 			// validate data
 			if ( ! isset( $data['profile_url'] ) || ! isset( $data['data'] ) || ! isset( $data['tag_slug'] ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
 			}
 
 			// check if node already exists
-			$query     = $this->wpdb->prepare( "SELECT * FROM $this->table_name WHERE profile_url = %s", $data['profile_url'] );
+			$query     = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE profile_url = %s", $data['profile_url'] );
 			$node_data = $this->wpdb->get_results( $query );
 
 			if ( $node_data ) {
 				return new WP_Error( 'node_already_exists', 'Node already exists for the provided profile_url', array( 'status' => 400 ) );
 			}
 
+			// hash the data
+			$encodedJson = json_encode( $data['data'] );
+			$hashed_data = hash( $this->hash_algorithm, $encodedJson );
+
 			// insert data
-			$result = $this->wpdb->insert( $this->table_name, array(
+			$result = $this->wpdb->insert( $this->node_table_name, array(
 				'profile_url' => $data['profile_url'],
 				'tag_slug'    => $data['tag_slug'],
-				'data'        => $data['data'],
+				'data'        => $encodedJson,
+				'hashed_data' => $hashed_data,
+				'status'      => $data['status'] ?? 'ignored',
 			) );
 
 			if ( ! $result ) {

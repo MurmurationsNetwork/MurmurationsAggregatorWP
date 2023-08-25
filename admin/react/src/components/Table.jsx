@@ -18,6 +18,7 @@ function Table({ tableList, selectedIds, onSelectAll, onSelect }) {
           </th>
           <th className="text-center">ID</th>
           <th className="text-center">Name</th>
+          <th className="text-center">Profile URL</th>
         </tr>
       </thead>
       <tbody>

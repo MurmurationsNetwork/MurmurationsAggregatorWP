@@ -181,12 +181,49 @@ export default function App() {
           return
         }
 
-        // todo: save data to WordPress DB - nodes
+        // set the profileList and save the data to wpdb
+        const profiles = responseData.data
+        const dataWithIds = []
+        for (let i = 0; i < profiles.length; i++) {
+          const profile = profiles[i]
+          let profile_data = ''
+          if (profile.profile_url) {
+            const response = await fetch(profile.profile_url)
+            if (response.ok) {
+              profile_data = await response.json()
+            }
+          }
+          profile.id = i + 1
+          profile.profile_data = profile_data
+          profile.status = profile_data === '' ? 'unavailable' : 'ignored'
 
-        const dataWithIds = responseData.data.map((item, index) => {
-          item.id = index + 1
-          return item
-        })
+          // save data to wpdb
+          // todo: status needs to update according to the settings
+          const profileData = {
+            profile_url: profile.profile_url,
+            data: profile.profile_data,
+            tag_slug: formData.tag_slug,
+            status: profile.status
+          }
+
+          const profileResponse = await fetchRequest(
+            `${apiUrl}/nodes`,
+            'POST',
+            profileData
+          )
+
+          if (!profileResponse.ok) {
+            const profileResponseData = await profileResponse.json()
+            alert(
+              `Unable to save profiles to wpdb, errors: ${JSON.stringify(
+                profileResponseData
+              )}. Please delete the map and try again.`
+            )
+            return
+          }
+
+          dataWithIds.push(profile)
+        }
         setProfileList(dataWithIds)
       } else {
         alert(`Error: ${response.status} ${response}`)

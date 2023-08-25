@@ -35,6 +35,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 		        profile_url VARCHAR(100) NOT NULL,
 		        tag_slug VARCHAR(100) NOT NULL,
 		        data JSON NOT NULL,
+		        hashed_data VARCHAR(100) NOT NULL,
 		        status VARCHAR(100) NOT NULL DEFAULT 'ignored',
 		        PRIMARY KEY (id)
 		    ) $charset_collate;";
