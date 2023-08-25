@@ -61,7 +61,7 @@ export default function App() {
 
   const getMaps = async () => {
     try {
-      const response = await fetch(`${apiUrl}/map`)
+      const response = await fetch(`${apiUrl}/maps`)
       const responseData = await response.json()
       if (!response.ok) {
         if (response.status === 404) {
@@ -166,7 +166,11 @@ export default function App() {
           query_url: urlWithParams.replace(formData.data_url, '')
         }
 
-        const mapResponse = await fetchRequest(`${apiUrl}/map`, 'POST', mapData)
+        const mapResponse = await fetchRequest(
+          `${apiUrl}/maps`,
+          'POST',
+          mapData
+        )
         if (!mapResponse.ok) {
           const mapResponseData = await mapResponse.json()
           alert(
@@ -206,7 +210,7 @@ export default function App() {
       }
 
       const profileResponse = await fetchRequest(
-        `${apiUrl}/wp_node`,
+        `${apiUrl}/wp_nodes`,
         'POST',
         profileData
       )

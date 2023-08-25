@@ -16,7 +16,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		public function register_api_routes() {
 			register_rest_route(
 				'murmurations-aggregator/v1',
-				'/map/(?P<tag_slug>[\w]+)',
+				'/maps/(?P<tag_slug>[\w]+)',
 				array(
 					'methods'  => 'GET',
 					'callback' => array( $this, 'get_map' ),
@@ -25,7 +25,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			register_rest_route(
 				'murmurations-aggregator/v1',
-				'/map',
+				'/maps',
 				array(
 					array(
 						'methods'  => 'GET',
@@ -40,7 +40,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			register_rest_route(
 				'murmurations-aggregator/v1',
-				'/wp_node',
+				'/wp_nodes',
 				array(
 					'methods'  => 'POST',
 					'callback' => array( $this, 'post_wp_node' ),
@@ -49,7 +49,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			register_rest_route(
 				'murmurations-aggregator/v1',
-				'/node',
+				'/nodes',
 				array(
 					'methods'  => 'POST',
 					'callback' => array( $this, 'post_node' ),
