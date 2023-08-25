@@ -18,7 +18,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 		        id INT NOT NULL AUTO_INCREMENT,
 		        name VARCHAR(100) NOT NULL,
 		        index_url VARCHAR(100) NOT NULL,
-		        query_url VARCHAR(100) NOT NULL,
+		        query_url VARCHAR(255) NOT NULL,
 		        tag_slug VARCHAR(100) NOT NULL UNIQUE,
 		        map_center_lat DECIMAL(10, 7) DEFAULT 46.603354 NOT NULL,
 		        map_center_lon DECIMAL(10, 7) DEFAULT 1.888334 NOT NULL,

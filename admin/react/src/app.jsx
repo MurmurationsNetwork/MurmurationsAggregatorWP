@@ -133,6 +133,16 @@ export default function App() {
         )
       }
     }
+
+    // handle country array
+    if (selectedCountry.length > 0) {
+      queryParams.push(
+        `${encodeURIComponent('country')}=${encodeURIComponent(
+          selectedCountry.join(',')
+        )}`
+      )
+    }
+
     const queryString = queryParams.join('&')
     const pageQueries = 'page=1&page_size=500'
 
@@ -243,7 +253,7 @@ export default function App() {
     for (const profile of selectedProfiles) {
       const profileData = {
         tag_slug: formData.tag_slug,
-        name: profile.name
+        profile: profile
       }
 
       const profileResponse = await fetchRequest(

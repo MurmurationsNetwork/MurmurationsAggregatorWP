@@ -117,14 +117,17 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function post_wp_node( $request ) {
-			$data = $request->get_json_params();
+			$data     = $request->get_json_params();
+			$tag_slug = sanitize_text_field( $data['tag_slug'] );
 
-			$post_title = sanitize_text_field( $data['name'] );
-			$tag_slug   = sanitize_text_field( $data['tag_slug'] );
+			// validate profile
+			if ( ! isset( $data['profile'] ) ) {
+				return new WP_Error( 'invalid_data', 'profile field is required.', array( 'status' => 400 ) );
+			}
 
 			// create a post
 			$post_id = wp_insert_post( array(
-				'post_title'  => $post_title,
+				'post_title'  => $data['profile']['name'],
 				'post_type'   => 'murmurations_node',
 				'post_status' => 'publish',
 			) );
@@ -146,6 +149,17 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				return new WP_Error( 'post_creation_failed', 'Failed to create post.', array( 'status' => 500 ) );
 			}
 
+			// update status in node table
+			$result = $this->wpdb->update( $this->node_table_name, array(
+				'status' => 'published',
+			), array(
+				'profile_url' => $data['profile']['profile_url'],
+			) );
+
+			if ( ! $result ) {
+				return new WP_Error( 'node_status update_failed', 'Failed to update node status.', array( 'status' => 500 ) );
+			}
+
 			return array(
 				'message' => 'Node created successfully.',
 				'post_id' => $post_id,
@@ -155,19 +169,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		public function post_node( $request ) {
 			$data = $request->get_json_params();
 
-//			return $this->wpdb->last_error;
-
 			// validate data
 			if ( ! isset( $data['profile_url'] ) || ! isset( $data['data'] ) || ! isset( $data['tag_slug'] ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
-			}
-
-			// check if node already exists
-			$query     = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE profile_url = %s", $data['profile_url'] );
-			$node_data = $this->wpdb->get_results( $query );
-
-			if ( $node_data ) {
-				return new WP_Error( 'node_already_exists', 'Node already exists for the provided profile_url', array( 'status' => 400 ) );
 			}
 
 			// hash the data

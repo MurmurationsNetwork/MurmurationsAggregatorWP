@@ -14,6 +14,7 @@ function TableRow({ response, isSelected, onSelect }) {
       <td className="text-center">{response.id}</td>
       <td className="text-center">{response.name}</td>
       <td className="text-center">{response.profile_url}</td>
+      <td className="text-center">{response.status}</td>
     </tr>
   )
 }
