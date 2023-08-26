@@ -32,11 +32,12 @@ if ( ! class_exists( 'Murmurations_Aggregator_Custom_Post' ) ) {
 				'murmurations_node_tags',
 				'murmurations_node',
 				array(
-					'label'        => 'Murmurations Node Tags',
-					'hierarchical' => false,
-					'show_ui'      => true,
+					'label'             => 'Murmurations Node Tags',
+					'hierarchical'      => false,
+					'show_ui'           => true,
 					'show_admin_column' => true,
-					'rewrite'      => array( 'slug' => 'murmurations-node-tags' ),
+					'query_var'         => true,
+					'rewrite'           => array( 'slug' => 'murmurations-node-tags' ),
 				)
 			);
 
@@ -45,11 +46,12 @@ if ( ! class_exists( 'Murmurations_Aggregator_Custom_Post' ) ) {
 				'murmurations_node_categories',
 				'murmurations_node',
 				array(
-					'label'        => 'Murmurations Node Categories',
-					'hierarchical' => true,
-					'show_ui'      => true,
+					'label'             => 'Murmurations Node Categories',
+					'hierarchical'      => true,
+					'show_ui'           => true,
 					'show_admin_column' => true,
-					'rewrite'      => array( 'slug' => 'murmurations-node-categories' ),
+					'query_var'         => true,
+					'rewrite'           => array( 'slug' => 'murmurations-node-categories' ),
 				)
 			);
 		}
