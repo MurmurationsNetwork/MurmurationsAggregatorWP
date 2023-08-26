@@ -147,7 +147,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				wp_set_post_terms( $post_id, array( $tag->term_id ), 'murmurations_node_tags' );
 			}
 
-			// todo: set custom fields
+			// set custom fields
+			if ( ! is_wp_error( $post_id ) ) {
+				update_post_meta( $post_id, 'murmurations_description', $data['profile']['profile_data']['description'] );
+			}
+
 
 			if ( is_wp_error( $post_id ) ) {
 				return new WP_Error( 'post_creation_failed', 'Failed to create post.', array( 'status' => 500 ) );
