@@ -34,6 +34,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_Custom_Post' ) ) {
 				array(
 					'label'        => 'Murmurations Node Tags',
 					'hierarchical' => false,
+					'show_ui'      => true,
+					'show_admin_column' => true,
 					'rewrite'      => array( 'slug' => 'murmurations-node-tags' ),
 				)
 			);
@@ -45,6 +47,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_Custom_Post' ) ) {
 				array(
 					'label'        => 'Murmurations Node Categories',
 					'hierarchical' => true,
+					'show_ui'      => true,
+					'show_admin_column' => true,
 					'rewrite'      => array( 'slug' => 'murmurations-node-categories' ),
 				)
 			);
