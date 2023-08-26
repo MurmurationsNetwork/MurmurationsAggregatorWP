@@ -62,6 +62,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function get_map( $request ) {
+			var_dump($this->wpdb->last_error);
+
 			$tag_slug = $request->get_param( 'tag_slug' );
 
 			$query    = $this->wpdb->prepare( "SELECT * FROM $this->table_name WHERE tag_slug = %s", $tag_slug );
@@ -113,7 +115,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				return new WP_Error( 'map_creation_failed', 'Failed to create map.', array( 'status' => 500 ) );
 			}
 
-			return rest_ensure_response( 'Map created successfully.' );
+			$inserted_id = $this->wpdb->insert_id;
+
+			return rest_ensure_response( array( 'map_id' => $inserted_id ) );
 		}
 
 		public function post_wp_node( $request ) {
@@ -170,7 +174,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$data = $request->get_json_params();
 
 			// validate data
-			if ( ! isset( $data['profile_url'] ) || ! isset( $data['data'] ) || ! isset( $data['tag_slug'] ) ) {
+			if ( ! isset( $data['profile_url'] ) || ! isset( $data['map_id'] ) || ! isset( $data['data'] ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
 			}
 
@@ -181,7 +185,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			// insert data
 			$result = $this->wpdb->insert( $this->node_table_name, array(
 				'profile_url' => $data['profile_url'],
-				'tag_slug'    => $data['tag_slug'],
+				'map_id'      => $data['map_id'],
 				'data'        => $encodedJson,
 				'hashed_data' => $hashed_data,
 				'status'      => $data['status'] ?? 'ignored',

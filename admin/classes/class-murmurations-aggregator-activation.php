@@ -32,12 +32,13 @@ if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 			// create table for murmurations nodes
 			$node_sql = "CREATE TABLE $node_table_name (
 		        id INT NOT NULL AUTO_INCREMENT,
-		        profile_url VARCHAR(100) NOT NULL,
-		        tag_slug VARCHAR(100) NOT NULL,
-		        data JSON NOT NULL,
-		        hashed_data VARCHAR(100) NOT NULL,
-		        status VARCHAR(100) NOT NULL DEFAULT 'ignored',
-		        PRIMARY KEY (id)
+			    map_id INT NOT NULL,
+			    profile_url VARCHAR(100) NOT NULL,
+			    data JSON NOT NULL,
+			    hashed_data VARCHAR(100) NOT NULL,
+			    status VARCHAR(100) NOT NULL DEFAULT 'ignored',
+			    PRIMARY KEY (id),
+			    FOREIGN KEY (map_id) REFERENCES $table_name(id)
 		    ) $charset_collate;";
 
 			require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );

@@ -181,8 +181,8 @@ export default function App() {
           'POST',
           mapData
         )
+        const mapResponseData = await mapResponse.json()
         if (!mapResponse.ok) {
-          const mapResponseData = await mapResponse.json()
           alert(
             `Map Error: ${mapResponse.status} ${JSON.stringify(
               mapResponseData
@@ -212,7 +212,7 @@ export default function App() {
           const profileData = {
             profile_url: profile.profile_url,
             data: profile.profile_data,
-            tag_slug: formData.tag_slug,
+            map_id: mapResponseData.map_id,
             status: profile.status
           }
 
