@@ -25,8 +25,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! class_exists( 'MurmurationsAggregator' ) ) {
 	define( 'MURMURATIONS_AGGREGATOR_URL', plugin_dir_url( __FILE__ ) );
 	define( 'MURMURATIONS_AGGREGATOR_DIR', __DIR__ );
-	define( 'MURMURATIONS_AGGREGATOR_TABLE', 'murmurations_maps');
-	define( 'MURMURATIONS_AGGREGATOR_NODE_TABLE', 'murmurations_nodes');
+	define( 'MURMURATIONS_AGGREGATOR_TABLE', 'murmurations_maps' );
+	define( 'MURMURATIONS_AGGREGATOR_NODE_TABLE', 'murmurations_nodes' );
 
 	class MurmurationsAggregator {
 		public function __construct() {
@@ -35,19 +35,20 @@ if ( ! class_exists( 'MurmurationsAggregator' ) ) {
 			$this->register_upgrade();
 			$this->register_custom_post();
 			$this->register_api();
+			$this->regsiter_shortcode();
 		}
 
 		private function register_autoloads() {
-			spl_autoload_register(function($name){
-				$name = strtolower($name);
-				$name = str_replace('_', '-', $name);
+			spl_autoload_register( function ( $name ) {
+				$name = strtolower( $name );
+				$name = str_replace( '_', '-', $name );
 				$name = 'class-' . $name;
 				$file = __DIR__ . '/admin/classes/' . $name . '.php';
 
 				if ( file_exists( $file ) ) {
 					require_once $file;
 				}
-			});
+			} );
 		}
 
 		public function register_admin_page() {
@@ -65,15 +66,19 @@ if ( ! class_exists( 'MurmurationsAggregator' ) ) {
 		public function register_api() {
 			new Murmurations_Aggregator_API();
 		}
+
+		public function regsiter_shortcode() {
+			new Murmurations_Aggregator_Shortcode();
+		}
 	}
 
 	new MurmurationsAggregator();
 }
 
-if ( class_exists('Murmurations_Aggregator_Activation') ) {
-	register_activation_hook( __FILE__, array('Murmurations_Aggregator_Activation', 'activate' ) );
+if ( class_exists( 'Murmurations_Aggregator_Activation' ) ) {
+	register_activation_hook( __FILE__, array( 'Murmurations_Aggregator_Activation', 'activate' ) );
 }
 
-if ( class_exists('Murmurations_Node_Uninstall') ) {
-	register_uninstall_hook( __FILE__, array('Murmurations_Aggregator_Uninstall', 'uninstall' ));
+if ( class_exists( 'Murmurations_Node_Uninstall' ) ) {
+	register_uninstall_hook( __FILE__, array( 'Murmurations_Aggregator_Uninstall', 'uninstall' ) );
 }
