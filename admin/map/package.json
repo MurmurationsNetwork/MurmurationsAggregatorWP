@@ -1,0 +1,53 @@
+{
+  "name": "murmurations-aggregator",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "GPLv3",
+  "scripts": {
+    "build": "rimraf ../assets/* && node ./scripts/build-prod.js && npx tailwindcss -i ./src/styles/styles.css -o ../assets/map.css",
+    "dev": "npm-run-all --parallel watch:*",
+    "watch:dev": "nodemon --watch src --ext '*' --exec 'node ./scripts/build-dev.js'",
+    "watch:css": "npx tailwindcss -i ./src/styles/styles.css -o ../assets/map.css --watch",
+    "lint": "eslint --ignore-path .gitignore --ext .js --ext .jsx .",
+    "lint-fix": "eslint --ignore-path .gitignore --ext .js --ext .jsx . --fix",
+    "prettier": "prettier --ignore-path .gitignore \"**/*.+(js|jsx|json)\"",
+    "format": "npm run prettier -- --write",
+    "prepare": "cd ../.. && husky install admin/react/.husky"
+  },
+  "eslintConfig": {
+    "extends": [
+      "eslint-config-prettier"
+    ]
+  },
+  "lint-staged": {
+    "**/*.{js,jsx}": [
+      "npm run lint-fix",
+      "npm run format"
+    ]
+  },
+  "dependencies": {
+    "@changey/react-leaflet-markercluster": "^4.0.0-rc1",
+    "prop-types": "^15.8.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-leaflet": "^4.2.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.4",
+    "esbuild-plugin-eslint": "^0.1.1",
+    "eslint": "^8.34.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-react": "^7.32.2",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.3",
+    "nodemon": "^2.0.21",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^3.0.0",
+    "rimraf": "^5.0.1",
+    "tailwindcss": "^3.3.3"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "sideEffects": false
+}
