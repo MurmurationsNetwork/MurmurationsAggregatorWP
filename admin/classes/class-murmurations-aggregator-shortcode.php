@@ -29,6 +29,10 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			if ( file_exists( $style_file ) ) {
 				wp_enqueue_style( 'murmurations-aggregator', MURMURATIONS_AGGREGATOR_URL . $style, array(), filemtime( $style_file ) );
 			}
+
+			wp_localize_script( 'murmurations-aggregator', 'murmurations_aggregator', array(
+				'wordpress_url' => get_site_url(),
+			) );
 		}
 	}
 }

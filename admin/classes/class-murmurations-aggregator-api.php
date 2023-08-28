@@ -62,18 +62,39 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function get_map( $request ) {
-			var_dump( $this->wpdb->last_error );
-
 			$tag_slug = $request->get_param( 'tag_slug' );
 
-			$query    = $this->wpdb->prepare( "SELECT * FROM $this->table_name WHERE tag_slug = %s", $tag_slug );
-			$map_data = $this->wpdb->get_results( $query );
+			$args = array(
+				'post_type' => 'murmurations_node',
+				'tax_query' => array(
+					array(
+						'taxonomy' => 'murmurations_node_tags',
+						'field' => 'slug',
+						'terms' => $tag_slug,
+					),
+				),
+			);
 
-			if ( ! $map_data ) {
-				return new WP_Error( 'no_data_found', 'No map data found for the provided tag_slug', array( 'status' => 404 ) );
+			$query = new WP_Query($args);
+
+			if (!$query->have_posts()) {
+				return new WP_Error( 'no_posts_found', 'No posts found', array( 'status' => 404 ) );
 			}
 
-			return rest_ensure_response( $map_data );
+			$map = [];
+
+			while ($query->have_posts()) {
+				$query->the_post();
+				$map[] = [
+					get_post_meta(get_the_ID(), 'murmurations_geolocation_lon', true),
+					get_post_meta(get_the_ID(), 'murmurations_geolocation_lat', true),
+					get_the_ID(),
+				];
+			}
+
+			wp_reset_postdata();
+
+			return rest_ensure_response( $map );
 		}
 
 		public function get_maps() {
