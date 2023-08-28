@@ -62,7 +62,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function get_map( $request ) {
-			var_dump($this->wpdb->last_error);
+			var_dump( $this->wpdb->last_error );
 
 			$tag_slug = $request->get_param( 'tag_slug' );
 
@@ -150,6 +150,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			// set custom fields
 			if ( ! is_wp_error( $post_id ) ) {
 				update_post_meta( $post_id, 'murmurations_description', $data['profile']['profile_data']['description'] );
+				update_post_meta( $post_id, 'murmurations_geolocation_lon', $data['profile']['profile_data']['geolocation']['lon'] );
+				update_post_meta( $post_id, 'murmurations_geolocation_lat', $data['profile']['profile_data']['geolocation']['lat'] );
 			}
 
 
