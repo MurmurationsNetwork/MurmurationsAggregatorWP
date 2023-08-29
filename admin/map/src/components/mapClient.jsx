@@ -36,6 +36,9 @@ function MapClient({ profiles, lat, lon, zoom, apiUrl }) {
   let defaultZoom = parseInt(zoom) || 4
 
   useEffect(() => {
+    (async function init() {
+      delete L.Icon.Default.prototype._getIconUrl
+    })()
   }, [])
 
   return (
