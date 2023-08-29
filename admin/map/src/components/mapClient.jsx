@@ -36,9 +36,6 @@ function MapClient({ profiles, lat, lon, zoom, apiUrl }) {
   let defaultZoom = parseInt(zoom) || 4
 
   useEffect(() => {
-    (async function init() {
-      delete L.Icon.Default.prototype._getIconUrl
-    })()
   }, [])
 
   return (
@@ -68,10 +65,12 @@ function MapClient({ profiles, lat, lon, zoom, apiUrl }) {
                 let popupInfo = event.target.getPopup()
                 let content = ''
                 if (responseData.title) {
-                  content += '<strong>Title: ' + responseData.title + '</strong>'
+                  content +=
+                    '<strong>Title: ' + responseData.title + '</strong>'
                 }
                 if (responseData.description) {
-                  content += '<p>Description: ' + responseData.description + '</p>'
+                  content +=
+                    '<p>Description: ' + responseData.description + '</p>'
                 }
                 if (responseData.post_url) {
                   content +=

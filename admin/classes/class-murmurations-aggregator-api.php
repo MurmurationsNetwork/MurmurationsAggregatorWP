@@ -75,6 +75,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			$args = array(
 				'post_type' => 'murmurations_node',
+				'posts_per_page' => -1,
 				'tax_query' => array(
 					array(
 						'taxonomy' => 'murmurations_node_tags',

@@ -19,6 +19,7 @@ export default function App(props) {
 
   const getProfiles = async () => {
     try {
+      console.log(`${apiUrl}/maps/${tagSlug}`)
       const response = await fetch(`${apiUrl}/maps/${tagSlug}`)
       const data = await response.json()
       setProfiles(data)

@@ -35,6 +35,8 @@ export default function App() {
   const [profileList, setProfileList] = useState([])
   const [selectedIds, setSelectedIds] = useState([])
   const [maps, setMaps] = useState([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [progress, setProgress] = useState(0)
 
   useEffect(() => {
     getCountries().then(countries => {
@@ -119,6 +121,7 @@ export default function App() {
 
   const handleSubmit = async event => {
     event.preventDefault()
+    setIsSubmitting(true)
 
     const queryParams = []
     for (const key in formData) {
@@ -194,7 +197,15 @@ export default function App() {
         // set the profileList and save the data to wpdb
         const profiles = responseData.data
         const dataWithIds = []
+        const progressStep = 100 / profiles.length
         for (let i = 0; i < profiles.length; i++) {
+          // update progress
+          if ((i + 1) * progressStep > 100) {
+            setProgress(100)
+          } else {
+            setProgress((i + 1) * progressStep)
+          }
+
           const profile = profiles[i]
           let profile_data = ''
           if (profile.profile_url) {
@@ -235,6 +246,8 @@ export default function App() {
           dataWithIds.push(profile)
         }
         setProfileList(dataWithIds)
+        setIsSubmitting(false)
+        setProgress(0)
       } else {
         alert(`Error: ${response.status} ${response}`)
       }
@@ -245,15 +258,24 @@ export default function App() {
 
   const handleProfilesSubmit = async event => {
     event.preventDefault()
+    setIsSubmitting(true)
 
     const selectedProfiles = profileList.filter(profile =>
       selectedIds.includes(profile.id)
     )
 
-    for (const profile of selectedProfiles) {
+    const progressStep = 100 / selectedProfiles.length
+    for (let i = 0; i < selectedProfiles.length; i++) {
+      // update progress
+      if ((i + 1) * progressStep > 100) {
+        setProgress(100)
+      } else {
+        setProgress((i + 1) * progressStep)
+      }
+
       const profileData = {
         tag_slug: formData.tag_slug,
-        profile: profile
+        profile: selectedProfiles[i]
       }
 
       const profileResponse = await fetchRequest(
@@ -273,6 +295,8 @@ export default function App() {
     }
 
     // set everything back to default
+    setIsSubmitting(false)
+    setProgress(0)
     setFormData(formDefaults)
     setSelectedCountry([])
     setProfileList([])
@@ -572,12 +596,26 @@ export default function App() {
                     className="w-full border rounded py-2 px-3"
                   />
                 </div>
+                {isSubmitting && (
+                  <div className="relative mt-6">
+                    <progress
+                      className="w-full bg-orange-500 h-8 mt-2 rounded"
+                      value={progress}
+                      max="100"
+                    />
+                    <div className="absolute text-white top-3.5 left-0 right-0 text-center">
+                      {progress.toFixed(2)}%
+                    </div>
+                  </div>
+                )}
                 <div className="mt-6">
                   <button
                     type="submit"
-                    className="rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75"
+                    className={`rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
+                      isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                   >
-                    Submit
+                    {isSubmitting ? 'Submitting...' : 'Submit'}
                   </button>
                 </div>
               </form>
@@ -593,11 +631,25 @@ export default function App() {
               />
               <form onSubmit={handleProfilesSubmit} className="p-6">
                 <div className="mt-6">
+                  {isSubmitting && (
+                    <div className="relative mt-6">
+                      <progress
+                        className="w-full bg-orange-500 h-8 mt-2 rounded"
+                        value={progress}
+                        max="100"
+                      />
+                      <div className="absolute text-white top-3.5 left-0 right-0 text-center">
+                        {progress.toFixed(2)}%
+                      </div>
+                    </div>
+                  )}
                   <button
                     type="submit"
-                    className="rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75"
+                    className={`rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
+                      isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                   >
-                    Submit
+                    {isSubmitting ? 'Submitting...' : 'Submit'}
                   </button>
                 </div>
               </form>
