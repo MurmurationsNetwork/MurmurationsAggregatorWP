@@ -44,6 +44,15 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			register_rest_route(
 				'murmurations-aggregator/v1',
+				'/wp_nodes/(?P<post_id>[\w]+)',
+				array(
+					'methods'  => 'GET',
+					'callback' => array( $this, 'get_wp_node' ),
+				)
+			);
+
+			register_rest_route(
+				'murmurations-aggregator/v1',
 				'/wp_nodes',
 				array(
 					'methods'  => 'POST',
@@ -69,25 +78,25 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'tax_query' => array(
 					array(
 						'taxonomy' => 'murmurations_node_tags',
-						'field' => 'slug',
-						'terms' => $tag_slug,
+						'field'    => 'slug',
+						'terms'    => $tag_slug,
 					),
 				),
 			);
 
-			$query = new WP_Query($args);
+			$query = new WP_Query( $args );
 
-			if (!$query->have_posts()) {
+			if ( ! $query->have_posts() ) {
 				return new WP_Error( 'no_posts_found', 'No posts found', array( 'status' => 404 ) );
 			}
 
 			$map = [];
 
-			while ($query->have_posts()) {
+			while ( $query->have_posts() ) {
 				$query->the_post();
 				$map[] = [
-					get_post_meta(get_the_ID(), 'murmurations_geolocation_lon', true),
-					get_post_meta(get_the_ID(), 'murmurations_geolocation_lat', true),
+					get_post_meta( get_the_ID(), 'murmurations_geolocation_lon', true ),
+					get_post_meta( get_the_ID(), 'murmurations_geolocation_lat', true ),
 					get_the_ID(),
 				];
 			}
@@ -139,6 +148,24 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$inserted_id = $this->wpdb->insert_id;
 
 			return rest_ensure_response( array( 'map_id' => $inserted_id ) );
+		}
+
+		public function get_wp_node( $request ) {
+			$post_id = $request['post_id'];
+
+			$post = get_post( $post_id );
+
+			if (! $post || $post->post_type !== 'murmurations_node') {
+				return new WP_Error( 'post_not_found', 'Post not found', array( 'status' => 404 ) );
+			}
+
+			$response = array(
+				'title' => $post->post_title,
+				'post_url' => get_permalink( $post_id ),
+				'description' => get_post_meta( $post_id, 'murmurations_description', true ),
+			);
+
+			return rest_ensure_response( $response );
 		}
 
 		public function post_wp_node( $request ) {

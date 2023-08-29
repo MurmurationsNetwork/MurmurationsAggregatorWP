@@ -6,7 +6,7 @@ import iconUrl from 'leaflet/dist/images/marker-icon.png'
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png'
 import { useEffect } from 'react'
 import PropTypes from 'prop-types'
-import {MapContainer, Marker, Popup, TileLayer} from "react-leaflet";
+import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
 
 import 'leaflet/dist/leaflet.css'
 import '@changey/react-leaflet-markercluster/dist/styles.min.css'
@@ -19,11 +19,17 @@ L.Icon.Default.mergeOptions({
   shadowUrl: shadowUrl
 })
 
-const markerClicked = async postId => {
-  console.log('markerClicked', postId)
+const markerClicked = async (postId, apiUrl) => {
+  try {
+    return await fetch(`${apiUrl}/wp_nodes/${postId}`)
+  } catch (error) {
+    alert(
+      `Error getting post, please contact the administrator, error: ${error}`
+    )
+  }
 }
 
-function MapClient({ profiles, lat, lon, zoom }) {
+function MapClient({ profiles, lat, lon, zoom, apiUrl }) {
   let defaultCenter = []
   defaultCenter[0] = parseFloat(lat) || 48.864716
   defaultCenter[1] = parseFloat(lon) || 2.349014
@@ -37,7 +43,7 @@ function MapClient({ profiles, lat, lon, zoom }) {
 
   return (
     <MapContainer
-      style={{ width: "100%", height: "24rem" }}
+      style={{ width: '100%', height: 'calc(100vh - 16rem)' }}
       center={defaultCenter}
       zoom={defaultZoom}
     >
@@ -52,9 +58,29 @@ function MapClient({ profiles, lat, lon, zoom }) {
             position={[profile[1], profile[0]]}
             eventHandlers={{
               click: async event => {
-                await markerClicked(profile[2])
+                const response = await markerClicked(profile[2], apiUrl)
+                const responseData = await response.json()
+                if (response.status !== 200) {
+                  alert(
+                    `Error getting post, please contact the administrator, error: ${responseData}`
+                  )
+                }
                 let popupInfo = event.target.getPopup()
                 let content = ''
+                if (responseData.title) {
+                  content += '<strong>Title: ' + responseData.title + '</strong>'
+                }
+                if (responseData.description) {
+                  content += '<p>Description: ' + responseData.description + '</p>'
+                }
+                if (responseData.post_url) {
+                  content +=
+                    "<p>URL: <a target='_blank' rel='noreferrer' href='" +
+                    responseData.post_url +
+                    "'>" +
+                    responseData.post_url +
+                    '</a></p>'
+                }
                 popupInfo.setContent(content)
               }
             }}
@@ -71,7 +97,8 @@ MapClient.propTypes = {
   profiles: PropTypes.array.isRequired,
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
-  zoom: PropTypes.number.isRequired
+  zoom: PropTypes.number.isRequired,
+  apiUrl: PropTypes.string.isRequired
 }
 
 export default MapClient

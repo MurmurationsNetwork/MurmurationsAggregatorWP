@@ -32,7 +32,13 @@ export default function App(props) {
   return (
     <div>
       <h1 className="text-3xl">Murmurations Map - {tagSlug}</h1>
-      <MapClient profiles={profiles} lat={46.603354} lon={1.888334} zoom={5} />
+      <MapClient
+        profiles={profiles}
+        lat={46.603354}
+        lon={1.888334}
+        zoom={5}
+        apiUrl={apiUrl}
+      />
     </div>
   )
 }
