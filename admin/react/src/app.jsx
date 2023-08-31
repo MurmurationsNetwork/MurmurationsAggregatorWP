@@ -35,7 +35,7 @@ export default function App() {
   const [profileList, setProfileList] = useState([])
   const [selectedIds, setSelectedIds] = useState([])
   const [maps, setMaps] = useState([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
@@ -121,7 +121,7 @@ export default function App() {
 
   const handleSubmit = async event => {
     event.preventDefault()
-    setIsSubmitting(true)
+    setIsLoading(true)
 
     const queryParams = []
     for (const key in formData) {
@@ -246,7 +246,7 @@ export default function App() {
           dataWithIds.push(profile)
         }
         setProfileList(dataWithIds)
-        setIsSubmitting(false)
+        setIsLoading(false)
         setProgress(0)
       } else {
         alert(`Error: ${response.status} ${response}`)
@@ -258,7 +258,7 @@ export default function App() {
 
   const handleProfilesSubmit = async event => {
     event.preventDefault()
-    setIsSubmitting(true)
+    setIsLoading(true)
 
     const selectedProfiles = profileList.filter(profile =>
       selectedIds.includes(profile.id)
@@ -295,7 +295,7 @@ export default function App() {
     }
 
     // set everything back to default
-    setIsSubmitting(false)
+    setIsLoading(false)
     setProgress(0)
     setFormData(formDefaults)
     setSelectedCountry([])
@@ -304,6 +304,28 @@ export default function App() {
 
     // refresh maps
     await getMaps()
+  }
+
+  const handleDelete = async map_id => {
+    setIsLoading(true)
+
+    try {
+      const mapResponse = await fetchRequest(
+        `${apiUrl}/maps/${map_id}`,
+        'DELETE'
+      )
+      if (!mapResponse.ok) {
+        const mapResponseData = await mapResponse.json()
+        alert(
+          `Map Error: ${mapResponse.status} ${JSON.stringify(mapResponseData)}`
+        )
+      }
+    } catch (error) {
+      alert(`Delete map error: ${error}`)
+    } finally {
+      setIsLoading(false)
+      await getMaps()
+    }
   }
 
   const fetchRequest = async (url, method, body) => {
@@ -325,7 +347,7 @@ export default function App() {
       <h1 className="text-3xl">Murmurations Aggregator</h1>
 
       <div className="flex">
-        <div className="w-1/2 mt-4">
+        <div className="w-1/2 mt-4 p-4">
           {profileList.length === 0 ? (
             <div>
               <h2 className="text-xl">Create Data Source</h2>
@@ -596,7 +618,7 @@ export default function App() {
                     className="w-full border rounded py-2 px-3"
                   />
                 </div>
-                {isSubmitting && (
+                {isLoading && (
                   <div className="relative mt-6">
                     <progress
                       className="w-full bg-orange-500 h-8 mt-2 rounded"
@@ -612,10 +634,10 @@ export default function App() {
                   <button
                     type="submit"
                     className={`rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
-                      isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   >
-                    {isSubmitting ? 'Submitting...' : 'Submit'}
+                    {isLoading ? 'Submitting...' : 'Submit'}
                   </button>
                 </div>
               </form>
@@ -631,7 +653,7 @@ export default function App() {
               />
               <form onSubmit={handleProfilesSubmit} className="p-6">
                 <div className="mt-6">
-                  {isSubmitting && (
+                  {isLoading && (
                     <div className="relative mt-6">
                       <progress
                         className="w-full bg-orange-500 h-8 mt-2 rounded"
@@ -646,17 +668,17 @@ export default function App() {
                   <button
                     type="submit"
                     className={`rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
-                      isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   >
-                    {isSubmitting ? 'Submitting...' : 'Submit'}
+                    {isLoading ? 'Submitting...' : 'Submit'}
                   </button>
                 </div>
               </form>
             </div>
           )}
         </div>
-        <div className="w-1/2 mt-4">
+        <div className="w-1/2 mt-4 p-4">
           <h2 className="text-xl">Map Data</h2>
           {maps.length > 0 ? (
             maps.map((map, index) => (
@@ -684,6 +706,22 @@ export default function App() {
                 <p>
                   <strong>Updated At:</strong> {map.updated_at}
                 </p>
+                <div className="box-border flex flex-wrap xl:min-w-max flex-row mt-4 justify-between">
+                  <button className="my-1 mx-2 max-w-fit rounded-full bg-amber-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75">
+                    Retrieve
+                  </button>
+                  <button className="my-1 mx-2 max-w-fit rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75">
+                    Edit
+                  </button>
+                  <button
+                    className={`my-1 mx-2 max-w-fit rounded-full bg-red-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-red-400 disabled:opacity-75 ${
+                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    onClick={() => handleDelete(map.id)}
+                  >
+                    {isLoading ? 'Loading' : 'Delete'}
+                  </button>
+                </div>
               </div>
             ))
           ) : (

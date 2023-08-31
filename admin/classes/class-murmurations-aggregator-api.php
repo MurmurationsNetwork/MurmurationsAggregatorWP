@@ -44,6 +44,15 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			register_rest_route(
 				'murmurations-aggregator/v1',
+				'/maps/(?P<map_id>[\w]+)',
+				array(
+					'methods'  => 'DELETE',
+					'callback' => array( $this, 'delete_map' ),
+				)
+			);
+
+			register_rest_route(
+				'murmurations-aggregator/v1',
 				'/wp_nodes/(?P<post_id>[\w]+)',
 				array(
 					'methods'  => 'GET',
@@ -74,9 +83,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$tag_slug = $request->get_param( 'tag_slug' );
 
 			$args = array(
-				'post_type' => 'murmurations_node',
-				'posts_per_page' => -1,
-				'tax_query' => array(
+				'post_type'      => 'murmurations_node',
+				'posts_per_page' => - 1,
+				'tax_query'      => array(
 					array(
 						'taxonomy' => 'murmurations_node_tags',
 						'field'    => 'slug',
@@ -151,18 +160,50 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			return rest_ensure_response( array( 'map_id' => $inserted_id ) );
 		}
 
+		public function delete_map( $request ) {
+			// validate map_id
+			$map_id = $request->get_param( 'map_id' );
+			if ( ! $map_id ) {
+				return new WP_Error( 'invalid_map_id', 'Invalid map_id provided', array( 'status' => 400 ) );
+			}
+
+			// get all nodes and delete wordpress posts
+			$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE map_id = %d", $map_id );
+
+			$nodes = $this->wpdb->get_results( $query );
+
+			foreach ( $nodes as $node ) {
+				$post_id = $node->post_id;
+				wp_delete_post( $post_id, true );
+			}
+
+			// delete tags
+			$tag_slug = $nodes[0]->tag_slug;
+			$tag = get_term_by( 'slug', $tag_slug, 'murmurations_node_tags' );
+			wp_delete_term( $tag->term_id, 'murmurations_node_tags' );
+
+			// delete map
+			$result = $this->wpdb->delete( $this->table_name, array( 'id' => $map_id ) );
+
+			if ( ! $result ) {
+				return new WP_Error( 'map_deletion_failed', 'Failed to delete map.', array( 'status' => 500 ) );
+			}
+
+			return rest_ensure_response( 'Map deleted successfully.' );
+		}
+
 		public function get_wp_node( $request ) {
 			$post_id = $request['post_id'];
 
 			$post = get_post( $post_id );
 
-			if (! $post || $post->post_type !== 'murmurations_node') {
+			if ( ! $post || $post->post_type !== 'murmurations_node' ) {
 				return new WP_Error( 'post_not_found', 'Post not found', array( 'status' => 404 ) );
 			}
 
 			$response = array(
-				'title' => $post->post_title,
-				'post_url' => get_permalink( $post_id ),
+				'title'       => $post->post_title,
+				'post_url'    => get_permalink( $post_id ),
 				'description' => get_post_meta( $post_id, 'murmurations_description', true ),
 			);
 
@@ -210,6 +251,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			// update status in node table
 			$result = $this->wpdb->update( $this->node_table_name, array(
+				'post_id' => $post_id,
 				'status' => 'published',
 			), array(
 				'profile_url' => $data['profile']['profile_url'],
