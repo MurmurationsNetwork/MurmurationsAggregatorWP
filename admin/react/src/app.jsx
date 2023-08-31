@@ -250,7 +250,11 @@ export default function App() {
         alert(`Error: ${response.status} ${response}`)
       }
     } catch (error) {
-      alert(`Handle Submit error: ${error}`)
+      alert(
+        `Handle Submit error: ${JSON.stringify(
+          error
+        )}, please delete the map and retry again.`
+      )
     } finally {
       setIsLoading(false)
       setProgress(0)
@@ -261,50 +265,58 @@ export default function App() {
     event.preventDefault()
     setIsLoading(true)
 
-    const selectedProfiles = profileList.filter(profile =>
-      selectedIds.includes(profile.id)
-    )
-
-    const progressStep = 100 / selectedProfiles.length
-    for (let i = 0; i < selectedProfiles.length; i++) {
-      // update progress
-      if ((i + 1) * progressStep > 100) {
-        setProgress(100)
-      } else {
-        setProgress((i + 1) * progressStep)
-      }
-
-      const profileData = {
-        tag_slug: formData.tag_slug,
-        profile: selectedProfiles[i]
-      }
-
-      const profileResponse = await fetchRequest(
-        `${apiUrl}/wp_nodes`,
-        'POST',
-        profileData
+    try {
+      const selectedProfiles = profileList.filter(profile =>
+        selectedIds.includes(profile.id)
       )
-      // todo: needs to summarize errors and display them in once
-      if (!profileResponse.ok) {
-        const profileResponseData = await profileResponse.json()
-        alert(
-          `Profile Error: ${profileResponse.status} ${JSON.stringify(
-            profileResponseData
-          )}`
+
+      const progressStep = 100 / selectedProfiles.length
+      for (let i = 0; i < selectedProfiles.length; i++) {
+        // update progress
+        if ((i + 1) * progressStep > 100) {
+          setProgress(100)
+        } else {
+          setProgress((i + 1) * progressStep)
+        }
+
+        const profileData = {
+          tag_slug: formData.tag_slug,
+          profile: selectedProfiles[i]
+        }
+
+        const profileResponse = await fetchRequest(
+          `${apiUrl}/wp_nodes`,
+          'POST',
+          profileData
         )
+        // todo: needs to summarize errors and display them in once
+        if (!profileResponse.ok) {
+          const profileResponseData = await profileResponse.json()
+          alert(
+            `Profile Error: ${profileResponse.status} ${JSON.stringify(
+              profileResponseData
+            )}`
+          )
+        }
       }
+    } catch (error) {
+      alert(
+        `Handle Profiles Submit error: ${JSON.stringify(
+          error
+        )}, please delete the map and retry again.`
+      )
+    } finally {
+      // set everything back to default
+      setIsLoading(false)
+      setProgress(0)
+      setFormData(formDefaults)
+      setSelectedCountry([])
+      setProfileList([])
+      setSelectedIds([])
+
+      // refresh maps
+      await getMaps()
     }
-
-    // set everything back to default
-    setIsLoading(false)
-    setProgress(0)
-    setFormData(formDefaults)
-    setSelectedCountry([])
-    setProfileList([])
-    setSelectedIds([])
-
-    // refresh maps
-    await getMaps()
   }
 
   const handleDelete = async map_id => {
@@ -322,7 +334,7 @@ export default function App() {
         )
       }
     } catch (error) {
-      alert(`Delete map error: ${error}`)
+      alert(`Delete map error: ${JSON.stringify(error)}`)
     } finally {
       setIsLoading(false)
       await getMaps()
