@@ -143,6 +143,15 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				return new WP_Error( 'map_already_exists', 'Map already exists for the provided tag_slug', array( 'status' => 400 ) );
 			}
 
+			// If we can find same index_url and query_url in db, return 400
+			$query = $this->wpdb->prepare( "SELECT * FROM $this->table_name WHERE index_url = %s AND query_url = %s", $data['index_url'], $data['query_url'] );
+
+			$map_data = $this->wpdb->get_results( $query );
+
+			if ( $map_data ) {
+				return new WP_Error( 'map_already_exists', 'Map already exists for the provided index_url and query_url', array( 'status' => 400 ) );
+			}
+
 			// insert data
 			$result = $this->wpdb->insert( $this->table_name, array(
 				'name'      => $data['name'],
@@ -179,7 +188,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			// delete tags
 			$tag_slug = $nodes[0]->tag_slug;
-			$tag = get_term_by( 'slug', $tag_slug, 'murmurations_node_tags' );
+			$tag      = get_term_by( 'slug', $tag_slug, 'murmurations_node_tags' );
 			wp_delete_term( $tag->term_id, 'murmurations_node_tags' );
 
 			// delete map
@@ -252,7 +261,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			// update status in node table
 			$result = $this->wpdb->update( $this->node_table_name, array(
 				'post_id' => $post_id,
-				'status' => 'published',
+				'status'  => 'published',
 			), array(
 				'profile_url' => $data['profile']['profile_url'],
 			) );

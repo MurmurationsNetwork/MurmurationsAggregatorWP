@@ -246,13 +246,14 @@ export default function App() {
           dataWithIds.push(profile)
         }
         setProfileList(dataWithIds)
-        setIsLoading(false)
-        setProgress(0)
       } else {
         alert(`Error: ${response.status} ${response}`)
       }
     } catch (error) {
       alert(`Handle Submit error: ${error}`)
+    } finally {
+      setIsLoading(false)
+      setProgress(0)
     }
   }
 
