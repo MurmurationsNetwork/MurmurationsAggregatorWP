@@ -261,7 +261,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			// update status in node table
 			$result = $this->wpdb->update( $this->node_table_name, array(
 				'post_id' => $post_id,
-				'status'  => 'published',
+				'status'  => 'publish',
 			), array(
 				'profile_url' => $data['profile']['profile_url'],
 			) );

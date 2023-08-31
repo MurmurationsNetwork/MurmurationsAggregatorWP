@@ -5,6 +5,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Custom_Post' ) ) {
 		public function __construct() {
 			add_action( 'init', array( $this, 'create_murmurations_node_post_type' ) );
 			add_action( 'init', array( $this, 'create_murmurations_node_taxonomy' ) );
+			add_action( 'save_post', array( $this, 'murmurations_nodes_update_status' ) );
 		}
 
 		public function create_murmurations_node_post_type() {
@@ -26,7 +27,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Custom_Post' ) ) {
 			register_post_type( 'murmurations_node', $args );
 		}
 
-		function create_murmurations_node_taxonomy() {
+		public function create_murmurations_node_taxonomy() {
 			// Add custom tags
 			register_taxonomy(
 				'murmurations_node_tags',
@@ -52,6 +53,29 @@ if ( ! class_exists( 'Murmurations_Aggregator_Custom_Post' ) ) {
 					'show_admin_column' => true,
 					'query_var'         => true,
 					'rewrite'           => array( 'slug' => 'murmurations-node-categories' ),
+				)
+			);
+		}
+
+		public function murmurations_nodes_update_status($post_id) {
+			// check if this is an autosave
+			if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+
+			// check the post type
+			if ('murmurations_node' != get_post_type($post_id)) return;
+
+			// update node table status
+			global $wpdb;
+			$node_table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_NODE_TABLE;
+			$post_status = get_post_status($post_id);
+
+			$wpdb->update(
+				$node_table_name,
+				array(
+					'status' => $post_status,
+				),
+				array(
+					'post_id' => $post_id,
 				)
 			);
 		}
