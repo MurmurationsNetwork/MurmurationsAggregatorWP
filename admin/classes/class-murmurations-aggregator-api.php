@@ -22,8 +22,14 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'murmurations-aggregator/v1',
 				'/maps/(?P<tag_slug>[\w]+)',
 				array(
-					'methods'  => 'GET',
-					'callback' => array( $this, 'get_map' ),
+					array(
+						'methods'  => 'GET',
+						'callback' => array( $this, 'get_map' ),
+					),
+					array(
+						'methods'  => 'PUT',
+						'callback' => array( $this, 'put_map' ),
+					),
 				)
 			);
 
@@ -116,6 +122,27 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			return rest_ensure_response( $map );
 		}
 
+		public function put_map($request) {
+			$tag_slug = $request->get_param( 'tag_slug' );
+
+			$data = $request->get_json_params();
+
+			$result = $this->wpdb->update( $this->table_name, array(
+				'name'           => $data['name'],
+				'map_center_lon' => $data['map_center_lon'] ?? '1.8883340',
+				'map_center_lat' => $data['map_center_lat'] ?? '46.6033540',
+				'map_scale'      => $data['map_scale'] ?? '5',
+			), array(
+				'tag_slug' => $tag_slug,
+			) );
+
+			if ( ! $result ) {
+				return new WP_Error( 'map_update_failed', 'Failed to update map.', array( 'status' => 500 ) );
+			}
+
+			return rest_ensure_response( 'Map updated successfully.' );
+		}
+
 		public function get_maps() {
 			$query    = "SELECT * FROM $this->table_name";
 			$map_data = $this->wpdb->get_results( $query );
@@ -154,10 +181,13 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			// insert data
 			$result = $this->wpdb->insert( $this->table_name, array(
-				'name'      => $data['name'],
-				'index_url' => $data['index_url'],
-				'query_url' => $data['query_url'],
-				'tag_slug'  => $data['tag_slug'],
+				'name'           => $data['name'],
+				'index_url'      => $data['index_url'],
+				'query_url'      => $data['query_url'],
+				'tag_slug'       => $data['tag_slug'],
+				'map_center_lon' => $data['map_center_lon'] ?? '1.8883340',
+				'map_center_lat' => $data['map_center_lat'] ?? '46.6033540',
+				'map_scale'      => $data['map_scale'] ?? '5',
 			) );
 
 			if ( ! $result ) {

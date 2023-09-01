@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Table from './components/Table'
+import MapSettings from './components/MapSettings'
 
 const schemas = [
   { title: 'An Organization', name: 'organizations_schema-v1.0.0' },
@@ -9,6 +10,9 @@ const schemas = [
 
 const formDefaults = {
   map_name: '',
+  map_center_lat: '',
+  map_center_lon: '',
+  map_scale: '',
   tag_slug: '',
   data_url: '',
   schema: 'organizations_schema-v1.0.0',
@@ -37,6 +41,7 @@ export default function App() {
   const [maps, setMaps] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [isEdit, setIsEdit] = useState(false)
 
   useEffect(() => {
     getCountries().then(countries => {
@@ -319,6 +324,52 @@ export default function App() {
     }
   }
 
+  const handleEdit = async tag_slug => {
+    setIsEdit(true)
+    setProfileList([])
+    const map = maps.find(map => map.tag_slug === tag_slug)
+    setFormData({
+      map_name: map.name,
+      map_center_lat: map.map_center_lat,
+      map_center_lon: map.map_center_lon,
+      map_scale: map.map_scale,
+      tag_slug: map.tag_slug
+    })
+  }
+
+  const handleEditSubmit = async event => {
+    event.preventDefault()
+
+    setIsLoading(true)
+    const mapData = {
+      name: formData.map_name,
+      map_center_lat: formData.map_center_lat,
+      map_center_lon: formData.map_center_lon,
+      map_scale: formData.map_scale
+    }
+
+    try {
+      const mapResponse = await fetchRequest(
+        `${apiUrl}/maps/${formData.tag_slug}`,
+        'PUT',
+        mapData
+      )
+      if (!mapResponse.ok) {
+        const mapResponseData = await mapResponse.json()
+        alert(
+          `Map Error: ${mapResponse.status} ${JSON.stringify(mapResponseData)}`
+        )
+      }
+    } catch (error) {
+      alert(`Edit map error: ${JSON.stringify(error)}`)
+    } finally {
+      setIsEdit(false)
+      setIsLoading(false)
+      setFormData(formDefaults)
+      await getMaps()
+    }
+  }
+
   const handleDelete = async map_id => {
     setIsLoading(true)
 
@@ -362,299 +413,295 @@ export default function App() {
       <div className="flex">
         <div className="w-1/2 mt-4 p-4">
           {profileList.length === 0 ? (
-            <div>
-              <h2 className="text-xl">Create Data Source</h2>
-              <form onSubmit={handleSubmit} className="p-6">
-                <div className="mb-4">
-                  <label
-                    className="block text-gray-700 font-bold mb-2"
-                    htmlFor="map_name"
-                  >
-                    Map Name
-                  </label>
-                  <input
-                    type="text"
-                    id="map_name"
-                    name="map_name"
-                    value={formData.map_name}
-                    onChange={handleInputChange}
-                    className="w-full border rounded py-2 px-3"
-                    required={true}
+            isEdit ? (
+              <div>
+                <h2 className="text-xl">Edit Data Source</h2>
+                <form onSubmit={handleEditSubmit} className="p-6">
+                  <MapSettings
+                    formData={formData}
+                    handleInputChange={handleInputChange}
+                    isEdit={isEdit}
                   />
-                </div>
-                <div className="mb-4">
-                  <label
-                    className="block text-gray-700 font-bold mb-2"
-                    htmlFor="tag_slug"
-                  >
-                    Tag Slug (The tag will be applied to all nodes)
-                  </label>
-                  <input
-                    type="text"
-                    id="tag_slug"
-                    name="tag_slug"
-                    value={formData.tag_slug}
-                    onChange={handleInputChange}
-                    className="w-full border rounded py-2 px-3"
-                    required={true}
+                  <div className="mt-6">
+                    <button
+                      type="submit"
+                      className={`rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
+                        isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      {isLoading ? 'Submitting...' : 'Submit'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            ) : (
+              <div>
+                <h2 className="text-xl">Create Data Source</h2>
+                <form onSubmit={handleSubmit} className="p-6">
+                  <MapSettings
+                    formData={formData}
+                    handleInputChange={handleInputChange}
                   />
-                </div>
-                <div className="mb-4">
-                  <label
-                    className="block text-gray-700 font-bold mb-2"
-                    htmlFor="data_url"
-                  >
-                    Data URL
-                  </label>
-                  <input
-                    type="text"
-                    id="data_url"
-                    name="data_url"
-                    value={formData.data_url}
-                    onChange={handleInputChange}
-                    className="w-full border rounded py-2 px-3"
-                    required={true}
-                  />
-                </div>
-                <div className="mb-4">
-                  <label
-                    className="block text-gray-700 font-bold mb-2"
-                    htmlFor="schema"
-                  >
-                    Schema
-                  </label>
-                  <select
-                    id="schema"
-                    name="schema"
-                    value={formData.schema}
-                    onChange={handleInputChange}
-                    className="w-full border rounded py-2 px-3"
-                  >
-                    {schemas.map(schema => (
-                      <option key={schema.name} value={schema.name}>
-                        {schema.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="mb-4">
-                  <label
-                    className="block text-gray-700 font-bold mb-2"
-                    htmlFor="name"
-                  >
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="w-full border rounded py-2 px-3"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label
-                    className="block text-gray-700 font-bold mb-2"
-                    htmlFor="lat"
-                  >
-                    Latitude
-                  </label>
-                  <input
-                    type="number"
-                    id="lat"
-                    name="lat"
-                    min="-90"
-                    max="90"
-                    step="any"
-                    value={formData.lat}
-                    onChange={handleInputChange}
-                    className="w-full border rounded py-2 px-3"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label
-                    className="block text-gray-700 font-bold mb-2"
-                    htmlFor="lon"
-                  >
-                    Longitude
-                  </label>
-                  <input
-                    type="number"
-                    id="lon"
-                    name="lon"
-                    min="-180"
-                    max="180"
-                    step="any"
-                    value={formData.lon}
-                    onChange={handleInputChange}
-                    className="w-full border rounded py-2 px-3"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label
-                    className="block text-gray-700 font-bold mb-2"
-                    htmlFor="range"
-                  >
-                    Range (i.e. 25km, 15mi)
-                  </label>
-                  <input
-                    type="text"
-                    id="range"
-                    name="range"
-                    value={formData.range}
-                    onChange={handleInputChange}
-                    className="w-full border rounded py-2 px-3"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label
-                    className="block text-gray-700 font-bold mb-2"
-                    htmlFor="locality"
-                  >
-                    Locality
-                  </label>
-                  <input
-                    type="text"
-                    id="locality"
-                    name="locality"
-                    value={formData.locality}
-                    onChange={handleInputChange}
-                    className="w-full border rounded py-2 px-3"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label
-                    className="block text-gray-700 font-bold mb-2"
-                    htmlFor="region"
-                  >
-                    Region
-                  </label>
-                  <input
-                    type="text"
-                    id="region"
-                    name="region"
-                    value={formData.region}
-                    onChange={handleInputChange}
-                    className="w-full border rounded py-2 px-3"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label
-                    className="block text-gray-700 font-bold mb-2"
-                    htmlFor="country"
-                  >
-                    Country
-                  </label>
-                  <select
-                    multiple={true}
-                    id="country"
-                    name="country"
-                    value={selectedCountry}
-                    onChange={handleCountryChange}
-                    className="w-full border rounded py-2 px-3"
-                  >
-                    {countries.map(country => (
-                      <option
-                        key={country}
-                        value={country}
-                        selected={selectedCountry.includes(country)}
+                  <h2 className="text-xl mt-4">Data Source</h2>
+                  <div className="border-2 border-dotted border-red-500 p-4 mt-2">
+                    <div className="mb-4">
+                      <label
+                        className="block text-gray-700 font-bold mb-2"
+                        htmlFor="data_url"
                       >
-                        {country}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="mb-4">
-                  <label
-                    className="block text-gray-700 font-bold mb-2"
-                    htmlFor="tags"
-                  >
-                    Tags
-                  </label>
-                  <input
-                    type="text"
-                    id="tags"
-                    name="tags"
-                    value={formData.tags}
-                    onChange={handleInputChange}
-                    className="w-full border rounded py-2 px-3"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label
-                    className="block text-gray-700 font-bold mb-2"
-                    htmlFor="tags_filter"
-                  >
-                    Tags Filter
-                  </label>
-                  <select
-                    id="tags_filter"
-                    name="tags_filter"
-                    value={formData.tags_filter}
-                    onChange={handleInputChange}
-                    className="w-full border rounded py-2 px-3"
-                  >
-                    <option value="or">OR</option>
-                    <option value="and">AND</option>
-                  </select>
-                </div>
-                <div className="mb-4">
-                  <label
-                    className="block text-gray-700 font-bold mb-2"
-                    htmlFor="tags_exact"
-                  >
-                    Tags Exact
-                  </label>
-                  <input
-                    type="checkbox"
-                    id="tags_exact"
-                    name="tags_exact"
-                    checked={formData.tags_exact}
-                    onChange={handleInputChange}
-                    className="mr-2"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label
-                    className="block text-gray-700 font-bold mb-2"
-                    htmlFor="primary_url"
-                  >
-                    Primary URL
-                  </label>
-                  <input
-                    type="text"
-                    id="primary_url"
-                    name="primary_url"
-                    value={formData.primary_url}
-                    onChange={handleInputChange}
-                    className="w-full border rounded py-2 px-3"
-                  />
-                </div>
-                {isLoading && (
-                  <div className="relative mt-6">
-                    <progress
-                      className="w-full bg-orange-500 h-8 mt-2 rounded"
-                      value={progress}
-                      max="100"
-                    />
-                    <div className="absolute text-white top-3.5 left-0 right-0 text-center">
-                      {progress.toFixed(2)}%
+                        Data URL
+                      </label>
+                      <input
+                        type="text"
+                        id="data_url"
+                        name="data_url"
+                        value={formData.data_url}
+                        onChange={handleInputChange}
+                        className="w-full border rounded py-2 px-3"
+                        required={true}
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label
+                        className="block text-gray-700 font-bold mb-2"
+                        htmlFor="schema"
+                      >
+                        Schema
+                      </label>
+                      <select
+                        id="schema"
+                        name="schema"
+                        value={formData.schema}
+                        onChange={handleInputChange}
+                        className="w-full border rounded py-2 px-3"
+                      >
+                        {schemas.map(schema => (
+                          <option key={schema.name} value={schema.name}>
+                            {schema.title}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="mb-4">
+                      <label
+                        className="block text-gray-700 font-bold mb-2"
+                        htmlFor="name"
+                      >
+                        Name
+                      </label>
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className="w-full border rounded py-2 px-3"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label
+                        className="block text-gray-700 font-bold mb-2"
+                        htmlFor="lat"
+                      >
+                        Latitude
+                      </label>
+                      <input
+                        type="number"
+                        id="lat"
+                        name="lat"
+                        min="-90"
+                        max="90"
+                        step="any"
+                        value={formData.lat}
+                        onChange={handleInputChange}
+                        className="w-full border rounded py-2 px-3"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label
+                        className="block text-gray-700 font-bold mb-2"
+                        htmlFor="lon"
+                      >
+                        Longitude
+                      </label>
+                      <input
+                        type="number"
+                        id="lon"
+                        name="lon"
+                        min="-180"
+                        max="180"
+                        step="any"
+                        value={formData.lon}
+                        onChange={handleInputChange}
+                        className="w-full border rounded py-2 px-3"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label
+                        className="block text-gray-700 font-bold mb-2"
+                        htmlFor="range"
+                      >
+                        Range (i.e. 25km, 15mi)
+                      </label>
+                      <input
+                        type="text"
+                        id="range"
+                        name="range"
+                        value={formData.range}
+                        onChange={handleInputChange}
+                        className="w-full border rounded py-2 px-3"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label
+                        className="block text-gray-700 font-bold mb-2"
+                        htmlFor="locality"
+                      >
+                        Locality
+                      </label>
+                      <input
+                        type="text"
+                        id="locality"
+                        name="locality"
+                        value={formData.locality}
+                        onChange={handleInputChange}
+                        className="w-full border rounded py-2 px-3"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label
+                        className="block text-gray-700 font-bold mb-2"
+                        htmlFor="region"
+                      >
+                        Region
+                      </label>
+                      <input
+                        type="text"
+                        id="region"
+                        name="region"
+                        value={formData.region}
+                        onChange={handleInputChange}
+                        className="w-full border rounded py-2 px-3"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label
+                        className="block text-gray-700 font-bold mb-2"
+                        htmlFor="country"
+                      >
+                        Country
+                      </label>
+                      <select
+                        multiple={true}
+                        id="country"
+                        name="country"
+                        value={selectedCountry}
+                        onChange={handleCountryChange}
+                        className="w-full border rounded py-2 px-3"
+                      >
+                        {countries.map(country => (
+                          <option
+                            key={country}
+                            value={country}
+                            selected={selectedCountry.includes(country)}
+                          >
+                            {country}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="mb-4">
+                      <label
+                        className="block text-gray-700 font-bold mb-2"
+                        htmlFor="tags"
+                      >
+                        Tags
+                      </label>
+                      <input
+                        type="text"
+                        id="tags"
+                        name="tags"
+                        value={formData.tags}
+                        onChange={handleInputChange}
+                        className="w-full border rounded py-2 px-3"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label
+                        className="block text-gray-700 font-bold mb-2"
+                        htmlFor="tags_filter"
+                      >
+                        Tags Filter
+                      </label>
+                      <select
+                        id="tags_filter"
+                        name="tags_filter"
+                        value={formData.tags_filter}
+                        onChange={handleInputChange}
+                        className="w-full border rounded py-2 px-3"
+                      >
+                        <option value="or">OR</option>
+                        <option value="and">AND</option>
+                      </select>
+                    </div>
+                    <div className="mb-4">
+                      <label
+                        className="block text-gray-700 font-bold mb-2"
+                        htmlFor="tags_exact"
+                      >
+                        Tags Exact
+                      </label>
+                      <input
+                        type="checkbox"
+                        id="tags_exact"
+                        name="tags_exact"
+                        checked={formData.tags_exact}
+                        onChange={handleInputChange}
+                        className="mr-2"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label
+                        className="block text-gray-700 font-bold mb-2"
+                        htmlFor="primary_url"
+                      >
+                        Primary URL
+                      </label>
+                      <input
+                        type="text"
+                        id="primary_url"
+                        name="primary_url"
+                        value={formData.primary_url}
+                        onChange={handleInputChange}
+                        className="w-full border rounded py-2 px-3"
+                      />
                     </div>
                   </div>
-                )}
-                <div className="mt-6">
-                  <button
-                    type="submit"
-                    className={`rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
-                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                  >
-                    {isLoading ? 'Submitting...' : 'Submit'}
-                  </button>
-                </div>
-              </form>
-            </div>
+                  {isLoading && (
+                    <div className="relative mt-6">
+                      <progress
+                        className="w-full bg-orange-500 h-8 mt-2 rounded"
+                        value={progress}
+                        max="100"
+                      />
+                      <div className="absolute text-white top-3.5 left-0 right-0 text-center">
+                        {progress.toFixed(2)}%
+                      </div>
+                    </div>
+                  )}
+                  <div className="mt-6">
+                    <button
+                      type="submit"
+                      className={`rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
+                        isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      {isLoading ? 'Submitting...' : 'Submit'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )
           ) : (
             <div>
               <h2 className="text-xl mt-4">Data Select</h2>
@@ -723,7 +770,10 @@ export default function App() {
                   <button className="my-1 mx-2 max-w-fit rounded-full bg-amber-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75">
                     Retrieve
                   </button>
-                  <button className="my-1 mx-2 max-w-fit rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75">
+                  <button
+                    className="my-1 mx-2 max-w-fit rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75"
+                    onClick={() => handleEdit(map.tag_slug)}
+                  >
                     Edit
                   </button>
                   <button
