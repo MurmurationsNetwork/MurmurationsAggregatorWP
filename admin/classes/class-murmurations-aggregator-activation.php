@@ -3,6 +3,9 @@
 if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 	class Murmurations_Aggregator_Activation {
 		public static function activate() {
+			// force flush rewrite rules
+			flush_rewrite_rules();
+
 			// set plugin version for future DB upgrade
 			$current_version = '1.0.0';
 			update_option( 'murmurations_aggregator_version', $current_version );
