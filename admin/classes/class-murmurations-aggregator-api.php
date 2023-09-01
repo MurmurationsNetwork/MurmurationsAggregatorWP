@@ -122,16 +122,16 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			return rest_ensure_response( $map );
 		}
 
-		public function put_map($request) {
+		public function put_map( $request ) {
 			$tag_slug = $request->get_param( 'tag_slug' );
 
 			$data = $request->get_json_params();
 
 			$result = $this->wpdb->update( $this->table_name, array(
 				'name'           => $data['name'],
-				'map_center_lon' => $data['map_center_lon'] ?? '1.8883340',
-				'map_center_lat' => $data['map_center_lat'] ?? '46.6033540',
-				'map_scale'      => $data['map_scale'] ?? '5',
+				'map_center_lon' => ! empty( $data['map_center_lon'] ) ? sanitize_text_field( $data['map_center_lon'] ) : '1.8883340',
+				'map_center_lat' => ! empty( $data['map_center_lat'] ) ? sanitize_text_field( $data['map_center_lat'] ) : '46.6033540',
+				'map_scale'      => ! empty( $data['map_scale'] ) ? sanitize_text_field( $data['map_scale'] ) : '5',
 			), array(
 				'tag_slug' => $tag_slug,
 			) );
@@ -185,9 +185,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'index_url'      => $data['index_url'],
 				'query_url'      => $data['query_url'],
 				'tag_slug'       => $data['tag_slug'],
-				'map_center_lon' => $data['map_center_lon'] ?? '1.8883340',
-				'map_center_lat' => $data['map_center_lat'] ?? '46.6033540',
-				'map_scale'      => $data['map_scale'] ?? '5',
+				'map_center_lon' => ! empty( $data['map_center_lon'] ) ? sanitize_text_field( $data['map_center_lon'] ) : '1.8883340',
+				'map_center_lat' => ! empty( $data['map_center_lat'] ) ? sanitize_text_field( $data['map_center_lat'] ) : '46.6033540',
+				'map_scale'      => ! empty( $data['map_scale'] ) ? sanitize_text_field( $data['map_scale'] ) : '5',
 			) );
 
 			if ( ! $result ) {
