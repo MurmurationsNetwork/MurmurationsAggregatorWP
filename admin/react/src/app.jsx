@@ -22,6 +22,7 @@ const formDefaults = {
   range: '',
   locality: '',
   region: '',
+  country: '',
   tags: '',
   tags_filter: 'or',
   tags_exact: false,
@@ -685,7 +686,7 @@ export default function App() {
                         max="100"
                       />
                       <div className="absolute text-white top-3.5 left-0 right-0 text-center">
-                        {progress.toFixed(2)}%
+                        {progress.toFixed(0)}%
                       </div>
                     </div>
                   )}
@@ -721,7 +722,7 @@ export default function App() {
                         max="100"
                       />
                       <div className="absolute text-white top-3.5 left-0 right-0 text-center">
-                        {progress.toFixed(2)}%
+                        {progress.toFixed(0)}%
                       </div>
                     </div>
                   )}
