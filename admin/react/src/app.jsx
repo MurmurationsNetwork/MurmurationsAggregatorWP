@@ -43,6 +43,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [isEdit, setIsEdit] = useState(false)
+  const [selectedStatusOption, setSelectedStatusOption] = useState('publish')
 
   useEffect(() => {
     getCountries().then(countries => {
@@ -222,14 +223,15 @@ export default function App() {
           }
           profile.id = i + 1
           profile.profile_data = profile_data
-          profile.status = profile_data === '' ? 'unavailable' : 'ignored'
+          profile.status = 'new'
+          profile.map_id = mapResponseData.map_id
 
           // save data to wpdb
           // todo: status needs to update according to the settings
           const profileData = {
             profile_url: profile.profile_url,
             data: profile.profile_data,
-            map_id: mapResponseData.map_id,
+            map_id: profile.map_id,
             status: profile.status
           }
 
@@ -248,6 +250,9 @@ export default function App() {
             )
             return
           }
+
+          // set extra nodes
+          profile.extra_notes = profile_data === '' ? 'unavailable' : ''
 
           dataWithIds.push(profile)
         }
@@ -272,11 +277,12 @@ export default function App() {
     setIsLoading(true)
 
     try {
+      // get the selected profiles
       const selectedProfiles = profileList.filter(profile =>
         selectedIds.includes(profile.id)
       )
-
       const progressStep = 100 / selectedProfiles.length
+
       for (let i = 0; i < selectedProfiles.length; i++) {
         // update progress
         if ((i + 1) * progressStep > 100) {
@@ -285,25 +291,70 @@ export default function App() {
           setProgress((i + 1) * progressStep)
         }
 
-        const profileData = {
-          tag_slug: formData.tag_slug,
-          profile: selectedProfiles[i]
-        }
+        const profile = selectedProfiles[i]
 
-        const profileResponse = await fetchRequest(
-          `${apiUrl}/wp_nodes`,
-          'POST',
-          profileData
-        )
-        // todo: needs to summarize errors and display them in once
-        if (!profileResponse.ok) {
-          const profileResponseData = await profileResponse.json()
-          alert(
-            `Profile Error: ${profileResponse.status} ${JSON.stringify(
-              profileResponseData
-            )}`
+        // if the profile wants to publish, it will create post in WordPress
+        if (selectedStatusOption === 'publish') {
+          const profileData = {
+            tag_slug: formData.tag_slug,
+            profile: profile
+          }
+
+          const profileResponse = await fetchRequest(
+            `${apiUrl}/wp-nodes`,
+            'POST',
+            profileData
           )
+          // todo: needs to summarize errors and display them in once
+          if (!profileResponse.ok) {
+            const profileResponseData = await profileResponse.json()
+            alert(
+              `Profile Error: ${profileResponse.status} ${JSON.stringify(
+                profileResponseData
+              )}`
+            )
+          }
         }
+        // Otherwise, dismiss, ignore status will update the status of nodes table
+        else {
+          const profileData = {
+            map_id: profile.map_id,
+            profile_url: profile.profile_url,
+            status: selectedStatusOption
+          }
+          const profileResponse = await fetchRequest(
+            `${apiUrl}/nodes-status`,
+            'POST',
+            profileData
+          )
+
+          if (!profileResponse.ok) {
+            const profileResponseData = await profileResponse.json()
+            alert(
+              `Profile Error: ${profileResponse.status} ${JSON.stringify(
+                profileResponseData
+              )}`
+            )
+          }
+        }
+      }
+
+      // remove selected profiles
+      const newProfileList = profileList.filter(
+        profile => !selectedIds.includes(profile.id)
+      )
+
+      // if the extra_notes of all profiles are unavailable, it means all nodes are handled, we can refresh the page
+      if (
+        newProfileList.length === 0 ||
+        newProfileList.every(profile => profile.extra_notes === 'unavailable')
+      ) {
+        setFormData(formDefaults)
+        setSelectedCountry([])
+        setProfileList([])
+        await getMaps()
+      } else {
+        setProfileList(newProfileList)
       }
     } catch (error) {
       alert(
@@ -313,15 +364,9 @@ export default function App() {
       )
     } finally {
       // set everything back to default
-      setIsLoading(false)
-      setProgress(0)
-      setFormData(formDefaults)
-      setSelectedCountry([])
-      setProfileList([])
       setSelectedIds([])
-
-      // refresh maps
-      await getMaps()
+      setProgress(0)
+      setIsLoading(false)
     }
   }
 
@@ -362,7 +407,7 @@ export default function App() {
         }
 
         const profileResponse = await fetchRequest(
-          `${apiUrl}/nodes_comparison`,
+          `${apiUrl}/nodes-comparison`,
           'POST',
           profileData
         )
@@ -467,6 +512,11 @@ export default function App() {
     } catch (error) {
       alert(`Fetch Request error: ${error}`)
     }
+  }
+
+  const handleDropdownChange = function () {
+    const selected = document.getElementById('status-option').value
+    setSelectedStatusOption(selected)
   }
 
   return (
@@ -788,14 +838,27 @@ export default function App() {
                       </div>
                     </div>
                   )}
-                  <button
-                    type="submit"
-                    className={`rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
-                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                  >
-                    {isLoading ? 'Submitting...' : 'Submit'}
-                  </button>
+                  <div className="flex items-start">
+                    <label className="mr-2">Select Action:</label>
+                    <select
+                      id="status-option"
+                      value={selectedStatusOption}
+                      onChange={() => handleDropdownChange()}
+                      className="mr-2"
+                    >
+                      <option value="publish">Publish</option>
+                      <option value="dismiss">Dismiss</option>
+                      <option value="ignore">Ignore</option>
+                    </select>
+                    <button
+                      type="submit"
+                      className={`rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
+                        isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      {isLoading ? 'Submitting...' : 'Submit'}
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>

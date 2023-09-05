@@ -9,12 +9,14 @@ function TableRow({ response, isSelected, onSelect }) {
           type="checkbox"
           checked={isSelected}
           onChange={() => onSelect(response.id)}
+          disabled={response.extra_notes === 'unavailable'}
         />
       </td>
       <td className="text-center">{response.id}</td>
       <td className="text-center">{response.name}</td>
       <td className="text-center">{response.profile_url}</td>
       <td className="text-center">{response.status}</td>
+      <td className="text-center">{response.extra_notes}</td>
     </tr>
   )
 }

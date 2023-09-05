@@ -59,7 +59,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			register_rest_route(
 				'murmurations-aggregator/v1',
-				'/wp_nodes/(?P<post_id>[\w]+)',
+				'/wp-nodes/(?P<post_id>[\w]+)',
 				array(
 					'methods'  => 'GET',
 					'callback' => array( $this, 'get_wp_node' ),
@@ -68,7 +68,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			register_rest_route(
 				'murmurations-aggregator/v1',
-				'/wp_nodes',
+				'/wp-nodes',
 				array(
 					'methods'  => 'POST',
 					'callback' => array( $this, 'post_wp_node' ),
@@ -77,10 +77,19 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			register_rest_route(
 				'murmurations-aggregator/v1',
-				'/nodes_comparison',
+				'/nodes-comparison',
 				array(
 					'methods'  => 'POST',
 					'callback' => array( $this, 'post_nodes_comparison' ),
+				)
+			);
+
+			register_rest_route(
+				'murmurations-aggregator/v1',
+				'/nodes-status',
+				array(
+					'methods'  => 'POST',
+					'callback' => array( $this, 'post_node_status' ),
 				)
 			);
 
@@ -346,6 +355,29 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			) );
 		}
 
+		public function post_node_status( $request ) {
+			$data = $request->get_json_params();
+
+			// validate data
+			if ( ! isset( $data['profile_url'] ) || ! isset( $data['status'] ) || ! isset( $data['map_id'] ) ) {
+				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
+			}
+
+			// update status in node table
+			$result = $this->wpdb->update( $this->node_table_name, array(
+				'status' => $data['status'],
+			), array(
+				'profile_url' => $data['profile_url'],
+				'map_id'      => $data['map_id'],
+			) );
+
+			if ( ! $result ) {
+				return new WP_Error( 'node_status update_failed', 'Failed to update node status.', array( 'status' => 500 ) );
+			}
+
+			return rest_ensure_response( 'Node status updated successfully.' );
+		}
+
 		public function post_node( $request ) {
 			$data = $request->get_json_params();
 
@@ -364,7 +396,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'map_id'      => $data['map_id'],
 				'data'        => $encodedJson,
 				'hashed_data' => $hashed_data,
-				'status'      => $data['status'] ?? 'ignored',
+				'status'      => $data['status'] ?? 'new',
 			) );
 
 			if ( ! $result ) {
