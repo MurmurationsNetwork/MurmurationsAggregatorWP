@@ -345,13 +345,18 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				return new WP_Error( 'node_not_found', 'Node not found', array( 'status' => 404 ) );
 			}
 
+			// handle mismatch and ignore
 			if ( $node->hashed_data !== $hashed_data ) {
-				return new WP_Error( 'node_data_mismatch', 'Node data mismatch', array( 'status' => 400 ) );
+				return rest_ensure_response( array(
+					'status' => $node->status,
+					'has_update' => true,
+				) );
 			}
 
 			// return node status
 			return rest_ensure_response( array(
 				'status' => $node->status,
+				'has_update' => false,
 			) );
 		}
 

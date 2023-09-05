@@ -416,10 +416,17 @@ export default function App() {
 
         if (profileResponse.status === 404) {
           profile.status = 'new'
-        } else if (profileResponse.status === 400) {
-          profile.status = 'has_update'
-        } else {
+        }
+
+        if (profileResponse.ok) {
           profile.status = profileResponseData.status
+          if (profileResponseData.has_update) {
+            profile.extra_notes = 'see updates'
+          }
+        }
+
+        if (profile_data === '') {
+          profile.extra_notes = 'unavailable'
         }
 
         dataWithIds.push(profile)
