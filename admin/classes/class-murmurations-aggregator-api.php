@@ -77,6 +77,15 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			register_rest_route(
 				'murmurations-aggregator/v1',
+				'/nodes_comparison',
+				array(
+					'methods'  => 'POST',
+					'callback' => array( $this, 'post_nodes_comparison' ),
+				)
+			);
+
+			register_rest_route(
+				'murmurations-aggregator/v1',
 				'/nodes',
 				array(
 					'methods'  => 'POST',
@@ -304,6 +313,37 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'message' => 'Node created successfully.',
 				'post_id' => $post_id,
 			);
+		}
+
+		public function post_nodes_comparison( $request ) {
+			$data = $request->get_json_params();
+
+			// validate data
+			if ( ! isset( $data['map_id'] ) || ! isset( $data['data'] ) || ! isset( $data['profile_url'] ) ) {
+				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
+			}
+
+			// hash the data
+			$encodedJson = json_encode( $data['data'] );
+			$hashed_data = hash( $this->hash_algorithm, $encodedJson );
+
+			// find data in nodes table by profile_url
+			$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE profile_url = %s", $data['profile_url'] );
+
+			$node = $this->wpdb->get_row( $query );
+
+			if ( ! $node ) {
+				return new WP_Error( 'node_not_found', 'Node not found', array( 'status' => 404 ) );
+			}
+
+			if ( $node->hashed_data !== $hashed_data ) {
+				return new WP_Error( 'node_data_mismatch', 'Node data mismatch', array( 'status' => 400 ) );
+			}
+
+			// return node status
+			return rest_ensure_response( array(
+				'status' => $node->status,
+			) );
 		}
 
 		public function post_node( $request ) {

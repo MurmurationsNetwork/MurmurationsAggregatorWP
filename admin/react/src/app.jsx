@@ -325,6 +325,68 @@ export default function App() {
     }
   }
 
+  const handleRetrieve = async (map_id, request_url) => {
+    setIsLoading(true)
+
+    try {
+      // get data from request_url
+      const response = await fetch(request_url)
+      const responseData = await response.json()
+      if (!response.ok) {
+        alert(
+          `Retrieve Error: ${response.status} ${JSON.stringify(responseData)}`
+        )
+        return
+      }
+
+      // check with wpdb
+      const profiles = responseData.data
+      const dataWithIds = []
+      for (let i = 0; i < profiles.length; i++) {
+        const profile = profiles[i]
+        let profile_data = ''
+        if (profile.profile_url) {
+          const response = await fetch(profile.profile_url)
+          if (response.ok) {
+            profile_data = await response.json()
+          }
+        }
+        profile.id = i + 1
+        profile.profile_data = profile_data
+
+        // compare with wpdb
+        const profileData = {
+          map_id: map_id,
+          data: profile_data,
+          profile_url: profile.profile_url
+        }
+
+        const profileResponse = await fetchRequest(
+          `${apiUrl}/nodes_comparison`,
+          'POST',
+          profileData
+        )
+
+        const profileResponseData = await profileResponse.json()
+
+        if (profileResponse.status === 404) {
+          profile.status = 'new'
+        } else if (profileResponse.status === 400) {
+          profile.status = 'has_update'
+        } else {
+          profile.status = profileResponseData.status
+        }
+
+        dataWithIds.push(profile)
+      }
+      setProfileList(dataWithIds)
+    } catch (error) {
+      alert(`Retrieve node error: ${JSON.stringify(error)}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleEdit = async tag_slug => {
     setIsEdit(true)
     setProfileList([])
@@ -768,8 +830,15 @@ export default function App() {
                   <strong>Updated At:</strong> {map.updated_at}
                 </p>
                 <div className="box-border flex flex-wrap xl:min-w-max flex-row mt-4 justify-between">
-                  <button className="my-1 mx-2 max-w-fit rounded-full bg-amber-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75">
-                    Retrieve
+                  <button
+                    className={`my-1 mx-2 max-w-fit rounded-full bg-amber-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
+                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    onClick={() =>
+                      handleRetrieve(map.id, map.index_url + map.query_url)
+                    }
+                  >
+                    {isLoading ? 'Loading' : 'Retrieve'}
                   </button>
                   <button
                     className="my-1 mx-2 max-w-fit rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75"
