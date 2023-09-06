@@ -471,7 +471,6 @@ export default function App() {
         const profile = selectedProfiles[i]
 
         // need to update the node first
-        console.log(profile)
         if (profile.extra_notes === 'see updates') {
           const profileData = {
             map_id: profile.map_id,
@@ -526,8 +525,6 @@ export default function App() {
             tag_slug: profile.tag_slug,
             profile: profile
           }
-
-          console.log(profileData)
 
           const profileResponse = await fetchRequest(
             `${apiUrl}/wp-nodes`,
