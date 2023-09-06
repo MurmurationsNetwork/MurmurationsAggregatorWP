@@ -44,6 +44,7 @@ export default function App() {
   const [progress, setProgress] = useState(0)
   const [isEdit, setIsEdit] = useState(false)
   const [selectedStatusOption, setSelectedStatusOption] = useState('publish')
+  const [isRetrieving, setIsRetrieving] = useState(false)
 
   useEffect(() => {
     getCountries().then(countries => {
@@ -129,6 +130,7 @@ export default function App() {
   const handleSubmit = async event => {
     event.preventDefault()
     setIsLoading(true)
+    setIsRetrieving(false)
 
     const queryParams = []
     for (const key in formData) {
@@ -370,8 +372,9 @@ export default function App() {
     }
   }
 
-  const handleRetrieve = async (map_id, request_url) => {
+  const handleRetrieve = async (map_id, request_url, tag_slug) => {
     setIsLoading(true)
+    setIsRetrieving(true)
 
     try {
       // get data from request_url
@@ -387,8 +390,8 @@ export default function App() {
       // check with wpdb
       const profiles = responseData.data
       const dataWithIds = []
-      for (let i = 0; i < profiles.length; i++) {
-        const profile = profiles[i]
+      let current_id = 1
+      for (let profile of profiles) {
         let profile_data = ''
         if (profile.profile_url) {
           const response = await fetch(profile.profile_url)
@@ -396,8 +399,10 @@ export default function App() {
             profile_data = await response.json()
           }
         }
-        profile.id = i + 1
+        profile.id = current_id
         profile.profile_data = profile_data
+        profile.tag_slug = tag_slug
+        profile.map_id = map_id
 
         // compare with wpdb
         const profileData = {
@@ -412,13 +417,17 @@ export default function App() {
           profileData
         )
 
-        const profileResponseData = await profileResponse.json()
-
         if (profileResponse.status === 404) {
           profile.status = 'new'
         }
 
         if (profileResponse.ok) {
+          const profileResponseData = await profileResponse.json()
+          // if the profile is ignored, don't show up again
+          if (profileResponseData.status === 'ignore') {
+            continue
+          }
+
           profile.status = profileResponseData.status
           if (profileResponseData.has_update) {
             profile.extra_notes = 'see updates'
@@ -429,12 +438,211 @@ export default function App() {
           profile.extra_notes = 'unavailable'
         }
 
+        current_id++
         dataWithIds.push(profile)
       }
       setProfileList(dataWithIds)
     } catch (error) {
       alert(`Retrieve node error: ${JSON.stringify(error)}`)
     } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleRetrieveProfilesSubmit = async event => {
+    event.preventDefault()
+    setIsLoading(true)
+
+    try {
+      // get the selected profiles
+      const selectedProfiles = profileList.filter(profile =>
+        selectedIds.includes(profile.id)
+      )
+      const progressStep = 100 / selectedProfiles.length
+
+      for (let i = 0; i < selectedProfiles.length; i++) {
+        // update progress
+        if ((i + 1) * progressStep > 100) {
+          setProgress(100)
+        } else {
+          setProgress((i + 1) * progressStep)
+        }
+
+        const profile = selectedProfiles[i]
+
+        // need to update the node first
+        console.log(profile)
+        if (profile.extra_notes === 'see updates') {
+          const profileData = {
+            map_id: profile.map_id,
+            profile_url: profile.profile_url,
+            data: profile.profile_data
+          }
+
+          const profileResponse = await fetchRequest(
+            `${apiUrl}/nodes`,
+            'PUT',
+            profileData
+          )
+
+          if (!profileResponse.ok) {
+            const profileResponseData = await profileResponse.json()
+            alert(
+              `Update Profile Error: ${profileResponse.status} ${JSON.stringify(
+                profileResponseData
+              )}`
+            )
+          }
+        }
+
+        const profileStatus = profile.status
+        // if original status and selected status are both publish, we need to update the post
+        if (selectedStatusOption === 'publish' && profileStatus === 'publish') {
+          const profileData = {
+            profile: profile
+          }
+
+          const profileResponse = await fetchRequest(
+            `${apiUrl}/wp-nodes`,
+            'PUT',
+            profileData
+          )
+
+          if (!profileResponse.ok) {
+            const profileResponseData = await profileResponse.json()
+            alert(
+              `Update Profile Error: ${profileResponse.status} ${JSON.stringify(
+                profileResponseData
+              )}`
+            )
+          }
+        }
+
+        if (
+          selectedStatusOption === 'publish' &&
+          (profileStatus === 'new' || profileStatus === 'dismiss')
+        ) {
+          const profileData = {
+            tag_slug: profile.tag_slug,
+            profile: profile
+          }
+
+          console.log(profileData)
+
+          const profileResponse = await fetchRequest(
+            `${apiUrl}/wp-nodes`,
+            'POST',
+            profileData
+          )
+          if (!profileResponse.ok) {
+            const profileResponseData = await profileResponse.json()
+            alert(
+              `Create Profile Error: ${profileResponse.status} ${JSON.stringify(
+                profileResponseData
+              )}`
+            )
+          }
+        }
+
+        if (
+          (selectedStatusOption === 'dismiss' ||
+            selectedStatusOption === 'ignore') &&
+          profileStatus === 'publish'
+        ) {
+          // delete the post
+          const profileData = {
+            profile: profile
+          }
+          const profileResponse = await fetchRequest(
+            `${apiUrl}/wp-nodes`,
+            'DELETE',
+            profileData
+          )
+
+          if (!profileResponse.ok) {
+            const profileResponseData = await profileResponse.json()
+            alert(
+              `Delete Profile Error: ${profileResponse.status} ${JSON.stringify(
+                profileResponseData
+              )}`
+            )
+          }
+
+          // update the status of the node
+          const profileData2 = {
+            map_id: profile.map_id,
+            profile_url: profile.profile_url,
+            status: selectedStatusOption
+          }
+
+          const profileResponse2 = await fetchRequest(
+            `${apiUrl}/nodes-status`,
+            'POST',
+            profileData2
+          )
+
+          if (!profileResponse2.ok) {
+            const profileResponseData2 = await profileResponse2.json()
+            alert(
+              `Node Error: ${profileResponse2.status} ${JSON.stringify(
+                profileResponseData2
+              )}`
+            )
+          }
+        }
+
+        if (selectedStatusOption === 'ignore' && profileStatus === 'dismiss') {
+          // update the status of the node
+          const profileData = {
+            map_id: profile.map_id,
+            profile_url: profile.profile_url,
+            status: selectedStatusOption
+          }
+
+          const profileResponse = await fetchRequest(
+            `${apiUrl}/nodes-status`,
+            'POST',
+            profileData
+          )
+
+          if (!profileResponse.ok) {
+            const profileResponseData = await profileResponse.json()
+            alert(
+              `Node Error: ${profileResponse.status} ${JSON.stringify(
+                profileResponseData
+              )}`
+            )
+          }
+        }
+      }
+
+      // remove selected profiles
+      const newProfileList = profileList.filter(
+        profile => !selectedIds.includes(profile.id)
+      )
+
+      // if the extra_notes of all profiles are unavailable, it means all nodes are handled, we can refresh the page
+      if (
+        newProfileList.length === 0 ||
+        newProfileList.every(profile => profile.extra_notes === 'unavailable')
+      ) {
+        setFormData(formDefaults)
+        setSelectedCountry([])
+        setProfileList([])
+        await getMaps()
+      } else {
+        setProfileList(newProfileList)
+      }
+    } catch (error) {
+      alert(
+        `Handle Profiles Submit error: ${JSON.stringify(
+          error
+        )}, please delete the map and retry again.`
+      )
+    } finally {
+      // set everything back to default
+      setSelectedIds([])
+      setProgress(0)
       setIsLoading(false)
     }
   }
@@ -831,7 +1039,14 @@ export default function App() {
                 onSelectAll={toggleSelectAll}
                 onSelect={toggleSelect}
               />
-              <form onSubmit={handleProfilesSubmit} className="p-6">
+              <form
+                onSubmit={
+                  isRetrieving
+                    ? handleRetrieveProfilesSubmit
+                    : handleProfilesSubmit
+                }
+                className="p-6"
+              >
                 <div className="mt-6">
                   {isLoading && (
                     <div className="relative mt-6">
@@ -905,7 +1120,11 @@ export default function App() {
                       isLoading ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                     onClick={() =>
-                      handleRetrieve(map.id, map.index_url + map.query_url)
+                      handleRetrieve(
+                        map.id,
+                        map.index_url + map.query_url,
+                        map.tag_slug
+                      )
                     }
                   >
                     {isLoading ? 'Loading' : 'Retrieve'}
