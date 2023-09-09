@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 
-function MapSettings({ formData, handleInputChange }) {
+export default function MapSettings({ formData, handleInputChange }) {
   return (
     <div>
       <h2 className="text-xl">Map Settings</h2>
@@ -88,5 +88,3 @@ MapSettings.propTypes = {
   formData: PropTypes.object.isRequired,
   handleInputChange: PropTypes.func.isRequired
 }
-
-export default MapSettings

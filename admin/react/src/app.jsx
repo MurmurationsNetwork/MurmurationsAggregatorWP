@@ -2,32 +2,21 @@ import { useEffect, useState } from 'react'
 import Table from './components/Table'
 import MapSettings from './components/MapSettings'
 import { createId } from '@paralleldrive/cuid2'
-
-const schemas = [
-  { title: 'An Organization', name: 'organizations_schema-v1.0.0' },
-  { title: 'A Person', name: 'people_schema-v0.1.0' },
-  { title: 'An Offer or Want', name: 'offers_wants_schema-v0.1.0' }
-]
-
-const formDefaults = {
-  map_name: '',
-  map_center_lat: '',
-  map_center_lon: '',
-  map_scale: '',
-  data_url: '',
-  schema: 'organizations_schema-v1.0.0',
-  name: '',
-  lat: '',
-  lon: '',
-  range: '',
-  locality: '',
-  region: '',
-  country: '',
-  tags: '',
-  tags_filter: 'or',
-  tags_exact: false,
-  primary_url: ''
-}
+import { getCountries } from './utils/getCountries'
+import MapList from './components/MapList'
+import { formDefaults } from './data/formDefaults'
+import {
+  deleteWpNodes,
+  getWpMaps,
+  saveCustomNodes,
+  saveWpMap,
+  saveWpNodes,
+  updateCustomNodes,
+  updateCustomNodesStatus,
+  updateWpMap,
+  updateWpNodes
+} from './utils/api'
+import { schemas } from './data/schemas'
 
 export default function App() {
   // eslint-disable-next-line no-undef
@@ -35,16 +24,17 @@ export default function App() {
   const apiUrl = `${wordpressUrl}/wp-json/murmurations-aggregator/v1`
 
   const [formData, setFormData] = useState(formDefaults)
+  const [maps, setMaps] = useState([])
   const [countries, setCountries] = useState([])
   const [selectedCountry, setSelectedCountry] = useState([])
   const [profileList, setProfileList] = useState([])
   const [selectedIds, setSelectedIds] = useState([])
-  const [maps, setMaps] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [isEdit, setIsEdit] = useState(false)
   const [selectedStatusOption, setSelectedStatusOption] = useState('publish')
   const [isRetrieving, setIsRetrieving] = useState(false)
+  const [tagSlug, setTagSlug] = useState(null)
 
   useEffect(() => {
     getCountries().then(countries => {
@@ -56,30 +46,21 @@ export default function App() {
     })
   }, [])
 
-  const getCountries = async () => {
-    try {
-      const response = await fetch(
-        'https://test-library.murmurations.network/v2/countries'
-      )
-      return await response.json()
-    } catch (error) {
-      alert(
-        `Error getting countries, please contact the administrator, error: ${error}`
-      )
-    }
-  }
-
   const getMaps = async () => {
     try {
-      const response = await fetch(`${apiUrl}/maps`)
+      const response = await getWpMaps(apiUrl)
+      if (response.status === 404) {
+        setMaps([])
+        return
+      }
+
       const responseData = await response.json()
       if (!response.ok) {
-        if (response.status === 404) {
-          setMaps([])
-          return
-        }
-
-        alert(`Error fetching map with response: ${JSON.stringify(response)}`)
+        alert(
+          `Error fetching map with response: ${
+            response.status
+          } ${JSON.stringify(responseData)}`
+        )
         return
       }
 
@@ -175,19 +156,15 @@ export default function App() {
           alert('Error: Too many pages of data. Please narrow your search.')
           return
         }
+
         // we have a valid response, we can save the map to the server
         const tagSlug = 'murm_' + createId()
-        const mapData = {
-          name: formData.map_name,
-          tag_slug: tagSlug,
-          index_url: formData.data_url,
-          query_url: urlWithParams.replace(formData.data_url, '')
-        }
-
-        const mapResponse = await fetchRequest(
-          `${apiUrl}/maps`,
-          'POST',
-          mapData
+        const mapResponse = await saveWpMap(
+          apiUrl,
+          formData.map_name,
+          tagSlug,
+          formData.data_url,
+          urlWithParams.replace(formData.data_url, '')
         )
         const mapResponseData = await mapResponse.json()
         if (!mapResponse.ok) {
@@ -227,30 +204,27 @@ export default function App() {
 
           // save data to wpdb
           // todo: status needs to update according to the settings
-          const profileData = {
-            profile_url: profile.profile_url,
-            data: profile.profile_data,
-            map_id: profile.map_id,
-            status: profile.status
-          }
-
-          const profileResponse = await fetchRequest(
-            `${apiUrl}/nodes`,
-            'POST',
-            profileData
+          const profileResponse = await saveCustomNodes(
+            apiUrl,
+            profile.profile_url,
+            profile.profile_data,
+            profile.map_id,
+            profile.status
           )
 
           if (!profileResponse.ok) {
             const profileResponseData = await profileResponse.json()
             alert(
-              `Unable to save profiles to wpdb, errors: ${JSON.stringify(
+              `Unable to save profiles to wpdb, errors: ${
+                profileResponse.status
+              } ${JSON.stringify(
                 profileResponseData
               )}. Please delete the map and try again.`
             )
             return
           }
 
-          // set extra nodes
+          // set extra notes
           profile.extra_notes = profile_data === '' ? 'unavailable' : ''
 
           dataWithIds.push(profile)
@@ -293,48 +267,27 @@ export default function App() {
         const profile = selectedProfiles[i]
 
         // if the profile wants to publish, it will create post in WordPress
+        // otherwise, dismiss, ignore status will update the status of nodes table
+        let profileResponse
         if (selectedStatusOption === 'publish') {
-          const profileData = {
-            tag_slug: profile.tag_slug,
-            profile: profile
-          }
-
-          const profileResponse = await fetchRequest(
-            `${apiUrl}/wp-nodes`,
-            'POST',
-            profileData
+          profileResponse = await saveWpNodes(apiUrl, profile.tag_slug, profile)
+        } else {
+          profileResponse = await updateCustomNodesStatus(
+            apiUrl,
+            profile.map_id,
+            profile.profile_url,
+            selectedStatusOption
           )
-          // todo: needs to summarize errors and display them in once
-          if (!profileResponse.ok) {
-            const profileResponseData = await profileResponse.json()
-            alert(
-              `Profile Error: ${profileResponse.status} ${JSON.stringify(
-                profileResponseData
-              )}`
-            )
-          }
         }
-        // Otherwise, dismiss, ignore status will update the status of nodes table
-        else {
-          const profileData = {
-            map_id: profile.map_id,
-            profile_url: profile.profile_url,
-            status: selectedStatusOption
-          }
-          const profileResponse = await fetchRequest(
-            `${apiUrl}/nodes-status`,
-            'POST',
-            profileData
-          )
 
-          if (!profileResponse.ok) {
-            const profileResponseData = await profileResponse.json()
-            alert(
-              `Profile Error: ${profileResponse.status} ${JSON.stringify(
-                profileResponseData
-              )}`
-            )
-          }
+        // todo: needs to summarize errors and display them in once
+        if (!profileResponse.ok) {
+          const profileResponseData = await profileResponse.json()
+          alert(
+            `Profile Error: ${profileResponse.status} ${JSON.stringify(
+              profileResponseData
+            )}`
+          )
         }
       }
 
@@ -369,83 +322,6 @@ export default function App() {
     }
   }
 
-  const handleRetrieve = async (map_id, request_url, tag_slug) => {
-    setIsLoading(true)
-    setIsRetrieving(true)
-
-    try {
-      // get data from request_url
-      const response = await fetch(request_url)
-      const responseData = await response.json()
-      if (!response.ok) {
-        alert(
-          `Retrieve Error: ${response.status} ${JSON.stringify(responseData)}`
-        )
-        return
-      }
-
-      // check with wpdb
-      const profiles = responseData.data
-      const dataWithIds = []
-      let current_id = 1
-      for (let profile of profiles) {
-        let profile_data = ''
-        if (profile.profile_url) {
-          const response = await fetch(profile.profile_url)
-          if (response.ok) {
-            profile_data = await response.json()
-          }
-        }
-        profile.id = current_id
-        profile.profile_data = profile_data
-        profile.tag_slug = tag_slug
-        profile.map_id = map_id
-
-        // compare with wpdb
-        const profileData = {
-          map_id: map_id,
-          data: profile_data,
-          profile_url: profile.profile_url
-        }
-
-        const profileResponse = await fetchRequest(
-          `${apiUrl}/nodes-comparison`,
-          'POST',
-          profileData
-        )
-
-        if (profileResponse.status === 404) {
-          profile.status = 'new'
-        }
-
-        if (profileResponse.ok) {
-          const profileResponseData = await profileResponse.json()
-          // if the profile is ignored, don't show up again
-          if (profileResponseData.status === 'ignore') {
-            continue
-          }
-
-          profile.status = profileResponseData.status
-          if (profileResponseData.has_update) {
-            profile.extra_notes = 'see updates'
-          }
-        }
-
-        if (profile_data === '') {
-          profile.extra_notes = 'unavailable'
-        }
-
-        current_id++
-        dataWithIds.push(profile)
-      }
-      setProfileList(dataWithIds)
-    } catch (error) {
-      alert(`Retrieve node error: ${JSON.stringify(error)}`)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   const handleRetrieveProfilesSubmit = async event => {
     event.preventDefault()
     setIsLoading(true)
@@ -469,16 +345,10 @@ export default function App() {
 
         // need to update the node first
         if (profile.extra_notes === 'see updates') {
-          const profileData = {
-            map_id: profile.map_id,
-            profile_url: profile.profile_url,
-            data: profile.profile_data
-          }
-
-          const profileResponse = await fetchRequest(
-            `${apiUrl}/nodes`,
-            'PUT',
-            profileData
+          const profileResponse = await updateCustomNodes(
+            apiUrl,
+            profile.profile_url,
+            profile.profile_data
           )
 
           if (!profileResponse.ok) {
@@ -494,15 +364,7 @@ export default function App() {
         const profileStatus = profile.status
         // if original status and selected status are both publish, we need to update the post
         if (selectedStatusOption === 'publish' && profileStatus === 'publish') {
-          const profileData = {
-            profile: profile
-          }
-
-          const profileResponse = await fetchRequest(
-            `${apiUrl}/wp-nodes`,
-            'PUT',
-            profileData
-          )
+          const profileResponse = await updateWpNodes(apiUrl, profile)
 
           if (!profileResponse.ok) {
             const profileResponseData = await profileResponse.json()
@@ -518,15 +380,10 @@ export default function App() {
           selectedStatusOption === 'publish' &&
           (profileStatus === 'new' || profileStatus === 'dismiss')
         ) {
-          const profileData = {
-            tag_slug: profile.tag_slug,
-            profile: profile
-          }
-
-          const profileResponse = await fetchRequest(
-            `${apiUrl}/wp-nodes`,
-            'POST',
-            profileData
+          const profileResponse = await saveWpNodes(
+            apiUrl,
+            profile.tag_slug,
+            profile
           )
           if (!profileResponse.ok) {
             const profileResponseData = await profileResponse.json()
@@ -543,43 +400,29 @@ export default function App() {
             selectedStatusOption === 'ignore') &&
           profileStatus === 'publish'
         ) {
-          // delete the post
-          const profileData = {
-            profile: profile
-          }
-          const profileResponse = await fetchRequest(
-            `${apiUrl}/wp-nodes`,
-            'DELETE',
-            profileData
-          )
+          const response = await deleteWpNodes(apiUrl, profile)
 
-          if (!profileResponse.ok) {
-            const profileResponseData = await profileResponse.json()
+          if (!response.ok) {
+            const responseData = await response.json()
             alert(
-              `Delete Profile Error: ${profileResponse.status} ${JSON.stringify(
-                profileResponseData
+              `Delete Profile Error: ${response.status} ${JSON.stringify(
+                responseData
               )}`
             )
           }
 
           // update the status of the node
-          const profileData2 = {
-            map_id: profile.map_id,
-            profile_url: profile.profile_url,
-            status: selectedStatusOption
-          }
-
-          const profileResponse2 = await fetchRequest(
-            `${apiUrl}/nodes-status`,
-            'POST',
-            profileData2
+          const profileResponse = await updateCustomNodesStatus(
+            apiUrl,
+            profile.map_id,
+            profile.profile_url,
+            selectedStatusOption
           )
-
-          if (!profileResponse2.ok) {
-            const profileResponseData2 = await profileResponse2.json()
+          if (!profileResponse.ok) {
+            const profileResponseData = await profileResponse.json()
             alert(
-              `Node Error: ${profileResponse2.status} ${JSON.stringify(
-                profileResponseData2
+              `Node Error: ${profileResponse.status} ${JSON.stringify(
+                profileResponseData
               )}`
             )
           }
@@ -587,18 +430,12 @@ export default function App() {
 
         if (selectedStatusOption === 'ignore' && profileStatus === 'dismiss') {
           // update the status of the node
-          const profileData = {
-            map_id: profile.map_id,
-            profile_url: profile.profile_url,
-            status: selectedStatusOption
-          }
-
-          const profileResponse = await fetchRequest(
-            `${apiUrl}/nodes-status`,
-            'POST',
-            profileData
+          const profileResponse = await updateCustomNodesStatus(
+            apiUrl,
+            profile.map_id,
+            profile.profile_url,
+            selectedStatusOption
           )
-
           if (!profileResponse.ok) {
             const profileResponseData = await profileResponse.json()
             alert(
@@ -641,41 +478,23 @@ export default function App() {
     }
   }
 
-  const handleEdit = async tag_slug => {
-    setIsEdit(true)
-    setProfileList([])
-    const map = maps.find(map => map.tag_slug === tag_slug)
-    setFormData({
-      map_name: map.name,
-      map_center_lat: map.map_center_lat,
-      map_center_lon: map.map_center_lon,
-      map_scale: map.map_scale,
-      tag_slug: map.tag_slug
-    })
-  }
-
   const handleEditSubmit = async event => {
     event.preventDefault()
-
     setIsLoading(true)
-    const mapData = {
-      name: formData.map_name,
-      map_center_lat: formData.map_center_lat,
-      map_center_lon: formData.map_center_lon,
-      map_scale: formData.map_scale
-    }
 
     try {
-      const mapResponse = await fetchRequest(
-        `${apiUrl}/maps/${formData.tag_slug}`,
-        'PUT',
-        mapData
+      const response = await updateWpMap(
+        apiUrl,
+        tagSlug,
+        formData.map_name,
+        formData.map_center_lat,
+        formData.map_center_lon,
+        formData.map_scale
       )
-      if (!mapResponse.ok) {
-        const mapResponseData = await mapResponse.json()
-        alert(
-          `Map Error: ${mapResponse.status} ${JSON.stringify(mapResponseData)}`
-        )
+
+      if (!response.ok) {
+        const responseData = await response.json()
+        alert(`Map Error: ${response.status} ${JSON.stringify(responseData)}`)
       }
     } catch (error) {
       alert(`Edit map error: ${JSON.stringify(error)}`)
@@ -683,43 +502,8 @@ export default function App() {
       setIsEdit(false)
       setIsLoading(false)
       setFormData(formDefaults)
+      setTagSlug(null)
       await getMaps()
-    }
-  }
-
-  const handleDelete = async map_id => {
-    setIsLoading(true)
-
-    try {
-      const mapResponse = await fetchRequest(
-        `${apiUrl}/maps/${map_id}`,
-        'DELETE'
-      )
-      if (!mapResponse.ok) {
-        const mapResponseData = await mapResponse.json()
-        alert(
-          `Map Error: ${mapResponse.status} ${JSON.stringify(mapResponseData)}`
-        )
-      }
-    } catch (error) {
-      alert(`Delete map error: ${JSON.stringify(error)}`)
-    } finally {
-      setIsLoading(false)
-      await getMaps()
-    }
-  }
-
-  const fetchRequest = async (url, method, body) => {
-    try {
-      return await fetch(url, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      })
-    } catch (error) {
-      alert(`Fetch Request error: ${error}`)
     }
   }
 
@@ -1080,68 +864,18 @@ export default function App() {
           )}
         </div>
         <div className="w-1/2 mt-4 p-4">
-          <h2 className="text-xl">Map Data</h2>
-          {maps.length > 0 ? (
-            maps.map((map, index) => (
-              <div className="bg-white p-4 rounded shadow-md mt-4" key={index}>
-                <h2 className="text-xl font-semibold mb-2">{map.name}</h2>
-                <p>
-                  <strong>Index URL:</strong> {map.index_url}
-                </p>
-                <p>
-                  <strong>Query URL:</strong> {map.query_url}
-                </p>
-                <p>
-                  <strong>Tag Slug:</strong> {map.tag_slug}
-                </p>
-                <p>
-                  <strong>Map Center:</strong>{' '}
-                  {map.map_center_lon + ',' + map.map_center_lat}
-                </p>
-                <p>
-                  <strong>Map Scale:</strong> {map.map_scale}
-                </p>
-                <p>
-                  <strong>Created At:</strong> {map.created_at}
-                </p>
-                <p>
-                  <strong>Updated At:</strong> {map.updated_at}
-                </p>
-                <div className="box-border flex flex-wrap xl:min-w-max flex-row mt-4 justify-between">
-                  <button
-                    className={`my-1 mx-2 max-w-fit rounded-full bg-amber-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
-                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                    onClick={() =>
-                      handleRetrieve(
-                        map.id,
-                        map.index_url + map.query_url,
-                        map.tag_slug
-                      )
-                    }
-                  >
-                    {isLoading ? 'Loading' : 'Retrieve'}
-                  </button>
-                  <button
-                    className="my-1 mx-2 max-w-fit rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75"
-                    onClick={() => handleEdit(map.tag_slug)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className={`my-1 mx-2 max-w-fit rounded-full bg-red-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-red-400 disabled:opacity-75 ${
-                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                    onClick={() => handleDelete(map.id)}
-                  >
-                    {isLoading ? 'Loading' : 'Delete'}
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>No maps found.</p>
-          )}
+          <MapList
+            apiUrl={apiUrl}
+            maps={maps}
+            getMaps={getMaps}
+            setIsEdit={setIsEdit}
+            setFormData={setFormData}
+            setProfileList={setProfileList}
+            setIsRetrieving={setIsRetrieving}
+            setTagSlug={setTagSlug}
+            setIsLoading={setIsLoading}
+            isLoading={isLoading}
+          />
         </div>
       </div>
     </div>
