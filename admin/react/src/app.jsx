@@ -16,6 +16,7 @@ import {
   updateWpNodes
 } from './utils/api'
 import DataSource from './components/DataSource'
+import ProgressBar from './components/ProgressBar'
 
 export default function App() {
   // eslint-disable-next-line no-undef
@@ -539,18 +540,7 @@ export default function App() {
                     selectedCountry={selectedCountry}
                     setSelectedCountry={setSelectedCountry}
                   />
-                  {isLoading && (
-                    <div className="relative mt-6">
-                      <progress
-                        className="w-full bg-orange-500 h-8 mt-2 rounded"
-                        value={progress}
-                        max="100"
-                      />
-                      <div className="absolute text-white top-3.5 left-0 right-0 text-center">
-                        {progress.toFixed(0)}%
-                      </div>
-                    </div>
-                  )}
+                  {isLoading && <ProgressBar progress={progress} />}
                   <div className="mt-6">
                     <button
                       type="submit"
@@ -582,18 +572,7 @@ export default function App() {
                 className="p-6"
               >
                 <div className="mt-6">
-                  {isLoading && (
-                    <div className="relative mt-6">
-                      <progress
-                        className="w-full bg-orange-500 h-8 mt-2 rounded"
-                        value={progress}
-                        max="100"
-                      />
-                      <div className="absolute text-white top-3.5 left-0 right-0 text-center">
-                        {progress.toFixed(0)}%
-                      </div>
-                    </div>
-                  )}
+                  {isLoading && <ProgressBar progress={progress} />}
                   <div className="flex items-start">
                     <label className="mr-2">Select Action:</label>
                     <select
