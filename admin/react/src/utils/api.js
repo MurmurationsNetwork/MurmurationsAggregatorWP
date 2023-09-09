@@ -68,14 +68,14 @@ export const deleteWpNodes = async (apiUrl, profile) => {
 
 export const compareWithWpNodes = async (
   apiUrl,
-  map_id,
-  profile_data,
-  profile
+  mapId,
+  profileData,
+  profileUrl
 ) => {
   const body = {
-    map_id: map_id,
-    data: profile_data,
-    profile_url: profile.profile_url
+    map_id: mapId,
+    data: profileData,
+    profile_url: profileUrl
   }
 
   return await fetchRequest(`${apiUrl}/nodes-comparison`, 'POST', body)
