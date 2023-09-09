@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 
-function MapSettings({ formData, handleInputChange, isEdit = false }) {
+function MapSettings({ formData, handleInputChange }) {
   return (
     <div>
       <h2 className="text-xl">Map Settings</h2>
@@ -79,25 +79,6 @@ function MapSettings({ formData, handleInputChange, isEdit = false }) {
             step="any"
           />
         </div>
-        {!isEdit && (
-          <div className="mb-4">
-            <label
-              className="block text-gray-700 font-bold mb-2"
-              htmlFor="tag_slug"
-            >
-              Tag Slug (The tag will be applied to all nodes)
-            </label>
-            <input
-              type="text"
-              id="tag_slug"
-              name="tag_slug"
-              value={formData.tag_slug}
-              onChange={handleInputChange}
-              className="w-full border rounded py-2 px-3"
-              required={true}
-            />
-          </div>
-        )}
       </div>
     </div>
   )
@@ -105,8 +86,7 @@ function MapSettings({ formData, handleInputChange, isEdit = false }) {
 
 MapSettings.propTypes = {
   formData: PropTypes.object.isRequired,
-  handleInputChange: PropTypes.func.isRequired,
-  isEdit: PropTypes.bool
+  handleInputChange: PropTypes.func.isRequired
 }
 
 export default MapSettings

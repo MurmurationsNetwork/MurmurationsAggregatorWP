@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Table from './components/Table'
 import MapSettings from './components/MapSettings'
+import { createId } from '@paralleldrive/cuid2'
 
 const schemas = [
   { title: 'An Organization', name: 'organizations_schema-v1.0.0' },
@@ -13,7 +14,6 @@ const formDefaults = {
   map_center_lat: '',
   map_center_lon: '',
   map_scale: '',
-  tag_slug: '',
   data_url: '',
   schema: 'organizations_schema-v1.0.0',
   name: '',
@@ -134,12 +134,7 @@ export default function App() {
 
     const queryParams = []
     for (const key in formData) {
-      if (
-        formData[key] !== '' &&
-        key !== 'data_url' &&
-        key !== 'map_name' &&
-        key !== 'tag_slug'
-      ) {
+      if (formData[key] !== '' && key !== 'data_url' && key !== 'map_name') {
         queryParams.push(
           `${encodeURIComponent(key)}=${encodeURIComponent(formData[key])}`
         )
@@ -181,9 +176,10 @@ export default function App() {
           return
         }
         // we have a valid response, we can save the map to the server
+        const tagSlug = 'murm_' + createId()
         const mapData = {
           name: formData.map_name,
-          tag_slug: formData.tag_slug,
+          tag_slug: tagSlug,
           index_url: formData.data_url,
           query_url: urlWithParams.replace(formData.data_url, '')
         }
@@ -227,6 +223,7 @@ export default function App() {
           profile.profile_data = profile_data
           profile.status = 'new'
           profile.map_id = mapResponseData.map_id
+          profile.tag_slug = tagSlug
 
           // save data to wpdb
           // todo: status needs to update according to the settings
@@ -298,7 +295,7 @@ export default function App() {
         // if the profile wants to publish, it will create post in WordPress
         if (selectedStatusOption === 'publish') {
           const profileData = {
-            tag_slug: formData.tag_slug,
+            tag_slug: profile.tag_slug,
             profile: profile
           }
 
@@ -745,7 +742,6 @@ export default function App() {
                   <MapSettings
                     formData={formData}
                     handleInputChange={handleInputChange}
-                    isEdit={isEdit}
                   />
                   <div className="mt-6">
                     <button
