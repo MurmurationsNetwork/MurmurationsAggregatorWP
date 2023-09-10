@@ -60,11 +60,7 @@ export default function SelectData({
 
       for (let i = 0; i < selectedProfiles.length; i++) {
         // update progress
-        if ((i + 1) * progressStep > 100) {
-          setProgress(100)
-        } else {
-          setProgress((i + 1) * progressStep)
-        }
+        updateProgress(i, progressStep)
 
         const profile = selectedProfiles[i]
 
@@ -173,20 +169,7 @@ export default function SelectData({
         }
       }
 
-      // remove selected profiles
-      const newProfileList = removeSelectedProfiles(profileList, selectedIds)
-
-      // if the extra_notes of all profiles are unavailable, it means all nodes are handled, we can refresh the page
-      if (
-        newProfileList.length === 0 ||
-        newProfileList.every(profile => profile.extra_notes === 'unavailable')
-      ) {
-        setFormData(formDefaults)
-        setProfileList([])
-        await getMaps()
-      } else {
-        setProfileList(newProfileList)
-      }
+      await updateProfileAndRefresh(profileList, selectedIds)
     } catch (error) {
       alert(
         `Handle Profiles Submit error: ${JSON.stringify(
@@ -194,10 +177,7 @@ export default function SelectData({
         )}, please delete the map and retry again.`
       )
     } finally {
-      // set everything back to default
-      setSelectedIds([])
-      setProgress(0)
-      setIsLoading(false)
+      resetStates()
     }
   }
 
@@ -215,11 +195,7 @@ export default function SelectData({
 
       for (let i = 0; i < selectedProfiles.length; i++) {
         // update progress
-        if ((i + 1) * progressStep > 100) {
-          setProgress(100)
-        } else {
-          setProgress((i + 1) * progressStep)
-        }
+        updateProgress(i, progressStep)
 
         const profile = selectedProfiles[i]
 
@@ -248,20 +224,7 @@ export default function SelectData({
         }
       }
 
-      // remove selected profiles
-      const newProfileList = removeSelectedProfiles(profileList, selectedIds)
-
-      // if the extra_notes of all profiles are unavailable, it means all nodes are handled, we can refresh the page
-      if (
-        newProfileList.length === 0 ||
-        newProfileList.every(profile => profile.extra_notes === 'unavailable')
-      ) {
-        setFormData(formDefaults)
-        setProfileList([])
-        await getMaps()
-      } else {
-        setProfileList(newProfileList)
-      }
+      await updateProfileAndRefresh(profileList, selectedIds)
     } catch (error) {
       alert(
         `Handle Profiles Submit error: ${JSON.stringify(
@@ -269,11 +232,35 @@ export default function SelectData({
         )}, please delete the map and retry again.`
       )
     } finally {
-      // set everything back to default
-      setSelectedIds([])
-      setProgress(0)
-      setIsLoading(false)
+      resetStates()
     }
+  }
+
+  const updateProfileAndRefresh = async (profileList, selectedIds) => {
+    // remove selected profiles
+    const newProfileList = removeSelectedProfiles(profileList, selectedIds)
+
+    // if the extra_notes of all profiles are unavailable, it means all nodes are handled, we can refresh the page
+    if (
+      newProfileList.length === 0 ||
+      newProfileList.every(profile => profile.extra_notes === 'unavailable')
+    ) {
+      setFormData(formDefaults)
+      setProfileList([])
+      await getMaps()
+    } else {
+      setProfileList(newProfileList)
+    }
+  }
+
+  const updateProgress = (i, progressStep) => {
+    setProgress((i + 1) * progressStep > 100 ? 100 : (i + 1) * progressStep)
+  }
+
+  const resetStates = () => {
+    setSelectedIds([])
+    setProgress(0)
+    setIsLoading(false)
   }
 
   const handleDropdownChange = function () {
