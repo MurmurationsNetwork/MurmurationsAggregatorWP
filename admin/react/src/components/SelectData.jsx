@@ -15,7 +15,7 @@ import {
 } from '../utils/filterProfile'
 import PropTypes from 'prop-types'
 
-export default function DataSelect({
+export default function SelectData({
   apiUrl,
   profileList,
   setProfileList,
@@ -25,7 +25,6 @@ export default function DataSelect({
   setProgress,
   progress,
   setFormData,
-  setSelectedCountry,
   getMaps
 }) {
   const [selectedIds, setSelectedIds] = useState([])
@@ -183,7 +182,6 @@ export default function DataSelect({
         newProfileList.every(profile => profile.extra_notes === 'unavailable')
       ) {
         setFormData(formDefaults)
-        setSelectedCountry([])
         setProfileList([])
         await getMaps()
       } else {
@@ -259,7 +257,6 @@ export default function DataSelect({
         newProfileList.every(profile => profile.extra_notes === 'unavailable')
       ) {
         setFormData(formDefaults)
-        setSelectedCountry([])
         setProfileList([])
         await getMaps()
       } else {
@@ -328,7 +325,7 @@ export default function DataSelect({
   )
 }
 
-DataSelect.propTypes = {
+SelectData.propTypes = {
   apiUrl: PropTypes.string.isRequired,
   profileList: PropTypes.array.isRequired,
   setProfileList: PropTypes.func.isRequired,
@@ -338,6 +335,5 @@ DataSelect.propTypes = {
   setProgress: PropTypes.func.isRequired,
   progress: PropTypes.number.isRequired,
   setFormData: PropTypes.func.isRequired,
-  setSelectedCountry: PropTypes.func.isRequired,
   getMaps: PropTypes.func.isRequired
 }
