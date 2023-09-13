@@ -25,7 +25,8 @@ export default function SelectData({
   setProgress,
   progress,
   setFormData,
-  getMaps
+  getMaps,
+  setIsPopupOpen
 }) {
   const [selectedIds, setSelectedIds] = useState([])
   const [selectedStatusOption, setSelectedStatusOption] = useState('publish')
@@ -276,6 +277,7 @@ export default function SelectData({
         selectedIds={selectedIds}
         onSelectAll={toggleSelectAll}
         onSelect={toggleSelect}
+        setIsPopupOpen={setIsPopupOpen}
       />
       <form
         onSubmit={
@@ -322,5 +324,6 @@ SelectData.propTypes = {
   setProgress: PropTypes.func.isRequired,
   progress: PropTypes.number.isRequired,
   setFormData: PropTypes.func.isRequired,
-  getMaps: PropTypes.func.isRequired
+  getMaps: PropTypes.func.isRequired,
+  setIsPopupOpen: PropTypes.func.isRequired
 }

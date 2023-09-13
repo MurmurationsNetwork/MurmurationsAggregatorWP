@@ -2,7 +2,13 @@ import React from 'react'
 import TableRow from './TableRow'
 import PropTypes from 'prop-types'
 
-function Table({ tableList, selectedIds, onSelectAll, onSelect }) {
+function Table({
+  tableList,
+  selectedIds,
+  onSelectAll,
+  onSelect,
+  setIsPopupOpen
+}) {
   const isAllSelected = selectedIds.length === tableList.length
 
   return (
@@ -29,6 +35,7 @@ function Table({ tableList, selectedIds, onSelectAll, onSelect }) {
             response={response}
             isSelected={selectedIds.includes(response.id)}
             onSelect={onSelect}
+            setIsPopupOpen={setIsPopupOpen}
           />
         ))}
       </tbody>
@@ -40,7 +47,8 @@ Table.propTypes = {
   tableList: PropTypes.arrayOf(PropTypes.object).isRequired,
   selectedIds: PropTypes.arrayOf(PropTypes.number).isRequired,
   onSelectAll: PropTypes.func.isRequired,
-  onSelect: PropTypes.func.isRequired
+  onSelect: PropTypes.func.isRequired,
+  setIsPopupOpen: PropTypes.func.isRequired
 }
 
 export default Table

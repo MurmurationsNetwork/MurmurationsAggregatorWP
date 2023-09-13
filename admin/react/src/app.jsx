@@ -5,6 +5,7 @@ import { getWpMaps } from './utils/api'
 import SelectData from './components/SelectData'
 import EditData from './components/EditData'
 import CreateData from './components/CreateData'
+import PopupBox from './components/PopupBox'
 
 export default function App() {
   // eslint-disable-next-line no-undef
@@ -28,6 +29,9 @@ export default function App() {
 
   // ProgressBar states
   const [progress, setProgress] = useState(0)
+
+  // PopupBox states
+  const [isPopupOpen, setIsPopupOpen] = useState(false)
 
   useEffect(() => {
     getMaps().then(() => {
@@ -116,6 +120,7 @@ export default function App() {
               progress={progress}
               setFormData={setFormData}
               getMaps={getMaps}
+              setIsPopupOpen={setIsPopupOpen}
             />
           )}
         </div>
@@ -134,6 +139,7 @@ export default function App() {
           />
         </div>
       </div>
+      <PopupBox isPopupOpen={isPopupOpen} setIsPopupOpen={setIsPopupOpen} />
     </div>
   )
 }
