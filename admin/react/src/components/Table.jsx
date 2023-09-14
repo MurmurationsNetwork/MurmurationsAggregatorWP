@@ -7,7 +7,9 @@ function Table({
   selectedIds,
   onSelectAll,
   onSelect,
-  setIsPopupOpen
+  setIsPopupOpen,
+  setOriginalJson,
+  setModifiedJson
 }) {
   const isAllSelected = selectedIds.length === tableList.length
 
@@ -36,6 +38,8 @@ function Table({
             isSelected={selectedIds.includes(response.id)}
             onSelect={onSelect}
             setIsPopupOpen={setIsPopupOpen}
+            setOriginalJson={setOriginalJson}
+            setModifiedJson={setModifiedJson}
           />
         ))}
       </tbody>
@@ -48,7 +52,9 @@ Table.propTypes = {
   selectedIds: PropTypes.arrayOf(PropTypes.number).isRequired,
   onSelectAll: PropTypes.func.isRequired,
   onSelect: PropTypes.func.isRequired,
-  setIsPopupOpen: PropTypes.func.isRequired
+  setIsPopupOpen: PropTypes.func.isRequired,
+  setOriginalJson: PropTypes.func.isRequired,
+  setModifiedJson: PropTypes.func.isRequired
 }
 
 export default Table

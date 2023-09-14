@@ -1,3 +1,7 @@
+// eslint-disable-next-line no-undef
+const wordpressUrl = murmurations_aggregator.wordpress_url
+const apiUrl2 = `${wordpressUrl}/wp-json/murmurations-aggregator/v1`
+
 export const getWpMaps = async apiUrl => {
   return await fetch(`${apiUrl}/maps`)
 }
@@ -79,6 +83,12 @@ export const compareWithWpNodes = async (
   }
 
   return await fetchRequest(`${apiUrl}/nodes-comparison`, 'POST', body)
+}
+
+export const getCustomNodes = async (mapId, profileUrl) => {
+  return await fetch(
+    `${apiUrl2}/nodes?map_id=${mapId}&profile_url=${profileUrl}`
+  )
 }
 
 export const saveCustomNodes = async (

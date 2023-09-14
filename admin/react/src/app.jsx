@@ -32,6 +32,8 @@ export default function App() {
 
   // PopupBox states
   const [isPopupOpen, setIsPopupOpen] = useState(false)
+  const [originalJson, setOriginalJson] = useState({})
+  const [modifiedJson, setModifiedJson] = useState({})
 
   useEffect(() => {
     getMaps().then(() => {
@@ -121,6 +123,8 @@ export default function App() {
               setFormData={setFormData}
               getMaps={getMaps}
               setIsPopupOpen={setIsPopupOpen}
+              setOriginalJson={setOriginalJson}
+              setModifiedJson={setModifiedJson}
             />
           )}
         </div>
@@ -139,7 +143,14 @@ export default function App() {
           />
         </div>
       </div>
-      <PopupBox isPopupOpen={isPopupOpen} setIsPopupOpen={setIsPopupOpen} />
+      <PopupBox
+        isPopupOpen={isPopupOpen}
+        setIsPopupOpen={setIsPopupOpen}
+        originalJson={originalJson}
+        setOriginalJson={setOriginalJson}
+        modifiedJson={modifiedJson}
+        setModifiedJson={setModifiedJson}
+      />
     </div>
   )
 }

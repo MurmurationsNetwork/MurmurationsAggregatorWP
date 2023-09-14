@@ -108,6 +108,10 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'/nodes',
 				array(
 					array(
+						'methods'  => 'GET',
+						'callback' => array( $this, 'get_node' ),
+					),
+					array(
 						'methods'  => 'POST',
 						'callback' => array( $this, 'post_node' ),
 					),
@@ -480,11 +484,33 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			return rest_ensure_response( 'Node status updated successfully.' );
 		}
 
+		public function get_node( $request ) {
+			$mapId      = $request->get_param( 'map_id' );
+			$profileUrl = $request->get_param( 'profile_url' );
+
+			// validate data
+			if ( ! isset( $mapId ) || ! isset( $profileUrl ) ) {
+				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
+			}
+
+			// find data in nodes table by profile_url
+			$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE profile_url = %s AND map_id = %d", $profileUrl, $mapId );
+
+			$node = $this->wpdb->get_row( $query );
+
+			if ( ! $node ) {
+				return new WP_Error( 'node_not_found', 'Node not found', array( 'status' => 404 ) );
+			}
+
+			// return node
+			return rest_ensure_response( json_decode( $node->data ) );
+		}
+
 		public function post_node( $request ) {
 			$data = $request->get_json_params();
 
 			// validate data
-			if ( ! isset( $data['profile_url'] ) || ! isset( $data['map_id'] ) || ! isset( $data['data'] )) {
+			if ( ! isset( $data['profile_url'] ) || ! isset( $data['map_id'] ) || ! isset( $data['data'] ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
 			}
 

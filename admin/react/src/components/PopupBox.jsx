@@ -1,21 +1,22 @@
 import ReactDiffViewer from 'react-diff-viewer-continued'
 import PropTypes from 'prop-types'
 
-const originalJson = {
-  name: 'John',
-  age: 30,
-  city: 'New York'
-}
-
-const modifiedJson = {
-  name: 'Jane',
-  age: 25,
-  country: 'Canada'
-}
-
-export default function PopupBox({ isPopupOpen, setIsPopupOpen }) {
+export default function PopupBox({
+  isPopupOpen,
+  setIsPopupOpen,
+  originalJson,
+  setOriginalJson,
+  modifiedJson,
+  setModifiedJson
+}) {
   const originalString = JSON.stringify(originalJson, null, 2)
   const modifiedString = JSON.stringify(modifiedJson, null, 2)
+
+  const handlePopupClose = () => {
+    setIsPopupOpen(false)
+    setOriginalJson({})
+    setModifiedJson({})
+  }
 
   return (
     <div>
@@ -25,16 +26,18 @@ export default function PopupBox({ isPopupOpen, setIsPopupOpen }) {
             <div className="text-lg font-bold mb-4">See Updates</div>
             <hr />
             <div className="flex">
-              <ReactDiffViewer
-                oldValue={originalString}
-                newValue={modifiedString}
-                splitView={true}
-              />
+              <div className="max-h-80 overflow-y-auto">
+                <ReactDiffViewer
+                  oldValue={originalString}
+                  newValue={modifiedString}
+                  splitView={true}
+                />
+              </div>
             </div>
             <hr />
             <button
               className={`my-1 mx-2 max-w-fit rounded-full bg-red-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-red-400 disabled:opacity-75`}
-              onClick={() => setIsPopupOpen(false)}
+              onClick={() => handlePopupClose()}
             >
               Close
             </button>
@@ -47,5 +50,9 @@ export default function PopupBox({ isPopupOpen, setIsPopupOpen }) {
 
 PopupBox.propTypes = {
   isPopupOpen: PropTypes.bool.isRequired,
-  setIsPopupOpen: PropTypes.func.isRequired
+  setIsPopupOpen: PropTypes.func.isRequired,
+  originalJson: PropTypes.object.isRequired,
+  setOriginalJson: PropTypes.func.isRequired,
+  modifiedJson: PropTypes.object.isRequired,
+  setModifiedJson: PropTypes.func.isRequired
 }

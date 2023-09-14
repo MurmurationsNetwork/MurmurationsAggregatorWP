@@ -38,7 +38,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 			    map_id INT NOT NULL,
 			    post_id INT,
 			    profile_url VARCHAR(100) NOT NULL,
-			    data JSON NOT NULL,
+			    data TEXT NOT NULL,
 			    hashed_data VARCHAR(100) NOT NULL,
 			    status VARCHAR(100) NOT NULL DEFAULT 'ignored',
 			    PRIMARY KEY (id),

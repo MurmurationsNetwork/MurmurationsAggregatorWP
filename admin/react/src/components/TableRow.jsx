@@ -1,8 +1,29 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import { getCustomNodes } from '../utils/api'
 
-function TableRow({ response, isSelected, onSelect, setIsPopupOpen }) {
-  const handleSeeUpdates = () => {
+function TableRow({
+  response,
+  isSelected,
+  onSelect,
+  setIsPopupOpen,
+  setOriginalJson,
+  setModifiedJson
+}) {
+  const handleSeeUpdates = async (mapId, profileUrl, profileData) => {
+    const response = await getCustomNodes(mapId, profileUrl)
+    const responseData = await response.json()
+    if (!response.ok) {
+      alert(
+        `Error fetching original profile with response: ${
+          response.status
+        } ${JSON.stringify(responseData)}`
+      )
+      return
+    }
+
+    setOriginalJson(responseData)
+    setModifiedJson(profileData)
     setIsPopupOpen(true)
   }
 
@@ -22,7 +43,17 @@ function TableRow({ response, isSelected, onSelect, setIsPopupOpen }) {
       <td className="text-center">{response.status}</td>
       <td className="text-center">
         {response.extra_notes === 'see updates' ? (
-          <button onClick={() => handleSeeUpdates()}>See Updates</button>
+          <button
+            onClick={() =>
+              handleSeeUpdates(
+                response.map_id,
+                response.profile_url,
+                response.profile_data
+              )
+            }
+          >
+            See Updates
+          </button>
         ) : (
           response.extra_notes
         )}
@@ -35,7 +66,9 @@ TableRow.propTypes = {
   response: PropTypes.object.isRequired,
   isSelected: PropTypes.bool.isRequired,
   onSelect: PropTypes.func.isRequired,
-  setIsPopupOpen: PropTypes.func.isRequired
+  setIsPopupOpen: PropTypes.func.isRequired,
+  setOriginalJson: PropTypes.func.isRequired,
+  setModifiedJson: PropTypes.func.isRequired
 }
 
 export default TableRow
