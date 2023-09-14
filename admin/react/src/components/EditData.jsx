@@ -4,7 +4,6 @@ import { formDefaults } from '../data/formDefaults'
 import PropTypes from 'prop-types'
 
 export default function EditData({
-  apiUrl,
   formData,
   handleInputChange,
   setIsLoading,
@@ -21,7 +20,6 @@ export default function EditData({
 
     try {
       const response = await updateWpMap(
-        apiUrl,
         tagSlug,
         formData.map_name,
         formData.map_center_lat,
@@ -68,7 +66,6 @@ export default function EditData({
 }
 
 EditData.propTypes = {
-  apiUrl: PropTypes.string.isRequired,
   formData: PropTypes.object.isRequired,
   handleInputChange: PropTypes.func.isRequired,
   setIsLoading: PropTypes.func.isRequired,

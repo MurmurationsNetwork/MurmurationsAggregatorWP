@@ -16,7 +16,6 @@ import {
 import PropTypes from 'prop-types'
 
 export default function SelectData({
-  apiUrl,
   profileList,
   setProfileList,
   isLoading,
@@ -70,7 +69,6 @@ export default function SelectData({
         // need to update the node first
         if (profile.extra_notes === 'see updates') {
           const profileResponse = await updateCustomNodes(
-            apiUrl,
             profile.map_id,
             profile.profile_url,
             profile.profile_data
@@ -89,7 +87,7 @@ export default function SelectData({
         const profileStatus = profile.status
         // if original status and selected status are both publish, we need to update the post
         if (selectedStatusOption === 'publish' && profileStatus === 'publish') {
-          const profileResponse = await updateWpNodes(apiUrl, profile)
+          const profileResponse = await updateWpNodes(profile)
 
           if (!profileResponse.ok) {
             const profileResponseData = await profileResponse.json()
@@ -105,11 +103,7 @@ export default function SelectData({
           selectedStatusOption === 'publish' &&
           (profileStatus === 'new' || profileStatus === 'dismiss')
         ) {
-          const profileResponse = await saveWpNodes(
-            apiUrl,
-            profile.tag_slug,
-            profile
-          )
+          const profileResponse = await saveWpNodes(profile.tag_slug, profile)
           if (!profileResponse.ok) {
             const profileResponseData = await profileResponse.json()
             alert(
@@ -125,7 +119,7 @@ export default function SelectData({
             selectedStatusOption === 'ignore') &&
           profileStatus === 'publish'
         ) {
-          const response = await deleteWpNodes(apiUrl, profile)
+          const response = await deleteWpNodes(profile)
 
           if (!response.ok) {
             const responseData = await response.json()
@@ -138,7 +132,6 @@ export default function SelectData({
 
           // update the status of the node
           const profileResponse = await updateCustomNodesStatus(
-            apiUrl,
             profile.map_id,
             profile.profile_url,
             selectedStatusOption
@@ -156,7 +149,6 @@ export default function SelectData({
         if (selectedStatusOption === 'ignore' && profileStatus === 'dismiss') {
           // update the status of the node
           const profileResponse = await updateCustomNodesStatus(
-            apiUrl,
             profile.map_id,
             profile.profile_url,
             selectedStatusOption
@@ -206,10 +198,9 @@ export default function SelectData({
         // otherwise, dismiss, ignore status will update the status of nodes table
         let profileResponse
         if (selectedStatusOption === 'publish') {
-          profileResponse = await saveWpNodes(apiUrl, profile.tag_slug, profile)
+          profileResponse = await saveWpNodes(profile.tag_slug, profile)
         } else {
           profileResponse = await updateCustomNodesStatus(
-            apiUrl,
             profile.map_id,
             profile.profile_url,
             selectedStatusOption
@@ -319,7 +310,6 @@ export default function SelectData({
 }
 
 SelectData.propTypes = {
-  apiUrl: PropTypes.string.isRequired,
   profileList: PropTypes.array.isRequired,
   setProfileList: PropTypes.func.isRequired,
   isLoading: PropTypes.bool.isRequired,

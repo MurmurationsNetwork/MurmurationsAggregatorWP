@@ -1,18 +1,12 @@
 // eslint-disable-next-line no-undef
 const wordpressUrl = murmurations_aggregator.wordpress_url
-const apiUrl2 = `${wordpressUrl}/wp-json/murmurations-aggregator/v1`
+const apiUrl = `${wordpressUrl}/wp-json/murmurations-aggregator/v1`
 
-export const getWpMaps = async apiUrl => {
+export const getWpMaps = async () => {
   return await fetch(`${apiUrl}/maps`)
 }
 
-export const saveWpMap = async (
-  apiUrl,
-  mapName,
-  tagSlug,
-  indexUrl,
-  queryUrl
-) => {
+export const saveWpMap = async (mapName, tagSlug, indexUrl, queryUrl) => {
   const body = {
     name: mapName,
     tag_slug: tagSlug,
@@ -24,7 +18,6 @@ export const saveWpMap = async (
 }
 
 export const updateWpMap = async (
-  apiUrl,
   tagSlug,
   mapName,
   mapCenterLat,
@@ -41,11 +34,11 @@ export const updateWpMap = async (
   return await fetchRequest(`${apiUrl}/maps/${tagSlug}`, 'PUT', body)
 }
 
-export const deleteWpMap = async (apiUrl, map_id) => {
+export const deleteWpMap = async map_id => {
   return await fetchRequest(`${apiUrl}/maps/${map_id}`, 'DELETE')
 }
 
-export const saveWpNodes = async (apiUrl, tagSlug, profile) => {
+export const saveWpNodes = async (tagSlug, profile) => {
   const body = {
     tag_slug: tagSlug,
     profile: profile
@@ -54,7 +47,7 @@ export const saveWpNodes = async (apiUrl, tagSlug, profile) => {
   return await fetchRequest(`${apiUrl}/wp-nodes`, 'POST', body)
 }
 
-export const updateWpNodes = async (apiUrl, profile) => {
+export const updateWpNodes = async profile => {
   const body = {
     profile: profile
   }
@@ -62,7 +55,7 @@ export const updateWpNodes = async (apiUrl, profile) => {
   return await fetchRequest(`${apiUrl}/wp-nodes`, 'PUT', body)
 }
 
-export const deleteWpNodes = async (apiUrl, profile) => {
+export const deleteWpNodes = async profile => {
   const body = {
     profile: profile
   }
@@ -70,12 +63,7 @@ export const deleteWpNodes = async (apiUrl, profile) => {
   return await fetchRequest(`${apiUrl}/wp-nodes`, 'DELETE', body)
 }
 
-export const compareWithWpNodes = async (
-  apiUrl,
-  mapId,
-  profileData,
-  profileUrl
-) => {
+export const compareWithWpNodes = async (mapId, profileData, profileUrl) => {
   const body = {
     map_id: mapId,
     data: profileData,
@@ -87,12 +75,11 @@ export const compareWithWpNodes = async (
 
 export const getCustomNodes = async (mapId, profileUrl) => {
   return await fetch(
-    `${apiUrl2}/nodes?map_id=${mapId}&profile_url=${profileUrl}`
+    `${apiUrl}/nodes?map_id=${mapId}&profile_url=${profileUrl}`
   )
 }
 
 export const saveCustomNodes = async (
-  apiUrl,
   profileUrl,
   profileData,
   mapId,
@@ -108,12 +95,7 @@ export const saveCustomNodes = async (
   return await fetchRequest(`${apiUrl}/nodes`, 'POST', body)
 }
 
-export const updateCustomNodes = async (
-  apiUrl,
-  mapId,
-  profileUrl,
-  profileData
-) => {
+export const updateCustomNodes = async (mapId, profileUrl, profileData) => {
   const body = {
     map_id: mapId,
     profile_url: profileUrl,
@@ -124,7 +106,6 @@ export const updateCustomNodes = async (
 }
 
 export const updateCustomNodesStatus = async (
-  apiUrl,
   mapId,
   profileUrl,
   updateStatus

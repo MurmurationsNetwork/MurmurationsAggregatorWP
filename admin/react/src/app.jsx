@@ -8,10 +8,6 @@ import CreateData from './components/CreateData'
 import PopupBox from './components/PopupBox'
 
 export default function App() {
-  // eslint-disable-next-line no-undef
-  const wordpressUrl = murmurations_aggregator.wordpress_url
-  const apiUrl = `${wordpressUrl}/wp-json/murmurations-aggregator/v1`
-
   // button states
   const [isLoading, setIsLoading] = useState(false)
   const [isRetrieving, setIsRetrieving] = useState(false)
@@ -43,7 +39,7 @@ export default function App() {
 
   const getMaps = async () => {
     try {
-      const response = await getWpMaps(apiUrl)
+      const response = await getWpMaps()
       if (response.status === 404) {
         setMaps([])
         return
@@ -86,7 +82,6 @@ export default function App() {
           {profileList.length === 0 ? (
             isEdit ? (
               <EditData
-                apiUrl={apiUrl}
                 formData={formData}
                 handleInputChange={handleInputChange}
                 setIsLoading={setIsLoading}
@@ -99,7 +94,6 @@ export default function App() {
               />
             ) : (
               <CreateData
-                apiUrl={apiUrl}
                 formData={formData}
                 handleInputChange={handleInputChange}
                 setIsLoading={setIsLoading}
@@ -112,7 +106,6 @@ export default function App() {
             )
           ) : (
             <SelectData
-              apiUrl={apiUrl}
               profileList={profileList}
               setProfileList={setProfileList}
               isLoading={isLoading}
@@ -130,7 +123,6 @@ export default function App() {
         </div>
         <div className="w-1/2 mt-4 p-4">
           <MapList
-            apiUrl={apiUrl}
             maps={maps}
             getMaps={getMaps}
             setIsEdit={setIsEdit}

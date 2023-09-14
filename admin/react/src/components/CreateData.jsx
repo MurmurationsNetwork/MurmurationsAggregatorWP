@@ -7,7 +7,6 @@ import PropTypes from 'prop-types'
 import { useState } from 'react'
 
 export default function CreateData({
-  apiUrl,
   formData,
   handleInputChange,
   setIsLoading,
@@ -71,7 +70,6 @@ export default function CreateData({
         // we have a valid response, we can save the map to the server
         const tagSlug = 'murm_' + createId()
         const mapResponse = await saveWpMap(
-          apiUrl,
           formData.map_name,
           tagSlug,
           formData.data_url,
@@ -116,7 +114,6 @@ export default function CreateData({
           // save data to wpdb
           // todo: status needs to update according to the settings
           const profileResponse = await saveCustomNodes(
-            apiUrl,
             profile.profile_url,
             profile.profile_data,
             profile.map_id,
@@ -187,7 +184,6 @@ export default function CreateData({
 }
 
 CreateData.propTypes = {
-  apiUrl: PropTypes.string.isRequired,
   formData: PropTypes.object.isRequired,
   handleInputChange: PropTypes.func.isRequired,
   setIsLoading: PropTypes.func.isRequired,

@@ -2,7 +2,6 @@ import { compareWithWpNodes, deleteWpMap } from '../utils/api'
 import PropTypes from 'prop-types'
 
 export default function MapList({
-  apiUrl,
   maps,
   getMaps,
   setFormData,
@@ -48,7 +47,6 @@ export default function MapList({
 
         // compare with wpdb
         const profileResponse = await compareWithWpNodes(
-          apiUrl,
           map_id,
           profile_data,
           profile.profile_url
@@ -110,7 +108,7 @@ export default function MapList({
     setIsLoading(true)
 
     try {
-      const mapResponse = await deleteWpMap(apiUrl, map_id)
+      const mapResponse = await deleteWpMap(map_id)
       if (!mapResponse.ok) {
         const mapResponseData = await mapResponse.json()
         alert(
@@ -194,7 +192,6 @@ export default function MapList({
 }
 
 MapList.propTypes = {
-  apiUrl: PropTypes.string.isRequired,
   maps: PropTypes.array.isRequired,
   getMaps: PropTypes.func.isRequired,
   setFormData: PropTypes.func.isRequired,
