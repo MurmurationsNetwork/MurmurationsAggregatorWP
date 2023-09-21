@@ -1,17 +1,28 @@
 // eslint-disable-next-line no-undef
 const wordpressUrl = murmurations_aggregator.wordpress_url
-const apiUrl = `${wordpressUrl}/wp-json/murmurations-aggregator/v1`
+const apiUrl = `${wordpressUrl}/wp-json/murmurations-aggregator/v1/api`
 
 export const getWpMaps = async () => {
   return await fetch(`${apiUrl}/maps`)
 }
 
-export const saveWpMap = async (mapName, tagSlug, indexUrl, queryUrl) => {
+export const getWpMap = async tagSlug => {
+  return await fetch(`${apiUrl}/maps/${tagSlug}`)
+}
+
+export const saveWpMap = async (
+  mapName,
+  tagSlug,
+  indexUrl,
+  queryUrl,
+  lastUpdated
+) => {
   const body = {
     name: mapName,
     tag_slug: tagSlug,
     index_url: indexUrl,
-    query_url: queryUrl
+    query_url: queryUrl,
+    last_updated: lastUpdated
   }
 
   return await fetchRequest(`${apiUrl}/maps`, 'POST', body)

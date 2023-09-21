@@ -1,4 +1,4 @@
-import { compareWithWpNodes, deleteWpMap } from '../utils/api'
+import { compareWithWpNodes, deleteWpMap, getWpMap } from '../utils/api'
 import PropTypes from 'prop-types'
 
 export default function MapList({
@@ -17,6 +17,22 @@ export default function MapList({
     setIsRetrieving(true)
 
     try {
+      // get map data from WP
+      const mapResponse = await getWpMap(tag_slug)
+      const mapResponseData = await mapResponse.json()
+      if (!mapResponse.ok) {
+        alert(
+          `Map Error: ${mapResponse.status} ${JSON.stringify(mapResponseData)}`
+        )
+        return
+      }
+
+      // get map last_updated
+      const mapLastUpdated = mapResponseData.last_updated
+      if (mapLastUpdated) {
+        request_url += `&last_updated=${mapLastUpdated}`
+      }
+
       // get data from request_url - Index URL + Query URL
       const response = await fetch(request_url)
       const responseData = await response.json()
@@ -29,6 +45,13 @@ export default function MapList({
 
       // check with wpdb
       const profiles = responseData.data
+
+      if (profiles.length === 0) {
+        setProfileList(profiles)
+        alert(`No update profiles found.`)
+        return
+      }
+
       const dataWithIds = []
       let current_id = 1
       for (let profile of profiles) {

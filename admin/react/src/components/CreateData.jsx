@@ -51,6 +51,8 @@ export default function CreateData({
       pageQueries
 
     try {
+      const currentTimestamp = new Date().getTime()
+      console.log(currentTimestamp)
       const response = await fetch(urlWithParams)
       if (response.ok) {
         const responseData = await response.json()
@@ -73,7 +75,8 @@ export default function CreateData({
           formData.map_name,
           tagSlug,
           formData.data_url,
-          urlWithParams.replace(formData.data_url, '')
+          urlWithParams.replace(formData.data_url, ''),
+          currentTimestamp
         )
         const mapResponseData = await mapResponse.json()
         if (!mapResponse.ok) {

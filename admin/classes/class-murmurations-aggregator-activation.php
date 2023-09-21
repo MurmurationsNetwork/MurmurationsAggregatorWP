@@ -26,6 +26,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 		        map_center_lat DECIMAL(10, 7) DEFAULT 46.603354 NOT NULL,
 		        map_center_lon DECIMAL(10, 7) DEFAULT 1.888334 NOT NULL,
 		        map_scale INT DEFAULT 5 NOT NULL,
+		        last_updated TIMESTAMP NOT NULL,
 				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 				deleted_at TIMESTAMP NULL,
