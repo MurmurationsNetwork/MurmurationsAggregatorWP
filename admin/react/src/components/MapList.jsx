@@ -1,4 +1,9 @@
-import { compareWithWpNodes, deleteWpMap, getWpMap } from '../utils/api'
+import {
+  compareWithWpNodes,
+  deleteWpMap,
+  getCustomNodes,
+  getWpMap
+} from '../utils/api'
 import PropTypes from 'prop-types'
 
 export default function MapList({
@@ -114,7 +119,33 @@ export default function MapList({
     }
   }
 
-  const handleEdit = async tag_slug => {
+  const handleEditNodes = async mapId => {
+    setIsLoading(true)
+
+    try {
+      // get nodes from WP
+      const response = await getCustomNodes(mapId)
+      const profiles = await response.json()
+      if (!response.ok) {
+        alert(`Nodes Error: ${response.status} ${JSON.stringify(profiles)}`)
+        return
+      }
+
+      let current_id = 1
+      for (let profile of profiles) {
+        profile.id = current_id
+        profile.name = profile.profile_data.name
+        current_id++
+      }
+      setProfileList(profiles)
+    } catch (error) {
+      alert(`Edit nodes error: ${JSON.stringify(error)}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleEditMap = async tag_slug => {
     setIsEdit(true)
     setProfileList([])
     const map = maps.find(map => map.tag_slug === tag_slug)
@@ -177,7 +208,7 @@ export default function MapList({
             </p>
             <div className="box-border flex flex-wrap xl:min-w-max flex-row mt-4 justify-between">
               <button
-                className={`my-1 mx-2 max-w-fit rounded-full bg-amber-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
+                className={`my-1 mx-2 max-w-fit rounded-full bg-yellow-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
                   isLoading ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
                 onClick={() =>
@@ -191,10 +222,18 @@ export default function MapList({
                 {isLoading ? 'Loading' : 'Retrieve'}
               </button>
               <button
-                className="my-1 mx-2 max-w-fit rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75"
-                onClick={() => handleEdit(map.tag_slug)}
+                className={`my-1 mx-2 max-w-fit rounded-full bg-amber-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-amber-400 disabled:opacity-75 ${
+                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                onClick={() => handleEditNodes(map.id)}
               >
-                Edit
+                {isLoading ? 'Loading' : 'Edit Nodes'}
+              </button>
+              <button
+                className="my-1 mx-2 max-w-fit rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75"
+                onClick={() => handleEditMap(map.tag_slug)}
+              >
+                Edit Map
               </button>
               <button
                 className={`my-1 mx-2 max-w-fit rounded-full bg-red-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-red-400 disabled:opacity-75 ${

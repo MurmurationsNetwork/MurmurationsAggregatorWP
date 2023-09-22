@@ -85,6 +85,10 @@ export const compareWithWpNodes = async (mapId, profileData, profileUrl) => {
 }
 
 export const getCustomNodes = async (mapId, profileUrl) => {
+  if (profileUrl === undefined) {
+    return await fetch(`${apiUrl}/nodes?map_id=${mapId}`)
+  }
+
   return await fetch(
     `${apiUrl}/nodes?map_id=${mapId}&profile_url=${profileUrl}`
   )

@@ -22,7 +22,7 @@ function TableRow({
       return
     }
 
-    setOriginalJson(responseData)
+    setOriginalJson(responseData[0].data)
     setModifiedJson(profileData)
     setIsPopupOpen(true)
   }
