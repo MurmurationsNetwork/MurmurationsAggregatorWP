@@ -121,6 +121,7 @@ export default function MapList({
 
   const handleEditNodes = async mapId => {
     setIsLoading(true)
+    setIsRetrieving(true)
 
     try {
       // get nodes from WP
