@@ -10,10 +10,14 @@ export default function App(props) {
   const { tagSlug } = props
 
   const [profiles, setProfiles] = useState([])
+  const [maps, setMaps] = useState({})
 
   useEffect(() => {
     getProfiles().then(() => {
       console.log('profiles are loaded')
+    })
+    getMaps().then(() => {
+      console.log('maps are loaded')
     })
   }, [])
 
@@ -29,9 +33,21 @@ export default function App(props) {
     }
   }
 
+  const getMaps = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/api/maps/${tagSlug}`)
+      const data = await response.json()
+      setMaps(data)
+    } catch (error) {
+      alert(
+        `Error getting maps, please contact the administrator, error: ${error}`
+      )
+    }
+  }
+
   return (
     <div>
-      <h1 className="text-3xl">Murmurations Map - {tagSlug}</h1>
+      <h1 className="text-3xl">{maps.name}</h1>
       <MapClient
         profiles={profiles}
         lat={46.603354}

@@ -21,7 +21,7 @@ L.Icon.Default.mergeOptions({
 
 const markerClicked = async (postId, apiUrl) => {
   try {
-    return await fetch(`${apiUrl}/wp_nodes/${postId}`)
+    return await fetch(`${apiUrl}/api/wp-nodes/${postId}`)
   } catch (error) {
     alert(
       `Error getting post, please contact the administrator, error: ${error}`
