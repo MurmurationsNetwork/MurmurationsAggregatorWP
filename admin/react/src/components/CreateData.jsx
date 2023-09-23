@@ -89,12 +89,18 @@ export default function CreateData({
         const profiles = responseData.data
         const dataWithIds = []
         const progressStep = 100 / profiles.length
+        let current_id = 1
         for (let i = 0; i < profiles.length; i++) {
           // update progress
           if ((i + 1) * progressStep > 100) {
             setProgress(100)
           } else {
             setProgress((i + 1) * progressStep)
+          }
+
+          // if the status is deleted, continue
+          if (profiles[i].status === 'deleted') {
+            continue
           }
 
           const profile = profiles[i]
@@ -105,7 +111,7 @@ export default function CreateData({
               profile_data = await response.json()
             }
           }
-          profile.id = i + 1
+          profile.id = current_id
           profile.profile_data = profile_data
           profile.status = 'new'
           profile.map_id = mapResponseData.map_id
@@ -135,6 +141,7 @@ export default function CreateData({
           // set extra notes
           profile.extra_notes = profile_data === '' ? 'unavailable' : ''
 
+          current_id++
           dataWithIds.push(profile)
         }
         setProfileList(dataWithIds)

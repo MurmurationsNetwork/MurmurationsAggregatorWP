@@ -139,6 +139,10 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 					array(
 						'methods'  => 'PUT',
 						'callback' => array( $this, 'put_node' ),
+					),
+					array(
+						'methods'  => 'DELETE',
+						'callback' => array( $this, 'delete_node' ),
 					)
 				)
 			);
@@ -628,6 +632,27 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			}
 
 			return rest_ensure_response( 'Node updated successfully.' );
+		}
+
+		public function delete_node($request) {
+			$data = $request->get_json_params();
+
+			// validate data
+			if ( ! isset( $data['profile_url'] ) || ! isset( $data['map_id'] ) ) {
+				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
+			}
+
+			// delete node
+			$result = $this->wpdb->delete( $this->node_table_name, array(
+				'profile_url' => $data['profile_url'],
+				'map_id'      => $data['map_id'],
+			) );
+
+			if ( ! $result ) {
+				return new WP_Error( 'node_deletion_failed', 'Failed to delete node.', array( 'status' => 500 ) );
+			}
+
+			return rest_ensure_response( 'Node deleted successfully.' );
 		}
 	}
 }

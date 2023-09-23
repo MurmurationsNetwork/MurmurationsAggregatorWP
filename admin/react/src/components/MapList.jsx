@@ -2,7 +2,8 @@ import {
   compareWithWpNodes,
   deleteCustomMap,
   getCustomMap,
-  getCustomNodes
+  getCustomNodes,
+  saveCustomNodes
 } from '../utils/api'
 import PropTypes from 'prop-types'
 
@@ -63,7 +64,7 @@ export default function MapList({
       let current_id = 1
       for (let profile of profiles) {
         let profile_data = ''
-        if (profile.profile_url) {
+        if (profile.profile_url && profile.status !== 'deleted') {
           const response = await fetch(profile.profile_url)
           if (response.ok) {
             profile_data = await response.json()
@@ -92,21 +93,42 @@ export default function MapList({
           return
         }
 
-        if (profileResponse.status === 404) {
+        if (profileResponse.status === 404 && profile.status !== 'deleted') {
           profile.status = 'new'
+
+          const profileResponse = await saveCustomNodes(
+            profile.profile_url,
+            profile.profile_data,
+            profile.map_id,
+            profile.status
+          )
+
+          if (!profileResponse.ok) {
+            const profileResponseData = await profileResponse.json()
+            alert(
+              `Unable to save profiles to wpdb, errors: ${
+                profileResponse.status
+              } ${JSON.stringify(
+                profileResponseData
+              )}. Please delete the map and try again.`
+            )
+            return
+          }
         } else {
           // if the profile is ignored, don't show up again
           if (profileResponseData.status === 'ignore') {
             continue
           }
 
-          profile.status = profileResponseData.status
-          if (profileResponseData.has_update) {
-            profile.extra_notes = 'see updates'
+          if (profile.status !== 'deleted') {
+            profile.status = profileResponseData.status
+            if (profileResponseData.has_update) {
+              profile.extra_notes = 'see updates'
+            }
           }
         }
 
-        if (profile_data === '') {
+        if (profile_data === '' && profile.status !== 'deleted') {
           profile.extra_notes = 'unavailable'
         }
 

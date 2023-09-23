@@ -139,6 +139,15 @@ export const updateCustomNodesStatus = async (
   return fetchRequest(`${apiUrl}/nodes-status`, 'POST', body)
 }
 
+export const deleteCustomNodes = async (mapId, profileUrl) => {
+  const body = {
+    map_id: mapId,
+    profile_url: profileUrl
+  }
+
+  return await fetchRequest(`${apiUrl}/nodes`, 'DELETE', body)
+}
+
 const fetchRequest = async (url, method, body) => {
   try {
     return await fetch(url, {

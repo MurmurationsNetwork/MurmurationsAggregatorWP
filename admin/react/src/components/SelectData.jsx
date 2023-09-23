@@ -1,6 +1,7 @@
 import Table from './Table'
 import ProgressBar from './ProgressBar'
 import {
+  deleteCustomNodes,
   deleteWpNodes,
   saveWpNodes,
   updateCustomMapLastUpdated,
@@ -88,6 +89,35 @@ export default function SelectData({
         }
 
         const profileStatus = profile.status
+        // if the node status is deleted, we need to delete the post
+        if (profileStatus === 'deleted') {
+          const response = await deleteWpNodes(profile)
+
+          if (!response.ok) {
+            const responseData = await response.json()
+            alert(
+              `Delete Profile Error: ${response.status} ${JSON.stringify(
+                responseData
+              )}`
+            )
+          }
+
+          // delete node from nodes table
+          const deleteResponse = await deleteCustomNodes(
+            profile.map_id,
+            profile.profile_url
+          )
+
+          if (!deleteResponse.ok) {
+            const deleteResponseData = await deleteResponse.json()
+            alert(
+              `Delete Node Error: ${deleteResponse.status} ${JSON.stringify(
+                deleteResponseData
+              )}`
+            )
+          }
+        }
+
         // if original status and selected status are both publish, we need to update the post
         if (selectedStatusOption === 'publish' && profileStatus === 'publish') {
           const profileResponse = await updateWpNodes(profile)
