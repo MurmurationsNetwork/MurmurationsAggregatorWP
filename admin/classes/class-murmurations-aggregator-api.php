@@ -45,6 +45,17 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			register_rest_route(
 				'murmurations-aggregator/v1/api',
+				'/maps-last-updated/(?P<tag_slug>[\w]+)',
+				array(
+					array(
+						'methods'  => 'PUT',
+						'callback' => array( $this, 'put_map_last_updated' ),
+					),
+				)
+			);
+
+			register_rest_route(
+				'murmurations-aggregator/v1/api',
 				'/maps',
 				array(
 					array(
@@ -204,6 +215,27 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			return rest_ensure_response( 'Map updated successfully.' );
 		}
 
+		public function put_map_last_updated( $request ) {
+			$tagSlug = $request->get_param( 'tag_slug' );
+			$data    = $request->get_json_params();
+
+			if ( ! isset( $tagSlug ) || ! isset( $data['last_updated'] ) ) {
+				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
+			}
+
+			$result = $this->wpdb->update( $this->table_name, array(
+				'last_updated' => date( "Y-m-d H:i:s", $data['last_updated'] / 1000 ),
+			), array(
+				'tag_slug' => $tagSlug,
+			) );
+
+			if ( ! $result ) {
+				return new WP_Error( 'map_update_failed', 'Failed to update map.', array( 'status' => 500 ) );
+			}
+
+			return rest_ensure_response( 'Map updated successfully.' );
+		}
+
 		public function get_maps() {
 			$query    = "SELECT * FROM $this->table_name";
 			$map_data = $this->wpdb->get_results( $query );
@@ -219,7 +251,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$data = $request->get_json_params();
 
 			// validate data
-			if ( ! isset( $data['name'] ) || ! isset( $data['index_url'] ) || ! isset( $data['query_url'] ) || ! isset( $data['tag_slug'] ) || ! isset( $data['last_updated'] ) ) {
+			if ( ! isset( $data['name'] ) || ! isset( $data['index_url'] ) || ! isset( $data['query_url'] ) || ! isset( $data['tag_slug'] ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
 			}
 
@@ -249,7 +281,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'map_center_lon' => ! empty( $data['map_center_lon'] ) ? sanitize_text_field( $data['map_center_lon'] ) : '1.8883340',
 				'map_center_lat' => ! empty( $data['map_center_lat'] ) ? sanitize_text_field( $data['map_center_lat'] ) : '46.6033540',
 				'map_scale'      => ! empty( $data['map_scale'] ) ? sanitize_text_field( $data['map_scale'] ) : '5',
-				'last_updated'   => date( "Y-m-d H:i:s", $data['last_updated'] / 1000 ),
 			) );
 
 			if ( ! $result ) {
@@ -390,7 +421,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			$result = wp_update_post( array(
 				'ID'         => $post_id,
-				'post_title' => $data['profile']['name'],
+				'post_title' => $data['data']['name'],
 			) );
 
 			if ( ! $result ) {

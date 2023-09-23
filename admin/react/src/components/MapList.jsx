@@ -1,8 +1,8 @@
 import {
   compareWithWpNodes,
-  deleteWpMap,
-  getCustomNodes,
-  getWpMap
+  deleteCustomMap,
+  getCustomMap,
+  getCustomNodes
 } from '../utils/api'
 import PropTypes from 'prop-types'
 
@@ -15,7 +15,8 @@ export default function MapList({
   setIsLoading,
   setIsRetrieving,
   setProfileList,
-  setTagSlug
+  setTagSlug,
+  setCurrentTime
 }) {
   const handleRetrieve = async (map_id, request_url, tag_slug) => {
     setIsLoading(true)
@@ -23,7 +24,7 @@ export default function MapList({
 
     try {
       // get map data from WP
-      const mapResponse = await getWpMap(tag_slug)
+      const mapResponse = await getCustomMap(tag_slug)
       const mapResponseData = await mapResponse.json()
       if (!mapResponse.ok) {
         alert(
@@ -39,6 +40,7 @@ export default function MapList({
       }
 
       // get data from request_url - Index URL + Query URL
+      setCurrentTime(new Date().getTime())
       const response = await fetch(request_url)
       const responseData = await response.json()
       if (!response.ok) {
@@ -163,7 +165,7 @@ export default function MapList({
     setIsLoading(true)
 
     try {
-      const mapResponse = await deleteWpMap(map_id)
+      const mapResponse = await deleteCustomMap(map_id)
       if (!mapResponse.ok) {
         const mapResponseData = await mapResponse.json()
         alert(
@@ -263,5 +265,6 @@ MapList.propTypes = {
   setIsLoading: PropTypes.func.isRequired,
   setIsRetrieving: PropTypes.func.isRequired,
   setProfileList: PropTypes.func.isRequired,
-  setTagSlug: PropTypes.func.isRequired
+  setTagSlug: PropTypes.func.isRequired,
+  setCurrentTime: PropTypes.func.isRequired
 }

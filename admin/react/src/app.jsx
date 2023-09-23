@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import MapList from './components/MapList'
 import { formDefaults } from './data/formDefaults'
-import { getWpMaps } from './utils/api'
+import { getCustomMaps } from './utils/api'
 import SelectData from './components/SelectData'
 import EditData from './components/EditData'
 import CreateData from './components/CreateData'
@@ -15,6 +15,7 @@ export default function App() {
 
   // MapList states
   const [maps, setMaps] = useState([])
+  const [currentTime, setCurrentTime] = useState(null)
 
   // DataSource states
   const [formData, setFormData] = useState(formDefaults)
@@ -39,7 +40,7 @@ export default function App() {
 
   const getMaps = async () => {
     try {
-      const response = await getWpMaps()
+      const response = await getCustomMaps()
       if (response.status === 404) {
         setMaps([])
         return
@@ -118,6 +119,8 @@ export default function App() {
               setIsPopupOpen={setIsPopupOpen}
               setOriginalJson={setOriginalJson}
               setModifiedJson={setModifiedJson}
+              currentTime={currentTime}
+              setCurrentTime={setCurrentTime}
             />
           )}
         </div>
@@ -132,6 +135,7 @@ export default function App() {
             setTagSlug={setTagSlug}
             setIsLoading={setIsLoading}
             isLoading={isLoading}
+            setCurrentTime={setCurrentTime}
           />
         </div>
       </div>

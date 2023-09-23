@@ -2,7 +2,7 @@ import MapSettings from './MapSettings'
 import DataSource from './DataSource'
 import ProgressBar from './ProgressBar'
 import { createId } from '@paralleldrive/cuid2'
-import { saveCustomNodes, saveWpMap } from '../utils/api'
+import { saveCustomMap, saveCustomNodes } from '../utils/api'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
 
@@ -51,8 +51,6 @@ export default function CreateData({
       pageQueries
 
     try {
-      const currentTimestamp = new Date().getTime()
-      console.log(currentTimestamp)
       const response = await fetch(urlWithParams)
       if (response.ok) {
         const responseData = await response.json()
@@ -71,12 +69,11 @@ export default function CreateData({
 
         // we have a valid response, we can save the map to the server
         const tagSlug = 'murm_' + createId()
-        const mapResponse = await saveWpMap(
+        const mapResponse = await saveCustomMap(
           formData.map_name,
           tagSlug,
           formData.data_url,
-          urlWithParams.replace(formData.data_url, ''),
-          currentTimestamp
+          urlWithParams.replace(formData.data_url, '')
         )
         const mapResponseData = await mapResponse.json()
         if (!mapResponse.ok) {

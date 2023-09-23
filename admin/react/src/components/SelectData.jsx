@@ -3,6 +3,7 @@ import ProgressBar from './ProgressBar'
 import {
   deleteWpNodes,
   saveWpNodes,
+  updateCustomMapLastUpdated,
   updateCustomNodes,
   updateCustomNodesStatus,
   updateWpNodes
@@ -27,7 +28,9 @@ export default function SelectData({
   getMaps,
   setIsPopupOpen,
   setOriginalJson,
-  setModifiedJson
+  setModifiedJson,
+  currentTime,
+  setCurrentTime
 }) {
   const [selectedIds, setSelectedIds] = useState([])
   const [selectedStatusOption, setSelectedStatusOption] = useState('publish')
@@ -167,9 +170,7 @@ export default function SelectData({
       await updateProfileAndRefresh(profileList, selectedIds)
     } catch (error) {
       alert(
-        `Handle Profiles Submit error: ${JSON.stringify(
-          error
-        )}, please delete the map and retry again.`
+        `Handle Profiles Submit error: ${error}, please delete the map and retry again.`
       )
     } finally {
       resetStates()
@@ -234,11 +235,26 @@ export default function SelectData({
     // remove selected profiles
     const newProfileList = removeSelectedProfiles(profileList, selectedIds)
 
+    // get tag_slug
+    const tagSlug = profileList[0].tag_slug
+
     // if the extra_notes of all profiles are unavailable, it means all nodes are handled, we can refresh the page
     if (
       newProfileList.length === 0 ||
       newProfileList.every(profile => profile.extra_notes === 'unavailable')
     ) {
+      if (currentTime !== null) {
+        const response = await updateCustomMapLastUpdated(tagSlug, currentTime)
+        if (!response.ok) {
+          const responseData = await response.json()
+          alert(
+            `Update Last Updated Error: ${response.status} ${JSON.stringify(
+              responseData
+            )}`
+          )
+        }
+      }
+
       setFormData(formDefaults)
       setProfileList([])
       await getMaps()
@@ -255,6 +271,7 @@ export default function SelectData({
     setSelectedIds([])
     setProgress(0)
     setIsLoading(false)
+    setCurrentTime(null)
   }
 
   const handleDropdownChange = function () {
@@ -321,5 +338,7 @@ SelectData.propTypes = {
   getMaps: PropTypes.func.isRequired,
   setIsPopupOpen: PropTypes.func.isRequired,
   setOriginalJson: PropTypes.func.isRequired,
-  setModifiedJson: PropTypes.func.isRequired
+  setModifiedJson: PropTypes.func.isRequired,
+  currentTime: PropTypes.string.isRequired,
+  setCurrentTime: PropTypes.func.isRequired
 }

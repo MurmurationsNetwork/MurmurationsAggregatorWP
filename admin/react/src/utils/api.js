@@ -2,33 +2,26 @@
 const wordpressUrl = murmurations_aggregator.wordpress_url
 const apiUrl = `${wordpressUrl}/wp-json/murmurations-aggregator/v1/api`
 
-export const getWpMaps = async () => {
+export const getCustomMaps = async () => {
   return await fetch(`${apiUrl}/maps`)
 }
 
-export const getWpMap = async tagSlug => {
+export const getCustomMap = async tagSlug => {
   return await fetch(`${apiUrl}/maps/${tagSlug}`)
 }
 
-export const saveWpMap = async (
-  mapName,
-  tagSlug,
-  indexUrl,
-  queryUrl,
-  lastUpdated
-) => {
+export const saveCustomMap = async (mapName, tagSlug, indexUrl, queryUrl) => {
   const body = {
     name: mapName,
     tag_slug: tagSlug,
     index_url: indexUrl,
-    query_url: queryUrl,
-    last_updated: lastUpdated
+    query_url: queryUrl
   }
 
   return await fetchRequest(`${apiUrl}/maps`, 'POST', body)
 }
 
-export const updateWpMap = async (
+export const updateCustomMap = async (
   tagSlug,
   mapName,
   mapCenterLat,
@@ -45,7 +38,19 @@ export const updateWpMap = async (
   return await fetchRequest(`${apiUrl}/maps/${tagSlug}`, 'PUT', body)
 }
 
-export const deleteWpMap = async map_id => {
+export const updateCustomMapLastUpdated = async (tagSlug, lastUpdated) => {
+  const body = {
+    last_updated: lastUpdated
+  }
+
+  return await fetchRequest(
+    `${apiUrl}/maps-last-updated/${tagSlug}`,
+    'PUT',
+    body
+  )
+}
+
+export const deleteCustomMap = async map_id => {
   return await fetchRequest(`${apiUrl}/maps/${map_id}`, 'DELETE')
 }
 

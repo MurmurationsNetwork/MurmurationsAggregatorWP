@@ -1,5 +1,5 @@
 import MapSettings from './MapSettings'
-import { updateWpMap } from '../utils/api'
+import { updateCustomMap } from '../utils/api'
 import { formDefaults } from '../data/formDefaults'
 import PropTypes from 'prop-types'
 
@@ -19,7 +19,7 @@ export default function EditData({
     setIsLoading(true)
 
     try {
-      const response = await updateWpMap(
+      const response = await updateCustomMap(
         tagSlug,
         formData.map_name,
         formData.map_center_lat,
