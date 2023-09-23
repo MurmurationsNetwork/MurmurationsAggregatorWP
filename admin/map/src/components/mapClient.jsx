@@ -29,11 +29,11 @@ const markerClicked = async (postId, apiUrl) => {
   }
 }
 
-function MapClient({ profiles, lat, lon, zoom, apiUrl }) {
+function MapClient({ profiles, apiUrl, map, isMapLoaded }) {
   let defaultCenter = []
-  defaultCenter[0] = parseFloat(lat) || 48.864716
-  defaultCenter[1] = parseFloat(lon) || 2.349014
-  let defaultZoom = parseInt(zoom) || 4
+  defaultCenter[0] = parseFloat(map.map_center_lat) || 48.864716
+  defaultCenter[1] = parseFloat(map.map_center_lon) || 2.349014
+  let zoom = parseInt(map.map_scale) || 5
 
   useEffect(() => {
     (async function init() {
@@ -42,65 +42,69 @@ function MapClient({ profiles, lat, lon, zoom, apiUrl }) {
   }, [])
 
   return (
-    <MapContainer
-      style={{ width: '100%', height: 'calc(100vh - 16rem)' }}
-      center={defaultCenter}
-      zoom={defaultZoom}
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-      />
-      <MarkerClusterGroup>
-        {profiles.map(profile => (
-          <Marker
-            key={profile[2]}
-            position={[profile[1], profile[0]]}
-            eventHandlers={{
-              click: async event => {
-                const response = await markerClicked(profile[2], apiUrl)
-                const responseData = await response.json()
-                if (response.status !== 200) {
-                  alert(
-                    `Error getting post, please contact the administrator, error: ${responseData}`
-                  )
-                }
-                let popupInfo = event.target.getPopup()
-                let content = ''
-                if (responseData.title) {
-                  content +=
-                    '<strong>Title: ' + responseData.title + '</strong>'
-                }
-                if (responseData.description) {
-                  content +=
-                    '<p>Description: ' + responseData.description + '</p>'
-                }
-                if (responseData.post_url) {
-                  content +=
-                    "<p>URL: <a target='_blank' rel='noreferrer' href='" +
-                    responseData.post_url +
-                    "'>" +
-                    responseData.post_url +
-                    '</a></p>'
-                }
-                popupInfo.setContent(content)
-              }
-            }}
-          >
-            <Popup></Popup>
-          </Marker>
-        ))}
-      </MarkerClusterGroup>
-    </MapContainer>
+    <div id="map">
+      { isMapLoaded ? (
+        <MapContainer
+          style={{ width: '100%', height: 'calc(100vh - 16rem)' }}
+          center={defaultCenter}
+          zoom={zoom}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+          />
+          <MarkerClusterGroup>
+            {profiles.map(profile => (
+              <Marker
+                key={profile[2]}
+                position={[profile[1], profile[0]]}
+                eventHandlers={{
+                  click: async event => {
+                    const response = await markerClicked(profile[2], apiUrl)
+                    const responseData = await response.json()
+                    if (response.status !== 200) {
+                      alert(
+                        `Error getting post, please contact the administrator, error: ${responseData}`
+                      )
+                    }
+                    let popupInfo = event.target.getPopup()
+                    let content = ''
+                    if (responseData.title) {
+                      content +=
+                        '<strong>Title: ' + responseData.title + '</strong>'
+                    }
+                    if (responseData.description) {
+                      content +=
+                        '<p>Description: ' + responseData.description + '</p>'
+                    }
+                    if (responseData.post_url) {
+                      content +=
+                        "<p>URL: <a target='_blank' rel='noreferrer' href='" +
+                        responseData.post_url +
+                        "'>" +
+                        responseData.post_url +
+                        '</a></p>'
+                    }
+                    popupInfo.setContent(content)
+                  }
+                }}
+              >
+                <Popup></Popup>
+              </Marker>
+            ))}
+          </MarkerClusterGroup>
+        </MapContainer>
+      ) : null
+      }
+    </div>
   )
 }
 
 MapClient.propTypes = {
   profiles: PropTypes.array.isRequired,
-  lat: PropTypes.number.isRequired,
-  lon: PropTypes.number.isRequired,
-  zoom: PropTypes.number.isRequired,
-  apiUrl: PropTypes.string.isRequired
+  apiUrl: PropTypes.string.isRequired,
+  map: PropTypes.object.isRequired,
+  isMapLoaded: PropTypes.bool.isRequired
 }
 
 export default MapClient

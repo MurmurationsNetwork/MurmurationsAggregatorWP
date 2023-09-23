@@ -10,14 +10,15 @@ export default function App(props) {
   const { tagSlug } = props
 
   const [profiles, setProfiles] = useState([])
-  const [maps, setMaps] = useState({})
+  const [map, setMap] = useState({})
+  const [isMapLoaded, setIsMapLoaded] = useState(false)
 
   useEffect(() => {
     getProfiles().then(() => {
       console.log('profiles are loaded')
     })
-    getMaps().then(() => {
-      console.log('maps are loaded')
+    getMap().then(() => {
+      setIsMapLoaded(true)
     })
   }, [])
 
@@ -33,11 +34,11 @@ export default function App(props) {
     }
   }
 
-  const getMaps = async () => {
+  const getMap = async () => {
     try {
       const response = await fetch(`${apiUrl}/api/maps/${tagSlug}`)
       const data = await response.json()
-      setMaps(data)
+      setMap(data)
     } catch (error) {
       alert(
         `Error getting maps, please contact the administrator, error: ${error}`
@@ -47,13 +48,15 @@ export default function App(props) {
 
   return (
     <div>
-      <h1 className="text-3xl">{maps.name}</h1>
+      <h1 className="text-3xl">{map.name}</h1>
+      <p>
+        {map.map_center_lat}, {map.map_center_lon}, {map.map_scale}
+      </p>
       <MapClient
         profiles={profiles}
-        lat={46.603354}
-        lon={1.888334}
-        zoom={5}
         apiUrl={apiUrl}
+        map={map}
+        isMapLoaded={isMapLoaded}
       />
     </div>
   )
