@@ -6,6 +6,7 @@ import {
   saveCustomNodes
 } from '../utils/api'
 import PropTypes from 'prop-types'
+import { formDefaults } from '../data/formDefaults'
 
 export default function MapList({
   maps,
@@ -19,6 +20,15 @@ export default function MapList({
   setTagSlug,
   setCurrentTime
 }) {
+  const handleCreate = () => {
+    setFormData(formDefaults)
+    setIsEdit(false)
+    setIsRetrieving(false)
+    setProfileList([])
+    setTagSlug(null)
+    setCurrentTime(null)
+  }
+
   const handleRetrieve = async (map_id, request_url, tag_slug) => {
     setIsLoading(true)
     setIsRetrieving(true)
@@ -207,6 +217,14 @@ export default function MapList({
   return (
     <div>
       <h2 className="text-xl">Map Data</h2>
+      <button
+        className={`my-1 mx-2 max-w-fit rounded-full bg-indigo-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-indigo-400 disabled:opacity-75 mt-5 ${
+          isLoading ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
+        onClick={() => handleCreate()}
+      >
+        {isLoading ? 'Loading' : 'Create Map'}
+      </button>
       {maps.length > 0 ? (
         maps.map((map, index) => (
           <div className="bg-white p-4 rounded shadow-md mt-4" key={index}>
