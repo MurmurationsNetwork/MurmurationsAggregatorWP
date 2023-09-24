@@ -79,8 +79,8 @@ export default function MapList({
         // compare with wpdb
         const profileResponse = await compareWithWpNodes(
           map_id,
-          profile_data,
-          profile.profile_url
+          profile.profile_url,
+          profile.last_updated
         )
         const profileResponseData = await profileResponse.json()
 
@@ -100,7 +100,8 @@ export default function MapList({
             profile.profile_url,
             profile.profile_data,
             profile.map_id,
-            profile.status
+            profile.status,
+            profile.last_updated
           )
 
           if (!profileResponse.ok) {

@@ -79,11 +79,11 @@ export const deleteWpNodes = async profile => {
   return await fetchRequest(`${apiUrl}/wp-nodes`, 'DELETE', body)
 }
 
-export const compareWithWpNodes = async (mapId, profileData, profileUrl) => {
+export const compareWithWpNodes = async (mapId, profileUrl, lastUpdated) => {
   const body = {
     map_id: mapId,
-    data: profileData,
-    profile_url: profileUrl
+    profile_url: profileUrl,
+    last_updated: lastUpdated
   }
 
   return await fetchRequest(`${apiUrl}/nodes-comparison`, 'POST', body)
@@ -103,23 +103,31 @@ export const saveCustomNodes = async (
   profileUrl,
   profileData,
   mapId,
-  profileStatus
+  profileStatus,
+  profileLastUpdated
 ) => {
   const body = {
     profile_url: profileUrl,
     data: profileData,
     map_id: mapId,
-    status: profileStatus
+    status: profileStatus,
+    last_updated: profileLastUpdated
   }
 
   return await fetchRequest(`${apiUrl}/nodes`, 'POST', body)
 }
 
-export const updateCustomNodes = async (mapId, profileUrl, profileData) => {
+export const updateCustomNodes = async (
+  mapId,
+  profileUrl,
+  profileData,
+  profileLastUpdated
+) => {
   const body = {
     map_id: mapId,
     profile_url: profileUrl,
-    data: profileData
+    data: profileData,
+    last_updated: profileLastUpdated
   }
 
   return await fetchRequest(`${apiUrl}/nodes`, 'PUT', body)

@@ -75,7 +75,8 @@ export default function SelectData({
           const profileResponse = await updateCustomNodes(
             profile.map_id,
             profile.profile_url,
-            profile.profile_data
+            profile.profile_data,
+            profile.last_updated
           )
 
           if (!profileResponse.ok) {

@@ -26,7 +26,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 		        map_center_lat DECIMAL(10, 7) DEFAULT 46.603354 NOT NULL,
 		        map_center_lon DECIMAL(10, 7) DEFAULT 1.888334 NOT NULL,
 		        map_scale INT DEFAULT 5 NOT NULL,
-		        last_updated TIMESTAMP NOT NULL,
+		        last_updated TIMESTAMP NULL,
 				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 				deleted_at TIMESTAMP NULL,
@@ -40,7 +40,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 			    post_id INT,
 			    profile_url VARCHAR(100) NOT NULL,
 			    data TEXT NOT NULL,
-			    hashed_data VARCHAR(100) NOT NULL,
+			    last_updated VARCHAR(100) NOT NULL,
 			    status VARCHAR(100) NOT NULL DEFAULT 'ignored',
 			    PRIMARY KEY (id),
 			    FOREIGN KEY (map_id) REFERENCES $table_name(id) ON DELETE CASCADE

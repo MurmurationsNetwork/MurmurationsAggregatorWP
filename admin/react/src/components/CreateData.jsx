@@ -14,7 +14,8 @@ export default function CreateData({
   setProfileList,
   progress,
   setProgress,
-  isLoading
+  isLoading,
+  setCurrentTime
 }) {
   const [selectedCountry, setSelectedCountry] = useState([])
 
@@ -51,6 +52,7 @@ export default function CreateData({
       pageQueries
 
     try {
+      setCurrentTime(new Date().getTime())
       const response = await fetch(urlWithParams)
       if (response.ok) {
         const responseData = await response.json()
@@ -123,7 +125,8 @@ export default function CreateData({
             profile.profile_url,
             profile.profile_data,
             profile.map_id,
-            profile.status
+            profile.status,
+            profile.last_updated
           )
 
           if (!profileResponse.ok) {
@@ -198,5 +201,6 @@ CreateData.propTypes = {
   setProfileList: PropTypes.func.isRequired,
   progress: PropTypes.number.isRequired,
   setProgress: PropTypes.func.isRequired,
-  isLoading: PropTypes.bool.isRequired
+  isLoading: PropTypes.bool.isRequired,
+  setCurrentTime: PropTypes.func.isRequired
 }

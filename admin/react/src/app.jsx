@@ -103,6 +103,7 @@ export default function App() {
                 progress={progress}
                 setProgress={setProgress}
                 isLoading={isLoading}
+                setCurrentTime={setCurrentTime}
               />
             )
           ) : (

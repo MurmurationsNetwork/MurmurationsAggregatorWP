@@ -5,14 +5,12 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		private $wpdb;
 		private $table_name;
 		private $node_table_name;
-		private $hash_algorithm;
 
 		public function __construct() {
 			global $wpdb;
 			$this->wpdb            = $wpdb;
 			$this->table_name      = $wpdb->prefix . MURMURATIONS_AGGREGATOR_TABLE;
 			$this->node_table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_NODE_TABLE;
-			$this->hash_algorithm  = 'sha256';
 
 			add_action( 'rest_api_init', array( $this, 'register_api_routes' ) );
 		}
@@ -477,13 +475,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$data = $request->get_json_params();
 
 			// validate data
-			if ( ! isset( $data['map_id'] ) || ! isset( $data['data'] ) || ! isset( $data['profile_url'] ) ) {
+			if ( ! isset( $data['map_id'] ) || ! isset( $data['last_updated'] ) || ! isset( $data['profile_url'] ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
 			}
-
-			// hash the data
-			$encodedJson = json_encode( $data['data'] );
-			$hashed_data = hash( $this->hash_algorithm, $encodedJson );
 
 			// find data in nodes table by profile_url
 			$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE profile_url = %s", $data['profile_url'] );
@@ -495,7 +489,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			}
 
 			// handle mismatch and ignore
-			if ( $node->hashed_data !== $hashed_data ) {
+			if ( $node->last_updated !== $data['last_updated'] ) {
 				return rest_ensure_response( array(
 					'status'     => $node->status,
 					'has_update' => true,
@@ -582,21 +576,17 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$data = $request->get_json_params();
 
 			// validate data
-			if ( ! isset( $data['profile_url'] ) || ! isset( $data['map_id'] ) || ! isset( $data['data'] ) ) {
+			if ( ! isset( $data['profile_url'] ) || ! isset( $data['map_id'] ) || ! isset( $data['data'] ) || ! isset( $data['last_updated'] )) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
 			}
 
-			// hash the data
-			$encodedJson = json_encode( $data['data'] );
-			$hashed_data = hash( $this->hash_algorithm, $encodedJson );
-
 			// insert data
 			$result = $this->wpdb->insert( $this->node_table_name, array(
-				'profile_url' => $data['profile_url'],
-				'map_id'      => $data['map_id'],
-				'data'        => $encodedJson,
-				'hashed_data' => $hashed_data,
-				'status'      => $data['status'] ?? 'new',
+				'profile_url'  => $data['profile_url'],
+				'map_id'       => $data['map_id'],
+				'data'         => json_encode( $data['data'] ),
+				'last_updated' => $data['last_updated'],
+				'status'       => $data['status'] ?? 'new',
 			) );
 
 			if ( ! $result ) {
@@ -610,18 +600,14 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$data = $request->get_json_params();
 
 			// validate data
-			if ( ! isset( $data['profile_url'] ) || ! isset( $data['map_id'] ) || ! isset( $data['data'] ) ) {
+			if ( ! isset( $data['profile_url'] ) || ! isset( $data['map_id'] ) || ! isset( $data['data'] ) || ! isset( $data['last_updated'] ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
 			}
 
-			// hash the data
-			$encodedJson = json_encode( $data['data'] );
-			$hashed_data = hash( $this->hash_algorithm, $encodedJson );
-
 			// update data
 			$result = $this->wpdb->update( $this->node_table_name, array(
-				'data'        => $encodedJson,
-				'hashed_data' => $hashed_data,
+				'data'         => json_encode( $data['data'] ),
+				'last_updated' => $data['last_updated'],
 			), array(
 				'profile_url' => $data['profile_url'],
 				'map_id'      => $data['map_id'],
@@ -634,7 +620,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			return rest_ensure_response( 'Node updated successfully.' );
 		}
 
-		public function delete_node($request) {
+		public function delete_node( $request ) {
 			$data = $request->get_json_params();
 
 			// validate data
