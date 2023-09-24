@@ -198,6 +198,7 @@ export default function MapList({
     } catch (error) {
       alert(`Delete map error: ${JSON.stringify(error)}`)
     } finally {
+      setProfileList([])
       setIsLoading(false)
       await getMaps()
     }
