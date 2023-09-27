@@ -137,6 +137,7 @@ export default function App() {
             setIsLoading={setIsLoading}
             isLoading={isLoading}
             setCurrentTime={setCurrentTime}
+            setProgress={setProgress}
           />
         </div>
       </div>

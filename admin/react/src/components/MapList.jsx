@@ -18,7 +18,8 @@ export default function MapList({
   setIsRetrieving,
   setProfileList,
   setTagSlug,
-  setCurrentTime
+  setCurrentTime,
+  setProgress
 }) {
   const handleCreate = () => {
     setFormData(formDefaults)
@@ -71,8 +72,17 @@ export default function MapList({
       }
 
       const dataWithIds = []
+      const progressStep = 100 / profiles.length
       let current_id = 1
-      for (let profile of profiles) {
+      for (let i = 0; i < profiles.length; i++) {
+        // update progress
+        if ((i + 1) * progressStep > 100) {
+          setProgress(100)
+        } else {
+          setProgress((i + 1) * progressStep)
+        }
+
+        const profile = profiles[i]
         let profile_data = ''
         if (profile.profile_url && profile.status !== 'deleted') {
           const response = await fetch(profile.profile_url)
@@ -148,6 +158,7 @@ export default function MapList({
       }
       setProfileList(dataWithIds)
     } catch (error) {
+      console.log(error)
       alert(`Retrieve node error: ${JSON.stringify(error)}`)
     } finally {
       setIsLoading(false)
@@ -308,5 +319,6 @@ MapList.propTypes = {
   setIsRetrieving: PropTypes.func.isRequired,
   setProfileList: PropTypes.func.isRequired,
   setTagSlug: PropTypes.func.isRequired,
-  setCurrentTime: PropTypes.func.isRequired
+  setCurrentTime: PropTypes.func.isRequired,
+  setProgress: PropTypes.func.isRequired
 }
