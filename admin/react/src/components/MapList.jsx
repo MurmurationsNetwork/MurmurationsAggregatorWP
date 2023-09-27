@@ -158,7 +158,6 @@ export default function MapList({
       }
       setProfileList(dataWithIds)
     } catch (error) {
-      console.log(error)
       alert(`Retrieve node error: ${JSON.stringify(error)}`)
     } finally {
       setIsLoading(false)

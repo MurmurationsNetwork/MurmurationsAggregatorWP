@@ -480,7 +480,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			}
 
 			// find data in nodes table by profile_url
-			$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE profile_url = %s", $data['profile_url'] );
+			$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE profile_url = %s AND map_id = %d", $data['profile_url'], $data['map_id'] );
 
 			$node = $this->wpdb->get_row( $query );
 
@@ -489,7 +489,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			}
 
 			// handle mismatch and ignore
-			if ( $node->last_updated !== $data['last_updated'] ) {
+			if ( $node->last_updated != $data['last_updated'] ) {
 				return rest_ensure_response( array(
 					'status'     => $node->status,
 					'has_update' => true,

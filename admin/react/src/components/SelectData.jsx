@@ -284,6 +284,8 @@ export default function SelectData({
             )}`
           )
         }
+
+        setCurrentTime(null)
       }
 
       setFormData(formDefaults)
@@ -302,7 +304,6 @@ export default function SelectData({
     setSelectedIds([])
     setProgress(0)
     setIsLoading(false)
-    setCurrentTime(null)
   }
 
   const handleDropdownChange = function () {
