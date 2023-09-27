@@ -26,7 +26,14 @@ export default function CreateData({
 
     const queryParams = []
     for (const key in formData) {
-      if (formData[key] !== '' && key !== 'data_url' && key !== 'map_name') {
+      if (
+        formData[key] !== '' &&
+        key !== 'data_url' &&
+        key !== 'map_name' &&
+        key !== 'map_center_lat' &&
+        key !== 'map_center_lon' &&
+        key !== 'map_scale'
+      ) {
         queryParams.push(
           `${encodeURIComponent(key)}=${encodeURIComponent(formData[key])}`
         )
