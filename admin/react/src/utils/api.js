@@ -10,12 +10,29 @@ export const getCustomMap = async tagSlug => {
   return await fetch(`${apiUrl}/maps/${tagSlug}`)
 }
 
-export const saveCustomMap = async (mapName, tagSlug, indexUrl, queryUrl) => {
+export const saveCustomMap = async (
+  mapName,
+  tagSlug,
+  indexUrl,
+  queryUrl,
+  mapCenterLat,
+  mapCenterLon,
+  mapScale
+) => {
   const body = {
     name: mapName,
     tag_slug: tagSlug,
     index_url: indexUrl,
-    query_url: queryUrl
+    query_url: queryUrl,
+    map_center_lat:
+      mapCenterLat !== null && mapCenterLat !== undefined
+        ? mapCenterLat
+        : 46.603354,
+    map_center_lon:
+      mapCenterLon !== null && mapCenterLon !== undefined
+        ? mapCenterLon
+        : 1.888334,
+    map_scale: mapScale !== null && mapScale !== undefined ? mapScale : 5
   }
 
   return await fetchRequest(`${apiUrl}/maps`, 'POST', body)

@@ -82,7 +82,10 @@ export default function CreateData({
           formData.map_name,
           tagSlug,
           formData.data_url,
-          urlWithParams.replace(formData.data_url, '')
+          urlWithParams.replace(formData.data_url, ''),
+          formData.map_center_lat,
+          formData.map_center_lon,
+          formData.map_scale
         )
         const mapResponseData = await mapResponse.json()
         if (!mapResponse.ok) {
