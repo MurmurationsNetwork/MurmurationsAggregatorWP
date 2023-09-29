@@ -19,7 +19,6 @@ export default function App() {
 
   // DataSource states
   const [formData, setFormData] = useState(formDefaults)
-  const [tagSlug, setTagSlug] = useState(null)
 
   // SelectData states
   const [profileList, setProfileList] = useState([])
@@ -88,8 +87,6 @@ export default function App() {
                 setIsLoading={setIsLoading}
                 setIsEdit={setIsEdit}
                 setFormData={setFormData}
-                setTagSlug={setTagSlug}
-                tagSlug={tagSlug}
                 getMaps={getMaps}
                 isLoading={isLoading}
               />
@@ -133,7 +130,6 @@ export default function App() {
             setFormData={setFormData}
             setProfileList={setProfileList}
             setIsRetrieving={setIsRetrieving}
-            setTagSlug={setTagSlug}
             setIsLoading={setIsLoading}
             isLoading={isLoading}
             setCurrentTime={setCurrentTime}

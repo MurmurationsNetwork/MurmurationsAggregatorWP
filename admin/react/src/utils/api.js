@@ -6,8 +6,8 @@ export const getCustomMaps = async () => {
   return await fetch(`${apiUrl}/maps`)
 }
 
-export const getCustomMap = async tagSlug => {
-  return await fetch(`${apiUrl}/maps/${tagSlug}`)
+export const getCustomMap = async mapId => {
+  return await fetch(`${apiUrl}/maps/${mapId}`)
 }
 
 export const saveCustomMap = async (
@@ -39,7 +39,7 @@ export const saveCustomMap = async (
 }
 
 export const updateCustomMap = async (
-  tagSlug,
+  mapId,
   mapName,
   mapCenterLat,
   mapCenterLon,
@@ -52,23 +52,19 @@ export const updateCustomMap = async (
     map_scale: mapScale
   }
 
-  return await fetchRequest(`${apiUrl}/maps/${tagSlug}`, 'PUT', body)
+  return await fetchRequest(`${apiUrl}/maps/${mapId}`, 'PUT', body)
 }
 
-export const updateCustomMapLastUpdated = async (tagSlug, lastUpdated) => {
+export const updateCustomMapLastUpdated = async (mapId, lastUpdated) => {
   const body = {
     last_updated: lastUpdated
   }
 
-  return await fetchRequest(
-    `${apiUrl}/maps-last-updated/${tagSlug}`,
-    'PUT',
-    body
-  )
+  return await fetchRequest(`${apiUrl}/maps/${mapId}/last-updated`, 'PUT', body)
 }
 
-export const deleteCustomMap = async map_id => {
-  return await fetchRequest(`${apiUrl}/maps/${map_id}`, 'DELETE')
+export const deleteCustomMap = async mapId => {
+  return await fetchRequest(`${apiUrl}/maps/${mapId}`, 'DELETE')
 }
 
 export const saveWpNodes = async (tagSlug, profile) => {

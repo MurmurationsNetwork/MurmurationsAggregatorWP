@@ -267,7 +267,7 @@ export default function SelectData({
     const newProfileList = removeSelectedProfiles(profileList, selectedIds)
 
     // get tag_slug
-    const tagSlug = profileList[0].tag_slug
+    const mapId = profileList[0].map_id
 
     // if the extra_notes of all profiles are unavailable, it means all nodes are handled, we can refresh the page
     if (
@@ -275,7 +275,7 @@ export default function SelectData({
       newProfileList.every(profile => profile.extra_notes === 'unavailable')
     ) {
       if (currentTime !== null) {
-        const response = await updateCustomMapLastUpdated(tagSlug, currentTime)
+        const response = await updateCustomMapLastUpdated(mapId, currentTime)
         if (!response.ok) {
           const responseData = await response.json()
           alert(

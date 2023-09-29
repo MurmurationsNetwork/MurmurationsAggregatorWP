@@ -9,8 +9,6 @@ export default function EditData({
   setIsLoading,
   setIsEdit,
   setFormData,
-  setTagSlug,
-  tagSlug,
   getMaps,
   isLoading
 }) {
@@ -20,7 +18,7 @@ export default function EditData({
 
     try {
       const response = await updateCustomMap(
-        tagSlug,
+        formData.map_id,
         formData.map_name,
         formData.map_center_lat,
         formData.map_center_lon,
@@ -37,7 +35,6 @@ export default function EditData({
       setIsEdit(false)
       setIsLoading(false)
       setFormData(formDefaults)
-      setTagSlug(null)
       await getMaps()
     }
   }
@@ -50,6 +47,7 @@ export default function EditData({
           formData={formData}
           handleInputChange={handleInputChange}
         />
+        <input type="hidden" name="map_id" value={formData.map_id} />
         <div className="mt-6">
           <button
             type="submit"
@@ -71,8 +69,6 @@ EditData.propTypes = {
   setIsLoading: PropTypes.func.isRequired,
   setIsEdit: PropTypes.func.isRequired,
   setFormData: PropTypes.func.isRequired,
-  setTagSlug: PropTypes.func.isRequired,
-  tagSlug: PropTypes.string,
   getMaps: PropTypes.func.isRequired,
   isLoading: PropTypes.bool.isRequired
 }

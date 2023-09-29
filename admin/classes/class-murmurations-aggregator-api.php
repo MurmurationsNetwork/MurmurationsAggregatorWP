@@ -16,9 +16,12 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function register_api_routes() {
-			// frontend map
+			$frontend_namespace = 'murmurations-aggregator/v1';
+			$backend_namespace  = 'murmurations-aggregator/v1/api';
+
+			// frontend
 			register_rest_route(
-				'murmurations-aggregator/v1',
+				$frontend_namespace,
 				'/maps/(?P<tag_slug>[\w]+)',
 				array(
 					'methods'  => 'GET',
@@ -26,34 +29,10 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				)
 			);
 
+			// backend
+			// Map Routes
 			register_rest_route(
-				'murmurations-aggregator/v1/api',
-				'/maps/(?P<tag_slug>[\w]+)',
-				array(
-					array(
-						'methods'  => 'GET',
-						'callback' => array( $this, 'get_map' ),
-					),
-					array(
-						'methods'  => 'PUT',
-						'callback' => array( $this, 'put_map' ),
-					),
-				)
-			);
-
-			register_rest_route(
-				'murmurations-aggregator/v1/api',
-				'/maps-last-updated/(?P<tag_slug>[\w]+)',
-				array(
-					array(
-						'methods'  => 'PUT',
-						'callback' => array( $this, 'put_map_last_updated' ),
-					),
-				)
-			);
-
-			register_rest_route(
-				'murmurations-aggregator/v1/api',
+				$backend_namespace,
 				'/maps',
 				array(
 					array(
@@ -68,16 +47,38 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			);
 
 			register_rest_route(
-				'murmurations-aggregator/v1/api',
-				'/maps/(?P<map_id>[\w]+)',
+				$backend_namespace,
+				'/maps/(?P<map_id>[\d]+)',
 				array(
-					'methods'  => 'DELETE',
-					'callback' => array( $this, 'delete_map' ),
+					array(
+						'methods'  => 'GET',
+						'callback' => array( $this, 'get_map' ),
+					),
+					array(
+						'methods'  => 'PUT',
+						'callback' => array( $this, 'put_map' ),
+					),
+					array(
+						'methods'  => 'DELETE',
+						'callback' => array( $this, 'delete_map' ),
+					)
 				)
 			);
 
 			register_rest_route(
-				'murmurations-aggregator/v1/api',
+				$backend_namespace,
+				'/maps/(?P<map_id>[\d]+)/last-updated',
+				array(
+					array(
+						'methods'  => 'PUT',
+						'callback' => array( $this, 'put_map_last_updated' ),
+					),
+				)
+			);
+
+			// WP Nodes Routes
+			register_rest_route(
+				$backend_namespace,
 				'/wp-nodes/(?P<post_id>[\w]+)',
 				array(
 					'methods'  => 'GET',
@@ -86,7 +87,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			);
 
 			register_rest_route(
-				'murmurations-aggregator/v1/api',
+				$backend_namespace,
 				'/wp-nodes',
 				array(
 					array(
@@ -104,8 +105,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				)
 			);
 
+			// Custom Nodes Routes
 			register_rest_route(
-				'murmurations-aggregator/v1/api',
+				$backend_namespace,
 				'/nodes-comparison',
 				array(
 					'methods'  => 'POST',
@@ -114,7 +116,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			);
 
 			register_rest_route(
-				'murmurations-aggregator/v1/api',
+				$backend_namespace,
 				'/nodes-status',
 				array(
 					'methods'  => 'POST',
@@ -123,7 +125,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			);
 
 			register_rest_route(
-				'murmurations-aggregator/v1/api',
+				$backend_namespace,
 				'/nodes',
 				array(
 					array(
@@ -146,7 +148,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			);
 		}
 
-		public function get_map_nodes( $request ) {
+		public function get_map_nodes( $request ): WP_REST_Response | WP_Error {
 			$tag_slug = $request->get_param( 'tag_slug' );
 
 			$args = array(
@@ -183,62 +185,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			return rest_ensure_response( $map );
 		}
 
-		public function get_map( $request ) {
-			$tag_slug = $request->get_param( 'tag_slug' );
-
-			$query    = $this->wpdb->prepare( "SELECT * , UNIX_TIMESTAMP(last_updated) as last_updated FROM $this->table_name WHERE tag_slug = %s", $tag_slug );
-			$map_data = $this->wpdb->get_row( $query );
-
-			if ( ! $map_data ) {
-				return new WP_Error( 'no_data_found', 'No map data found', array( 'status' => 404 ) );
-			}
-
-			return rest_ensure_response( $map_data );
-		}
-
-		public function put_map( $request ) {
-			$tag_slug = $request->get_param( 'tag_slug' );
-
-			$data = $request->get_json_params();
-
-			$result = $this->wpdb->update( $this->table_name, array(
-				'name'           => $data['name'],
-				'map_center_lon' => ! empty( $data['map_center_lon'] ) ? sanitize_text_field( $data['map_center_lon'] ) : '1.8883340',
-				'map_center_lat' => ! empty( $data['map_center_lat'] ) ? sanitize_text_field( $data['map_center_lat'] ) : '46.6033540',
-				'map_scale'      => ! empty( $data['map_scale'] ) ? sanitize_text_field( $data['map_scale'] ) : '5',
-			), array(
-				'tag_slug' => $tag_slug,
-			) );
-
-			if ( ! $result ) {
-				return new WP_Error( 'map_update_failed', 'Failed to update map.', array( 'status' => 500 ) );
-			}
-
-			return rest_ensure_response( 'Map updated successfully.' );
-		}
-
-		public function put_map_last_updated( $request ) {
-			$tagSlug = $request->get_param( 'tag_slug' );
-			$data    = $request->get_json_params();
-
-			if ( ! isset( $tagSlug ) || ! isset( $data['last_updated'] ) ) {
-				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
-			}
-
-			$result = $this->wpdb->update( $this->table_name, array(
-				'last_updated' => date( "Y-m-d H:i:s", $data['last_updated'] / 1000 ),
-			), array(
-				'tag_slug' => $tagSlug,
-			) );
-
-			if ( ! $result ) {
-				return new WP_Error( 'map_update_failed', 'Failed to update map.', array( 'status' => 500 ) );
-			}
-
-			return rest_ensure_response( 'Map updated successfully.' );
-		}
-
-		public function get_maps() {
+		public function get_maps(): WP_REST_Response | WP_Error {
 			$query    = "SELECT * FROM $this->table_name";
 			$map_data = $this->wpdb->get_results( $query );
 
@@ -249,7 +196,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			return rest_ensure_response( $map_data );
 		}
 
-		public function post_map( $request ) {
+		public function post_map( $request ): WP_REST_Response | WP_Error {
 			$data = $request->get_json_params();
 
 			// validate data
@@ -294,11 +241,55 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			return rest_ensure_response( array( 'map_id' => $inserted_id ) );
 		}
 
-		public function delete_map( $request ) {
-			// validate map_id
+		public function get_map( $request ): WP_REST_Response | WP_Error {
 			$map_id = $request->get_param( 'map_id' );
-			if ( ! $map_id ) {
+
+			$query    = $this->wpdb->prepare( "SELECT * , UNIX_TIMESTAMP(last_updated) as last_updated FROM $this->table_name WHERE id = %s", $map_id );
+			$map_data = $this->wpdb->get_row( $query );
+
+			if ( ! $map_data ) {
+				return new WP_Error( 'no_data_found', 'No map data found', array( 'status' => 404 ) );
+			}
+
+			return rest_ensure_response( $map_data );
+		}
+
+		public function put_map( $request ): WP_REST_Response | WP_Error {
+			$map_id = $request->get_param( 'map_id' );
+
+			$data = $request->get_json_params();
+
+			$result = $this->wpdb->update( $this->table_name, array(
+				'name'           => $data['name'],
+				'map_center_lon' => ! empty( $data['map_center_lon'] ) ? sanitize_text_field( $data['map_center_lon'] ) : '1.8883340',
+				'map_center_lat' => ! empty( $data['map_center_lat'] ) ? sanitize_text_field( $data['map_center_lat'] ) : '46.6033540',
+				'map_scale'      => ! empty( $data['map_scale'] ) ? sanitize_text_field( $data['map_scale'] ) : '5',
+			), array(
+				'id' => $map_id,
+			) );
+
+			if ( ! $result ) {
+				return new WP_Error( 'map_update_failed', 'Failed to update map.', array( 'status' => 500 ) );
+			}
+
+			return rest_ensure_response( 'Map updated successfully.' );
+		}
+
+		public function delete_map( $request ): WP_REST_Response | WP_Error {
+			$map_id = $request->get_param( 'map_id' );
+
+			// validate
+			if ( ! isset( $map_id ) ) {
 				return new WP_Error( 'invalid_map_id', 'Invalid map_id provided', array( 'status' => 400 ) );
+			}
+
+			// check map is exist or not
+			$query = $this->wpdb->prepare( "SELECT * FROM $this->table_name WHERE id = %d", $map_id );
+
+			$map = $this->wpdb->get_row( $query );
+
+			if ( ! $map ) {
+				return new WP_Error( 'map_not_found', 'Map not found', array( 'status' => 404 ) );
 			}
 
 			// get all nodes and delete wordpress posts
@@ -306,15 +297,17 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			$nodes = $this->wpdb->get_results( $query );
 
-			foreach ( $nodes as $node ) {
-				$post_id = $node->post_id;
-				wp_delete_post( $post_id, true );
-			}
+			if ( $nodes ) {
+				foreach ( $nodes as $node ) {
+					$post_id = $node->post_id;
+					wp_delete_post( $post_id, true );
+				}
 
-			// delete tags
-			$tag_slug = $nodes[0]->tag_slug;
-			$tag      = get_term_by( 'slug', $tag_slug, 'murmurations_node_tags' );
-			wp_delete_term( $tag->term_id, 'murmurations_node_tags' );
+				// delete tags
+				$tag_slug = $map->tag_slug;
+				$tag      = get_term_by( 'slug', $tag_slug, 'murmurations_node_tags' );
+				wp_delete_term( $tag->term_id, 'murmurations_node_tags' );
+			}
 
 			// delete map
 			$result = $this->wpdb->delete( $this->table_name, array( 'id' => $map_id ) );
@@ -324,6 +317,27 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			}
 
 			return rest_ensure_response( 'Map deleted successfully.' );
+		}
+
+		public function put_map_last_updated( $request ): WP_REST_Response | WP_Error {
+			$map_id = $request->get_param( 'map_id' );
+			$data    = $request->get_json_params();
+
+			if ( ! isset( $map_id ) || ! isset( $data['last_updated'] ) ) {
+				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
+			}
+
+			$result = $this->wpdb->update( $this->table_name, array(
+				'last_updated' => date( "Y-m-d H:i:s", $data['last_updated'] / 1000 ),
+			), array(
+				'id' => $map_id,
+			) );
+
+			if ( ! $result ) {
+				return new WP_Error( 'map_update_failed', 'Failed to update map.', array( 'status' => 500 ) );
+			}
+
+			return rest_ensure_response( 'Map updated successfully.' );
 		}
 
 		public function get_wp_node( $request ) {
@@ -576,7 +590,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$data = $request->get_json_params();
 
 			// validate data
-			if ( ! isset( $data['profile_url'] ) || ! isset( $data['map_id'] ) || ! isset( $data['data'] ) || ! isset( $data['last_updated'] )) {
+			if ( ! isset( $data['profile_url'] ) || ! isset( $data['map_id'] ) || ! isset( $data['data'] ) || ! isset( $data['last_updated'] ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
 			}
 

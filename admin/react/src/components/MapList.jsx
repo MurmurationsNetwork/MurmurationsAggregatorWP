@@ -17,7 +17,6 @@ export default function MapList({
   setIsLoading,
   setIsRetrieving,
   setProfileList,
-  setTagSlug,
   setCurrentTime,
   setProgress
 }) {
@@ -26,17 +25,16 @@ export default function MapList({
     setIsEdit(false)
     setIsRetrieving(false)
     setProfileList([])
-    setTagSlug(null)
     setCurrentTime(null)
   }
 
-  const handleRetrieve = async (map_id, request_url, tag_slug) => {
+  const handleRetrieve = async (mapId, requestUrl, tagSlug) => {
     setIsLoading(true)
     setIsRetrieving(true)
 
     try {
       // get map data from WP
-      const mapResponse = await getCustomMap(tag_slug)
+      const mapResponse = await getCustomMap(mapId)
       const mapResponseData = await mapResponse.json()
       if (!mapResponse.ok) {
         alert(
@@ -48,12 +46,12 @@ export default function MapList({
       // get map last_updated
       const mapLastUpdated = mapResponseData.last_updated
       if (mapLastUpdated) {
-        request_url += `&last_updated=${mapLastUpdated}`
+        requestUrl += `&last_updated=${mapLastUpdated}`
       }
 
-      // get data from request_url - Index URL + Query URL
+      // get data from requestUrl - Index URL + Query URL
       setCurrentTime(new Date().getTime())
-      const response = await fetch(request_url)
+      const response = await fetch(requestUrl)
       const responseData = await response.json()
       if (!response.ok) {
         alert(
@@ -93,12 +91,12 @@ export default function MapList({
         // give extra data to profile
         profile.id = current_id
         profile.profile_data = profile_data
-        profile.tag_slug = tag_slug
-        profile.map_id = map_id
+        profile.tag_slug = tagSlug
+        profile.map_id = mapId
 
         // compare with wpdb
         const profileResponse = await compareWithWpNodes(
-          map_id,
+          mapId,
           profile.profile_url,
           profile.last_updated
         )
@@ -191,17 +189,17 @@ export default function MapList({
     }
   }
 
-  const handleEditMap = async tag_slug => {
+  const handleEditMap = async mapId => {
     setIsEdit(true)
     setProfileList([])
-    const map = maps.find(map => map.tag_slug === tag_slug)
+    const map = maps.find(map => map.id === mapId)
     setFormData({
+      map_id: map.id,
       map_name: map.name,
       map_center_lat: map.map_center_lat,
       map_center_lon: map.map_center_lon,
       map_scale: map.map_scale
     })
-    setTagSlug(map.tag_slug)
   }
 
   const handleDelete = async map_id => {
@@ -286,7 +284,7 @@ export default function MapList({
               </button>
               <button
                 className="my-1 mx-2 max-w-fit rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75"
-                onClick={() => handleEditMap(map.tag_slug)}
+                onClick={() => handleEditMap(map.id)}
               >
                 Edit Map
               </button>
@@ -317,7 +315,6 @@ MapList.propTypes = {
   setIsLoading: PropTypes.func.isRequired,
   setIsRetrieving: PropTypes.func.isRequired,
   setProfileList: PropTypes.func.isRequired,
-  setTagSlug: PropTypes.func.isRequired,
   setCurrentTime: PropTypes.func.isRequired,
   setProgress: PropTypes.func.isRequired
 }
