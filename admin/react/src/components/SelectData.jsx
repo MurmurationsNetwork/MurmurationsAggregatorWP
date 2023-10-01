@@ -229,9 +229,7 @@ export default function SelectData({
       await updateProfileAndRefresh(profileList, selectedIds)
     } catch (error) {
       alert(
-        `Handle Profiles Submit error: ${JSON.stringify(
-          error
-        )}, please delete the map and retry again.`
+        `Handle Profiles Submit error: ${error}, please delete the map and retry again.`
       )
     } finally {
       resetStates()

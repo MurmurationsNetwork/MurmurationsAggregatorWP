@@ -30,7 +30,7 @@ export default function EditData({
         alert(`Map Error: ${response.status} ${JSON.stringify(responseData)}`)
       }
     } catch (error) {
-      alert(`Edit map error: ${JSON.stringify(error)}`)
+      alert(`Edit map error: ${error}`)
     } finally {
       setIsEdit(false)
       setIsLoading(false)

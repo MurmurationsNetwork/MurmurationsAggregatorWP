@@ -286,7 +286,7 @@ export default function MapList({
       }
       setProfileList(dataWithIds)
     } catch (error) {
-      alert(`Edit nodes error: ${JSON.stringify(error)}`)
+      alert(`Edit nodes error: ${error}`)
     } finally {
       setIsLoading(false)
     }
@@ -319,7 +319,7 @@ export default function MapList({
         )
       }
     } catch (error) {
-      alert(`Delete map error: ${JSON.stringify(error)}`)
+      alert(`Delete map error: ${error}`)
     } finally {
       setProfileList([])
       setIsLoading(false)

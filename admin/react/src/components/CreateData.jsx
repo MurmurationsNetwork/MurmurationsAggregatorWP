@@ -169,9 +169,7 @@ export default function CreateData({
       }
     } catch (error) {
       alert(
-        `Handle Submit error: ${JSON.stringify(
-          error
-        )}, please delete the map and retry again.`
+        `Handle Submit error: ${error}, please delete the map and retry again.`
       )
     } finally {
       setIsLoading(false)
