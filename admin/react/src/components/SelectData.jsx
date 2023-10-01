@@ -11,7 +11,7 @@ import {
   updateWpNodes
 } from '../utils/api'
 import { formDefaults } from '../data/formDefaults'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   removeSelectedProfiles,
   removeUnselectedProfiles
