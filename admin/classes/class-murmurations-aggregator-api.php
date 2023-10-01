@@ -484,7 +484,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function put_node( $request ): WP_REST_Response|WP_Error {
-			$node_id = $request->get_param( '$node_id' );
+			$node_id = $request->get_param( 'node_id' );
 			$data    = $request->get_json_params();
 
 			// validate data
@@ -509,7 +509,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function delete_node( $request ): WP_REST_Response|WP_Error {
-			$node_id = $request->get_param( '$node_id' );
+			$node_id = $request->get_param( 'node_id' );
 
 			// validate data
 			if ( ! isset( $node_id ) ) {

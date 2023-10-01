@@ -6,6 +6,7 @@ import SelectData from './components/SelectData'
 import EditData from './components/EditData'
 import CreateData from './components/CreateData'
 import PopupBox from './components/PopupBox'
+import DeletedData from './components/DeletedData'
 
 export default function App() {
   // button states
@@ -22,6 +23,7 @@ export default function App() {
 
   // SelectData states
   const [profileList, setProfileList] = useState([])
+  const [deletedProfiles, setDeletedProfiles] = useState([])
 
   // ProgressBar states
   const [progress, setProgress] = useState(0)
@@ -79,6 +81,7 @@ export default function App() {
       <h1 className="text-3xl">Murmurations Aggregator</h1>
       <div className="flex">
         <div className="w-1/2 mt-4 p-4">
+          <DeletedData deletedProfiles={deletedProfiles} />
           {profileList.length === 0 ? (
             isEdit ? (
               <EditData
@@ -134,6 +137,7 @@ export default function App() {
             isLoading={isLoading}
             setCurrentTime={setCurrentTime}
             setProgress={setProgress}
+            setDeletedProfiles={setDeletedProfiles}
           />
         </div>
       </div>

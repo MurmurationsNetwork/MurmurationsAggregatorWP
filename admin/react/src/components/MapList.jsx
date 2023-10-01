@@ -1,8 +1,11 @@
 import {
   deleteCustomMap,
+  deleteCustomNodes,
+  deleteWpNodes,
   getCustomMap,
   getCustomNodes,
-  saveCustomNodes
+  saveCustomNodes,
+  updateCustomMapLastUpdated
 } from '../utils/api'
 import PropTypes from 'prop-types'
 import { formDefaults } from '../data/formDefaults'
@@ -17,7 +20,8 @@ export default function MapList({
   setIsRetrieving,
   setProfileList,
   setCurrentTime,
-  setProgress
+  setProgress,
+  setDeletedProfiles
 }) {
   const handleCreate = () => {
     setFormData(formDefaults)
@@ -25,11 +29,13 @@ export default function MapList({
     setIsRetrieving(false)
     setProfileList([])
     setCurrentTime(null)
+    setDeletedProfiles([])
   }
 
   const handleRetrieve = async (mapId, requestUrl, tagSlug) => {
     setIsLoading(true)
     setIsRetrieving(true)
+    setDeletedProfiles([])
 
     try {
       // get map data from WP
@@ -49,7 +55,8 @@ export default function MapList({
       }
 
       // get data from requestUrl - Index URL + Query URL
-      setCurrentTime(new Date().getTime())
+      const currentTime = new Date().getTime()
+      setCurrentTime(currentTime)
       const response = await fetch(requestUrl)
       const responseData = await response.json()
       if (!response.ok) {
@@ -68,7 +75,8 @@ export default function MapList({
         return
       }
 
-      const dataWithIds = []
+      let dataWithIds = []
+      let deletedProfiles = []
       const progressStep = 100 / profiles.length
       let currentId = 1
       for (let i = 0; i < profiles.length; i++) {
@@ -81,7 +89,68 @@ export default function MapList({
 
         const profile = profiles[i]
         let profile_data = ''
-        if (profile.profile_url && profile.status !== 'deleted') {
+
+        // handle deleted profiles
+        if (profile.status === 'deleted') {
+          const customNodesResponse = await getCustomNodes(
+            mapId,
+            profile.profile_url
+          )
+          const customNodesResponseData = await customNodesResponse.json()
+          if (!response.ok && response.status !== 404) {
+            alert(
+              `Delete Profile Error: ${
+                customNodesResponse.status
+              } ${JSON.stringify(customNodesResponseData)}`
+            )
+          }
+
+          if (customNodesResponse.status === 404) {
+            continue
+          }
+
+          const profileObject = {
+            profile_data: customNodesResponseData[0].profile_data,
+            index_data: profile,
+            data: {
+              map_id: mapId,
+              tag_slug: tagSlug,
+              node_id: customNodesResponseData[0].id,
+              post_id: customNodesResponseData[0].post_id
+            }
+          }
+
+          const deleteNodeResponse = await deleteWpNodes(
+            profileObject.data.post_id
+          )
+
+          if (!deleteNodeResponse.ok) {
+            const deleteNodeResponseData = await deleteNodeResponse.json()
+            alert(
+              `Delete Profile Error: ${
+                deleteNodeResponse.status
+              } ${JSON.stringify(deleteNodeResponseData)}`
+            )
+          }
+
+          // delete node from nodes table
+          const deleteResponse = await deleteCustomNodes(profileObject)
+
+          if (!deleteResponse.ok) {
+            const deleteResponseData = await deleteResponse.json()
+            alert(
+              `Delete Node Error: ${deleteResponse.status} ${JSON.stringify(
+                deleteResponseData
+              )}`
+            )
+          }
+
+          // put deleted profile in list
+          deletedProfiles.push(profileObject)
+          continue
+        }
+
+        if (profile.profile_url) {
           const response = await fetch(profile.profile_url)
           if (response.ok) {
             profile_data = await response.json()
@@ -116,7 +185,7 @@ export default function MapList({
           return
         }
 
-        if (customNodeResponse.status === 404 && profile.status !== 'deleted') {
+        if (customNodeResponse.status === 404) {
           profileObject.data.status = 'new'
 
           const profileResponse = await saveCustomNodes(profileObject)
@@ -149,14 +218,29 @@ export default function MapList({
           }
         }
 
-        if (profile_data === '' && profile.status !== 'deleted') {
+        if (profile_data === '') {
           profileObject.data.extra_notes = 'unavailable'
         }
 
         currentId++
         dataWithIds.push(profileObject)
       }
+      setDeletedProfiles(deletedProfiles)
       setProfileList(dataWithIds)
+
+      // if it only has deleted profiles, update map timestamp
+      if (dataWithIds.length === 0) {
+        const mapResponse = await updateCustomMapLastUpdated(mapId, currentTime)
+        if (!mapResponse.ok) {
+          const mapResponseData = await mapResponse.json()
+          alert(
+            `Map Error: ${mapResponse.status} ${JSON.stringify(
+              mapResponseData
+            )}`
+          )
+        }
+        setCurrentTime(null)
+      }
     } catch (error) {
       alert(`Retrieve node error: ${error}`)
     } finally {
@@ -167,6 +251,7 @@ export default function MapList({
   const handleEditNodes = async mapId => {
     setIsLoading(true)
     setIsRetrieving(true)
+    setDeletedProfiles([])
 
     try {
       // get nodes from WP
@@ -178,7 +263,7 @@ export default function MapList({
       }
 
       let currentId = 1
-      const dataWithIds = []
+      let dataWithIds = []
       for (let profile of profiles) {
         let profileObject = {
           id: currentId,
@@ -209,6 +294,7 @@ export default function MapList({
 
   const handleEditMap = async mapId => {
     setIsEdit(true)
+    setDeletedProfiles([])
     setProfileList([])
     const map = maps.find(map => map.id === mapId)
     setFormData({
@@ -222,6 +308,7 @@ export default function MapList({
 
   const handleDelete = async map_id => {
     setIsLoading(true)
+    setDeletedProfiles([])
 
     try {
       const mapResponse = await deleteCustomMap(map_id)
@@ -334,5 +421,6 @@ MapList.propTypes = {
   setIsRetrieving: PropTypes.func.isRequired,
   setProfileList: PropTypes.func.isRequired,
   setCurrentTime: PropTypes.func.isRequired,
-  setProgress: PropTypes.func.isRequired
+  setProgress: PropTypes.func.isRequired,
+  setDeletedProfiles: PropTypes.func.isRequired
 }

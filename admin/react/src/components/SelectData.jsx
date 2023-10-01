@@ -1,7 +1,6 @@
 import Table from './Table'
 import ProgressBar from './ProgressBar'
 import {
-  deleteCustomNodes,
   deleteWpNodes,
   getCustomNodes,
   saveWpNodes,
@@ -86,47 +85,6 @@ export default function SelectData({
         }
 
         const profileStatus = profile.data.status
-        // if the node status is deleted, we need to delete the post
-        if (profileStatus === 'deleted') {
-          // get the post_id by getCustomNode
-          const response = await getCustomNodes(
-            profile.data.map_id,
-            profile.index_data.profile_url
-          )
-          const responseData = await response.json()
-          if (!response.ok) {
-            alert(
-              `Delete Profile Error: ${response.status} ${JSON.stringify(
-                responseData
-              )}`
-            )
-          }
-
-          const postId = responseData[0].post_id
-          const deleteNodeResponse = await deleteWpNodes(postId)
-
-          if (!deleteNodeResponse.ok) {
-            const deleteNodeResponseData = await deleteNodeResponse.json()
-            alert(
-              `Delete Profile Error: ${
-                deleteNodeResponse.status
-              } ${JSON.stringify(deleteNodeResponseData)}`
-            )
-          }
-
-          // delete node from nodes table
-          const deleteResponse = await deleteCustomNodes(profile)
-
-          if (!deleteResponse.ok) {
-            const deleteResponseData = await deleteResponse.json()
-            alert(
-              `Delete Node Error: ${deleteResponse.status} ${JSON.stringify(
-                deleteResponseData
-              )}`
-            )
-          }
-        }
-
         // if original status and selected status are both publish, we need to update the post
         if (selectedStatusOption === 'publish' && profileStatus === 'publish') {
           const profileResponse = await updateWpNodes(profile)
