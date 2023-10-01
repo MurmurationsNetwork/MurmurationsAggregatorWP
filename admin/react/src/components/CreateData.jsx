@@ -24,7 +24,8 @@ export default function CreateData({
   progress,
   setProgress,
   isLoading,
-  setCurrentTime
+  setCurrentTime,
+  getMaps
 }) {
   const [selectedCountry, setSelectedCountry] = useState([])
 
@@ -175,6 +176,7 @@ export default function CreateData({
     } finally {
       setIsLoading(false)
       setProgress(0)
+      await getMaps()
     }
   }
 
@@ -217,5 +219,6 @@ CreateData.propTypes = {
   progress: PropTypes.number.isRequired,
   setProgress: PropTypes.func.isRequired,
   isLoading: PropTypes.bool.isRequired,
-  setCurrentTime: PropTypes.func.isRequired
+  setCurrentTime: PropTypes.func.isRequired,
+  getMaps: PropTypes.func.isRequired
 }

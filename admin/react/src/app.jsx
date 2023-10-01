@@ -104,6 +104,7 @@ export default function App() {
                 setProgress={setProgress}
                 isLoading={isLoading}
                 setCurrentTime={setCurrentTime}
+                getMaps={getMaps}
               />
             )
           ) : (
