@@ -53,10 +53,6 @@ export default function SelectData({
     }
   }
 
-  useEffect(() => {
-    console.log(selectedIds)
-  }, [selectedIds])
-
   const handleRetrieveProfilesSubmit = async event => {
     event.preventDefault()
     setIsLoading(true)
