@@ -96,14 +96,15 @@ export default function MapList({
           data: {
             map_id: mapId,
             tag_slug: tagSlug,
-            status: 'new'
+            status: 'new',
+            extra_notes: ''
           }
         }
 
         // compare with wpdb
         const customNodeResponse = await getCustomNodes(
           mapId,
-          profile_data.profile_url
+          profile.profile_url
         )
         const customNodeResponseData = await customNodeResponse.json()
         if (!customNodeResponse.ok && customNodeResponse.status !== 404) {
@@ -115,10 +116,7 @@ export default function MapList({
           return
         }
 
-        if (
-          customNodeResponse.status === 404 &&
-          profileObject.index_data.status !== 'deleted'
-        ) {
+        if (customNodeResponse.status === 404 && profile.status !== 'deleted') {
           profileObject.data.status = 'new'
 
           const profileResponse = await saveCustomNodes(profileObject)
@@ -140,27 +138,27 @@ export default function MapList({
             continue
           }
 
-          if (profileObject.index_data.status !== 'deleted') {
-            profile.data.status = customNodeResponseData[0].status
+          if (profile.status !== 'deleted') {
+            profileObject.data.status = customNodeResponseData[0].status
             if (
               customNodeResponseData[0].last_updated !==
-              profileObject.index_data.last_updated
+              profile.last_updated.toString()
             ) {
-              profile.data.extra_notes = 'see updates'
+              profileObject.data.extra_notes = 'see updates'
             }
           }
         }
 
-        if (profile_data === '' && profile.index_data.status !== 'deleted') {
-          profile.data.extra_notes = 'unavailable'
+        if (profile_data === '' && profile.status !== 'deleted') {
+          profileObject.data.extra_notes = 'unavailable'
         }
 
         currentId++
-        dataWithIds.push(profile)
+        dataWithIds.push(profileObject)
       }
       setProfileList(dataWithIds)
     } catch (error) {
-      alert(`Retrieve node error: ${JSON.stringify(error)}`)
+      alert(`Retrieve node error: ${error}`)
     } finally {
       setIsLoading(false)
     }
