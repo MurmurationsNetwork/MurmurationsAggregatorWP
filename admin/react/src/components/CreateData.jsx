@@ -6,6 +6,15 @@ import { saveCustomMap, saveCustomNodes } from '../utils/api'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
 
+const excludedKeys = [
+  'data_url',
+  'map_id',
+  'map_name',
+  'map_center_lat',
+  'map_center_lon',
+  'map_scale'
+]
+
 export default function CreateData({
   formData,
   handleInputChange,
@@ -26,15 +35,7 @@ export default function CreateData({
 
     const queryParams = []
     for (const key in formData) {
-      if (
-        formData[key] !== '' &&
-        key !== 'data_url' &&
-        key !== 'map_id' &&
-        key !== 'map_name' &&
-        key !== 'map_center_lat' &&
-        key !== 'map_center_lon' &&
-        key !== 'map_scale'
-      ) {
+      if (formData[key] !== '' && !excludedKeys.includes(key)) {
         queryParams.push(
           `${encodeURIComponent(key)}=${encodeURIComponent(formData[key])}`
         )
