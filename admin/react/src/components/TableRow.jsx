@@ -34,20 +34,20 @@ function TableRow({
           type="checkbox"
           checked={isSelected}
           onChange={() => onSelect(response.id)}
-          disabled={response.extra_notes === 'unavailable'}
+          disabled={response.data.extra_notes === 'unavailable'}
         />
       </td>
       <td className="text-center">{response.id}</td>
-      <td className="text-center">{response.name}</td>
-      <td className="text-center">{response.profile_url}</td>
-      <td className="text-center">{response.status}</td>
+      <td className="text-center">{response.profile_data.name}</td>
+      <td className="text-center">{response.index_data.profile_url}</td>
+      <td className="text-center">{response.data.status}</td>
       <td className="text-center">
-        {response.extra_notes === 'see updates' ? (
+        {response.data.extra_notes === 'see updates' ? (
           <button
             onClick={() =>
               handleSeeUpdates(
-                response.map_id,
-                response.profile_url,
+                response.data.map_id,
+                response.index_data.profile_url,
                 response.profile_data
               )
             }
@@ -55,7 +55,7 @@ function TableRow({
             See Updates
           </button>
         ) : (
-          response.extra_notes
+          response.data.extra_notes
         )}
       </td>
     </tr>

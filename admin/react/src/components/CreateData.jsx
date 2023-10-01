@@ -29,6 +29,7 @@ export default function CreateData({
       if (
         formData[key] !== '' &&
         key !== 'data_url' &&
+        key !== 'map_id' &&
         key !== 'map_name' &&
         key !== 'map_center_lat' &&
         key !== 'map_center_lon' &&
@@ -101,7 +102,7 @@ export default function CreateData({
         const profiles = responseData.data
         const dataWithIds = []
         const progressStep = 100 / profiles.length
-        let current_id = 1
+        let currentId = 1
         for (let i = 0; i < profiles.length; i++) {
           // update progress
           if ((i + 1) * progressStep > 100) {
@@ -123,24 +124,25 @@ export default function CreateData({
               profile_data = await response.json()
             }
           }
-          profile.id = current_id
-          profile.profile_data = profile_data
-          profile.status = 'new'
-          profile.map_id = mapResponseData.map_id
-          profile.tag_slug = tagSlug
+
+          // construct the profile object
+          let profileObject = {
+            id: currentId,
+            profile_data: profile_data,
+            index_data: profile,
+            data: {
+              map_id: mapResponseData.map_id,
+              tag_slug: tagSlug,
+              status: 'new'
+            }
+          }
 
           // save data to wpdb
           // todo: status needs to update according to the settings
-          const profileResponse = await saveCustomNodes(
-            profile.profile_url,
-            profile.profile_data,
-            profile.map_id,
-            profile.status,
-            profile.last_updated
-          )
+          const profileResponse = await saveCustomNodes(profileObject)
 
+          const profileResponseData = await profileResponse.json()
           if (!profileResponse.ok) {
-            const profileResponseData = await profileResponse.json()
             alert(
               `Unable to save profiles to wpdb, errors: ${
                 profileResponse.status
@@ -151,11 +153,15 @@ export default function CreateData({
             return
           }
 
-          // set extra notes
-          profile.extra_notes = profile_data === '' ? 'unavailable' : ''
+          // set node_id
+          profileObject.data.node_id = profileResponseData.node_id
 
-          current_id++
-          dataWithIds.push(profile)
+          // set extra notes
+          profileObject.data.extra_notes =
+            profile_data === '' ? 'unavailable' : ''
+
+          currentId++
+          dataWithIds.push(profileObject)
         }
         setProfileList(dataWithIds)
       } else {

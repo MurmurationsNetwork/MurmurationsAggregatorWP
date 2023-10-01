@@ -3,6 +3,7 @@ import ProgressBar from './ProgressBar'
 import {
   deleteCustomNodes,
   deleteWpNodes,
+  getCustomNodes,
   saveWpNodes,
   updateCustomMapLastUpdated,
   updateCustomNodes,
@@ -10,7 +11,7 @@ import {
   updateWpNodes
 } from '../utils/api'
 import { formDefaults } from '../data/formDefaults'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   removeSelectedProfiles,
   removeUnselectedProfiles
@@ -52,6 +53,10 @@ export default function SelectData({
     }
   }
 
+  useEffect(() => {
+    console.log(selectedIds)
+  }, [selectedIds])
+
   const handleRetrieveProfilesSubmit = async event => {
     event.preventDefault()
     setIsLoading(true)
@@ -71,13 +76,8 @@ export default function SelectData({
         const profile = selectedProfiles[i]
 
         // need to update the node first
-        if (profile.extra_notes === 'see updates') {
-          const profileResponse = await updateCustomNodes(
-            profile.map_id,
-            profile.profile_url,
-            profile.profile_data,
-            profile.last_updated
-          )
+        if (profile.data.extra_notes === 'see updates') {
+          const profileResponse = await updateCustomNodes(profile)
 
           if (!profileResponse.ok) {
             const profileResponseData = await profileResponse.json()
@@ -89,13 +89,16 @@ export default function SelectData({
           }
         }
 
-        const profileStatus = profile.status
+        const profileStatus = profile.data.status
         // if the node status is deleted, we need to delete the post
         if (profileStatus === 'deleted') {
-          const response = await deleteWpNodes(profile)
-
+          // get the post_id by getCustomNode
+          const response = await getCustomNodes(
+            profile.data.map_id,
+            profile.index_data.profile_url
+          )
+          const responseData = await response.json()
           if (!response.ok) {
-            const responseData = await response.json()
             alert(
               `Delete Profile Error: ${response.status} ${JSON.stringify(
                 responseData
@@ -103,11 +106,20 @@ export default function SelectData({
             )
           }
 
+          const postId = responseData[0].post_id
+          const deleteNodeResponse = await deleteWpNodes(postId)
+
+          if (!deleteNodeResponse.ok) {
+            const deleteNodeResponseData = await deleteNodeResponse.json()
+            alert(
+              `Delete Profile Error: ${
+                deleteNodeResponse.status
+              } ${JSON.stringify(deleteNodeResponseData)}`
+            )
+          }
+
           // delete node from nodes table
-          const deleteResponse = await deleteCustomNodes(
-            profile.map_id,
-            profile.profile_url
-          )
+          const deleteResponse = await deleteCustomNodes(profile)
 
           if (!deleteResponse.ok) {
             const deleteResponseData = await deleteResponse.json()
@@ -135,9 +147,11 @@ export default function SelectData({
 
         if (
           selectedStatusOption === 'publish' &&
-          (profileStatus === 'new' || profileStatus === 'dismiss')
+          (profileStatus === 'new' ||
+            profileStatus === 'dismiss' ||
+            profileStatus === 'ignore')
         ) {
-          const profileResponse = await saveWpNodes(profile.tag_slug, profile)
+          const profileResponse = await saveWpNodes(profile)
           if (!profileResponse.ok) {
             const profileResponseData = await profileResponse.json()
             alert(
@@ -153,10 +167,12 @@ export default function SelectData({
             selectedStatusOption === 'ignore') &&
           profileStatus === 'publish'
         ) {
-          const response = await deleteWpNodes(profile)
-
+          const response = await getCustomNodes(
+            profile.data.map_id,
+            profile.index_data.profile_url
+          )
+          const responseData = await response.json()
           if (!response.ok) {
-            const responseData = await response.json()
             alert(
               `Delete Profile Error: ${response.status} ${JSON.stringify(
                 responseData
@@ -164,12 +180,21 @@ export default function SelectData({
             )
           }
 
+          const postId = responseData[0].post_id
+          const deleteNodeResponse = await deleteWpNodes(postId)
+
+          if (!deleteNodeResponse.ok) {
+            const deleteNodeResponseData = await deleteNodeResponse.json()
+            alert(
+              `Delete Profile Error: ${
+                deleteNodeResponse.status
+              } ${JSON.stringify(deleteNodeResponseData)}`
+            )
+          }
+
           // update the status of the node
-          const profileResponse = await updateCustomNodesStatus(
-            profile.map_id,
-            profile.profile_url,
-            selectedStatusOption
-          )
+          profile.data.status = selectedStatusOption
+          const profileResponse = await updateCustomNodesStatus(profile)
           if (!profileResponse.ok) {
             const profileResponseData = await profileResponse.json()
             alert(
@@ -182,11 +207,8 @@ export default function SelectData({
 
         if (selectedStatusOption === 'ignore' && profileStatus === 'dismiss') {
           // update the status of the node
-          const profileResponse = await updateCustomNodesStatus(
-            profile.map_id,
-            profile.profile_url,
-            selectedStatusOption
-          )
+          profile.data.status = selectedStatusOption
+          const profileResponse = await updateCustomNodesStatus(profile)
           if (!profileResponse.ok) {
             const profileResponseData = await profileResponse.json()
             alert(
@@ -229,14 +251,14 @@ export default function SelectData({
         // if the profile wants to publish, it will create post in WordPress
         // otherwise, dismiss, ignore status will update the status of nodes table
         let profileResponse
-        if (selectedStatusOption === 'publish') {
-          profileResponse = await saveWpNodes(profile.tag_slug, profile)
+        if (
+          selectedStatusOption === 'publish' &&
+          profile.data.status !== 'publish'
+        ) {
+          profileResponse = await saveWpNodes(profile)
         } else {
-          profileResponse = await updateCustomNodesStatus(
-            profile.map_id,
-            profile.profile_url,
-            selectedStatusOption
-          )
+          profile.data.status = selectedStatusOption
+          profileResponse = await updateCustomNodesStatus(profile)
         }
 
         // todo: needs to summarize errors and display them in once
@@ -267,12 +289,14 @@ export default function SelectData({
     const newProfileList = removeSelectedProfiles(profileList, selectedIds)
 
     // get tag_slug
-    const mapId = profileList[0].map_id
+    const mapId = profileList[0].data.map_id
 
     // if the extra_notes of all profiles are unavailable, it means all nodes are handled, we can refresh the page
     if (
       newProfileList.length === 0 ||
-      newProfileList.every(profile => profile.extra_notes === 'unavailable')
+      newProfileList.every(
+        profile => profile.data.extra_notes === 'unavailable'
+      )
     ) {
       if (currentTime !== null) {
         const response = await updateCustomMapLastUpdated(mapId, currentTime)

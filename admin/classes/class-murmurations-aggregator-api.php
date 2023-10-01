@@ -26,7 +26,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				array(
 					'methods'  => 'GET',
 					'callback' => array( $this, 'get_map_nodes' ),
-				)
+				),
 			);
 
 			// backend
@@ -41,9 +41,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 					),
 					array(
 						'methods'  => 'POST',
-						'callback' => array( $this, 'post_map' )
+						'callback' => array( $this, 'post_map' ),
 					),
-				)
+				),
 			);
 
 			register_rest_route(
@@ -61,7 +61,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 					array(
 						'methods'  => 'DELETE',
 						'callback' => array( $this, 'delete_map' ),
-					)
+					),
 				)
 			);
 
@@ -69,20 +69,28 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				$backend_namespace,
 				'/maps/(?P<map_id>[\d]+)/last-updated',
 				array(
-					array(
-						'methods'  => 'PUT',
-						'callback' => array( $this, 'put_map_last_updated' ),
-					),
-				)
+					'methods'  => 'PUT',
+					'callback' => array( $this, 'put_map_last_updated' ),
+				),
 			);
 
 			// WP Nodes Routes
 			register_rest_route(
 				$backend_namespace,
-				'/wp-nodes/(?P<post_id>[\w]+)',
+				'/wp-nodes/(?P<post_id>[\d]+)',
 				array(
-					'methods'  => 'GET',
-					'callback' => array( $this, 'get_wp_node' ),
+					array(
+						'methods'  => 'GET',
+						'callback' => array( $this, 'get_wp_node' )
+					),
+					array(
+						'methods'  => 'PUT',
+						'callback' => array( $this, 'put_wp_node' )
+					),
+					array(
+						'methods'  => 'DELETE',
+						'callback' => array( $this, 'delete_wp_node' ),
+					),
 				)
 			);
 
@@ -90,52 +98,25 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				$backend_namespace,
 				'/wp-nodes',
 				array(
-					array(
-						'methods'  => 'POST',
-						'callback' => array( $this, 'post_wp_node' ),
-					),
-					array(
-						'methods'  => 'PUT',
-						'callback' => array( $this, 'put_wp_node' ),
-					),
-					array(
-						'methods'  => 'DELETE',
-						'callback' => array( $this, 'delete_wp_node' ),
-					)
-				)
+					'methods'  => 'POST',
+					'callback' => array( $this, 'post_wp_node' ),
+				),
 			);
 
 			// Custom Nodes Routes
 			register_rest_route(
 				$backend_namespace,
-				'/nodes-comparison',
-				array(
-					'methods'  => 'POST',
-					'callback' => array( $this, 'post_nodes_comparison' ),
-				)
-			);
-
-			register_rest_route(
-				$backend_namespace,
-				'/nodes-status',
-				array(
-					'methods'  => 'POST',
-					'callback' => array( $this, 'post_node_status' ),
-				)
-			);
-
-			register_rest_route(
-				$backend_namespace,
 				'/nodes',
 				array(
-					array(
-						'methods'  => 'GET',
-						'callback' => array( $this, 'get_node' ),
-					),
-					array(
-						'methods'  => 'POST',
-						'callback' => array( $this, 'post_node' ),
-					),
+					'methods'  => 'GET',
+					'callback' => array( $this, 'get_nodes' ),
+				),
+			);
+
+			register_rest_route(
+				$backend_namespace,
+				'/nodes/(?P<node_id>[\d]+)',
+				array(
 					array(
 						'methods'  => 'PUT',
 						'callback' => array( $this, 'put_node' ),
@@ -143,8 +124,26 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 					array(
 						'methods'  => 'DELETE',
 						'callback' => array( $this, 'delete_node' ),
-					)
-				)
+					),
+				),
+			);
+
+			register_rest_route(
+				$backend_namespace,
+				'/nodes/(?P<node_id>[\d]+)/status',
+				array(
+					'methods'  => 'PUT',
+					'callback' => array( $this, 'put_node_status' ),
+				),
+			);
+
+			register_rest_route(
+				$backend_namespace,
+				'/nodes',
+				array(
+					'methods'  => 'POST',
+					'callback' => array( $this, 'post_node' ),
+				),
 			);
 		}
 
@@ -340,8 +339,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			return rest_ensure_response( 'Map updated successfully.' );
 		}
 
-		public function get_wp_node( $request ) {
-			$post_id = $request['post_id'];
+		public function get_wp_node( $request ): WP_REST_Response|WP_Error {
+			$post_id = $request->get_param( 'post_id' );
 
 			$post = get_post( $post_id );
 
@@ -358,18 +357,52 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			return rest_ensure_response( $response );
 		}
 
-		public function post_wp_node( $request ) {
+		public function put_wp_node( $request ): WP_REST_Response|WP_Error {
+			$post_id = $request->get_param( 'post_id' );
+			$data    = $request->get_json_params();
+
+			$result = wp_update_post( array(
+				'ID'         => $post_id,
+				'post_title' => $data['profile_data']['name'],
+			) );
+
+			if ( ! $result ) {
+				return new WP_Error( 'post_update_failed', 'Failed to update post.', array( 'status' => 500 ) );
+			}
+
+			// update custom fields
+			update_post_meta( $post_id, 'murmurations_description', $data['profile_data']['description'] );
+			update_post_meta( $post_id, 'murmurations_geolocation_lon', $data['profile_data']['geolocation']['lon'] );
+			update_post_meta( $post_id, 'murmurations_geolocation_lat', $data['profile_data']['geolocation']['lat'] );
+
+			return rest_ensure_response( 'Node updated successfully.' );
+		}
+
+		public function delete_wp_node( $request ): WP_REST_Response|WP_Error {
+			$post_id = $request->get_param( 'post_id' );
+
+			// delete post
+			$result = wp_delete_post( $post_id, true );
+
+			if ( ! $result ) {
+				return new WP_Error( 'wp_post_deletion_failed', 'Failed to delete post.', array( 'status' => 500 ) );
+			}
+
+			return rest_ensure_response( 'Node deleted successfully.' );
+		}
+
+		public function post_wp_node( $request ): WP_REST_Response|WP_Error {
 			$data     = $request->get_json_params();
-			$tag_slug = sanitize_text_field( $data['tag_slug'] );
+			$tag_slug = sanitize_text_field( $data['data']['tag_slug'] );
 
 			// validate profile
-			if ( ! isset( $data['profile'] ) || ! isset( $data['tag_slug'] ) ) {
+			if ( ! isset( $data['profile_data'] ) || ! isset( $tag_slug ) || ! isset( $data['data']['map_id'] ) ) {
 				return new WP_Error( 'invalid_data', 'profile field is required.', array( 'status' => 400 ) );
 			}
 
 			// create a post
 			$post_id = wp_insert_post( array(
-				'post_title'  => $data['profile']['name'],
+				'post_title'  => $data['profile_data']['name'],
 				'post_type'   => 'murmurations_node',
 				'post_status' => 'publish',
 			) );
@@ -387,11 +420,10 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			// set custom fields
 			if ( ! is_wp_error( $post_id ) ) {
-				update_post_meta( $post_id, 'murmurations_description', $data['profile']['profile_data']['description'] );
-				update_post_meta( $post_id, 'murmurations_geolocation_lon', $data['profile']['profile_data']['geolocation']['lon'] );
-				update_post_meta( $post_id, 'murmurations_geolocation_lat', $data['profile']['profile_data']['geolocation']['lat'] );
+				update_post_meta( $post_id, 'murmurations_description', $data['profile_data']['description'] );
+				update_post_meta( $post_id, 'murmurations_geolocation_lon', $data['profile_data']['geolocation']['lon'] );
+				update_post_meta( $post_id, 'murmurations_geolocation_lat', $data['profile_data']['geolocation']['lat'] );
 			}
-
 
 			if ( is_wp_error( $post_id ) ) {
 				return new WP_Error( 'post_creation_failed', 'Failed to create post.', array( 'status' => 500 ) );
@@ -402,145 +434,125 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'post_id' => $post_id,
 				'status'  => 'publish',
 			), array(
-				'profile_url' => $data['profile']['profile_url'],
+				'profile_url' => $data['index_data']['profile_url'],
+				'map_id'      => $data['data']['map_id'],
 			) );
 
 			if ( ! $result ) {
 				return new WP_Error( 'node_status update_failed', 'Failed to update node status.', array( 'status' => 500 ) );
 			}
 
-			return array(
-				'message' => 'Node created successfully.',
-				'post_id' => $post_id,
-			);
+			return rest_ensure_response( 'WP Node created successfully.' );
 		}
 
-		public function put_wp_node( $request ) {
-			$data = $request->get_json_params();
+		public function get_nodes( $request ): WP_REST_Response|WP_Error {
+			$mapId      = $request->get_param( 'map_id' );
+			$profileUrl = $request->get_param( 'profile_url' );
 
-			// validate profile
-			if ( ! isset( $data['profile'] ) ) {
-				return new WP_Error( 'invalid_data', 'profile field is required.', array( 'status' => 400 ) );
-			}
-
-			// find the post based on profile_url and map_id
-			$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE profile_url = %s AND map_id = %d", $data['profile']['profile_url'], $data['profile']['map_id'] );
-
-			$profile = $this->wpdb->get_row( $query );
-
-			if ( ! $profile ) {
-				return new WP_Error( 'node_not_found', 'Node not found', array( 'status' => 404 ) );
-			}
-
-			// update post
-			$post_id = $profile->post_id;
-
-			$result = wp_update_post( array(
-				'ID'         => $post_id,
-				'post_title' => $data['data']['name'],
-			) );
-
-			if ( ! $result ) {
-				return new WP_Error( 'post_update_failed', 'Failed to update post.', array( 'status' => 500 ) );
-			}
-
-			// update custom fields
-			update_post_meta( $post_id, 'murmurations_description', $data['profile']['profile_data']['description'] );
-			update_post_meta( $post_id, 'murmurations_geolocation_lon', $data['profile']['profile_data']['geolocation']['lon'] );
-			update_post_meta( $post_id, 'murmurations_geolocation_lat', $data['profile']['profile_data']['geolocation']['lat'] );
-
-			return array(
-				'message' => 'Node updated successfully.',
-				'post_id' => $post_id,
-			);
-		}
-
-		public function delete_wp_node( $request ) {
-			$data = $request->get_json_params();
-
-			// validate profile
-			if ( ! isset( $data['profile'] ) ) {
-				return new WP_Error( 'invalid_data', 'profile field is required.', array( 'status' => 400 ) );
-			}
-
-			// find the post based on profile_url and map_id
-			$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE profile_url = %s AND map_id = %d", $data['profile']['profile_url'], $data['profile']['map_id'] );
-
-			$profile = $this->wpdb->get_row( $query );
-
-			if ( ! $profile ) {
-				return new WP_Error( 'node_not_found', 'Node not found', array( 'status' => 404 ) );
-			}
-
-			// delete post
-			$post_id = $profile->post_id;
-			$result  = wp_delete_post( $post_id, true );
-
-			if ( ! $result ) {
-				return new WP_Error( 'post_deletion_failed', 'Failed to delete post.', array( 'status' => 500 ) );
-			}
-
-			return array(
-				'message' => 'Node deleted successfully.'
-			);
-		}
-
-		public function post_nodes_comparison( $request ) {
-			$data = $request->get_json_params();
-
-			// validate data
-			if ( ! isset( $data['map_id'] ) || ! isset( $data['last_updated'] ) || ! isset( $data['profile_url'] ) ) {
+			if ( ! isset( $mapId ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
 			}
 
-			// find data in nodes table by profile_url
-			$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE profile_url = %s AND map_id = %d", $data['profile_url'], $data['map_id'] );
-
-			$node = $this->wpdb->get_row( $query );
-
-			if ( ! $node ) {
-				return new WP_Error( 'node_not_found', 'Node not found', array( 'status' => 404 ) );
+			if ( isset( $profileUrl ) ) {
+				$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE map_id = %d AND profile_url = %s", $mapId, $profileUrl );
+			} else {
+				$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE map_id = %d", $mapId );
 			}
 
-			// handle mismatch and ignore
-			if ( $node->last_updated != $data['last_updated'] ) {
-				return rest_ensure_response( array(
-					'status'     => $node->status,
-					'has_update' => true,
-				) );
+			$nodes = $this->wpdb->get_results( $query );
+
+			if ( ! $nodes ) {
+				return new WP_Error( 'no_data_found', 'No node data found', array( 'status' => 404 ) );
 			}
 
-			// return node status
-			return rest_ensure_response( array(
-				'status'     => $node->status,
-				'has_update' => false,
-			) );
+			// get map information and replace map_id field
+			$map = $this->wpdb->get_row( $this->wpdb->prepare( "SELECT * FROM $this->table_name WHERE id = %d", $mapId ) );
+
+			if ( ! $map ) {
+				return new WP_Error( 'map_not_found', 'Map not found', array( 'status' => 404 ) );
+			}
+
+			// json decode data
+			foreach ( $nodes as $node ) {
+				$node->profile_data = json_decode( $node->data );
+				unset( $node->data );
+				$node->map = $map;
+				unset( $node->map_id );
+			}
+
+			return rest_ensure_response( $nodes );
 		}
 
-		public function post_node_status( $request ) {
-			$data = $request->get_json_params();
+		public function put_node( $request ): WP_REST_Response|WP_Error {
+			$node_id = $request->get_param( '$node_id' );
+			$data    = $request->get_json_params();
 
 			// validate data
-			if ( ! isset( $data['profile_url'] ) || ! isset( $data['status'] ) || ! isset( $data['map_id'] ) ) {
+			if ( ! isset( $node_id ) || ! isset( $data['data'] ) || ! isset( $data['profile_data'] ) || ! isset( $data['index_data'] ) ) {
+				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
+			}
+
+			// update data
+			$result = $this->wpdb->update( $this->node_table_name, array(
+				'data'         => json_encode( $data['profile_data'] ),
+				'last_updated' => $data['index_data']['last_updated'],
+			), array(
+				'profile_url' => $data['index_data']['profile_url'],
+				'map_id'      => $data['data']['map_id'],
+			) );
+
+			if ( ! $result ) {
+				return new WP_Error( 'node_update_failed', 'Failed to update node.', array( 'status' => 500 ) );
+			}
+
+			return rest_ensure_response( 'Node updated successfully.' );
+		}
+
+		public function delete_node( $request ): WP_REST_Response|WP_Error {
+			$node_id = $request->get_param( '$node_id' );
+
+			// validate data
+			if ( ! isset( $node_id ) ) {
+				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
+			}
+
+			// delete node
+			$result = $this->wpdb->delete( $this->node_table_name, array(
+				'id' => $node_id,
+			) );
+
+			if ( ! $result ) {
+				return new WP_Error( 'node_deletion_failed', 'Failed to delete node.', array( 'status' => 500 ) );
+			}
+
+			return rest_ensure_response( 'Node deleted successfully.' );
+		}
+
+		public function put_node_status( $request ): WP_REST_Response|WP_Error {
+			$node_id = $request->get_param( 'node_id' );
+			$data    = $request->get_json_params();
+
+			// validate data
+			if ( ! isset( $node_id ) || ! isset( $data['data'] ) || ! isset( $data['profile_data'] ) || !isset($data['index_data']) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
 			}
 
 			// update status in node table
 			// if the status is 'dismiss' or 'ignore', set 'post_id' to null
-			if ( $data['status'] === 'dismiss' || $data['status'] === 'ignore' ) {
+			if ( $data['data']['status'] === 'dismiss' || $data['data']['status'] === 'ignore' ) {
 				$result = $this->wpdb->update( $this->node_table_name, array(
-					'status'  => $data['status'],
+					'status'  => $data['data']['status'],
 					'post_id' => null,
 				), array(
-					'profile_url' => $data['profile_url'],
-					'map_id'      => $data['map_id'],
+					'profile_url' => $data['index_data']['profile_url'],
+					'map_id'      => $data['data']['map_id'],
 				) );
 			} else {
 				$result = $this->wpdb->update( $this->node_table_name, array(
-					'status' => $data['status'],
+					'status' => $data['data']['status'],
 				), array(
-					'profile_url' => $data['profile_url'],
-					'map_id'      => $data['map_id'],
+					'profile_url' => $data['index_data']['profile_url'],
+					'map_id'      => $data['data']['map_id'],
 				) );
 			}
 
@@ -551,108 +563,34 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			return rest_ensure_response( 'Node status updated successfully.' );
 		}
 
-		public function get_node( $request ) {
-			$mapId      = $request->get_param( 'map_id' );
-			$profileUrl = $request->get_param( 'profile_url' );
-
-			// validate data
-			if ( ! isset( $mapId ) ) {
-				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
-			}
-
-			if ( ! empty( $profileUrl ) ) {
-				$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE profile_url = %s AND map_id = %d", $profileUrl, $mapId );
-			} else {
-				$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE map_id = %d", $mapId );
-			}
-
-			$nodes = $this->wpdb->get_results( $query );
-
-			if ( ! $nodes ) {
-				return new WP_Error( 'node_not_found', 'Node not found', array( 'status' => 404 ) );
-			}
-
-			// get tag_slug from map_id
-			$map = $this->wpdb->get_row( $this->wpdb->prepare( "SELECT * FROM $this->table_name WHERE id = %d", $mapId ) );
-
-			// json decode data
-			foreach ( $nodes as $node ) {
-				$node->profile_data = json_decode( $node->data );
-				unset( $node->data );
-				$node->tag_slug = $map->tag_slug;
-				unset( $node->id );
-			}
-
-			return rest_ensure_response( $nodes );
-		}
-
-		public function post_node( $request ) {
+		public function post_node( $request ): WP_REST_Response|WP_Error {
 			$data = $request->get_json_params();
 
 			// validate data
-			if ( ! isset( $data['profile_url'] ) || ! isset( $data['map_id'] ) || ! isset( $data['data'] ) || ! isset( $data['last_updated'] ) ) {
+			if ( ! isset( $data['profile_data'] ) || ! isset( $data['data'] ) || ! isset( $data['index_data'] ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
 			}
 
 			// insert data
 			$result = $this->wpdb->insert( $this->node_table_name, array(
-				'profile_url'  => $data['profile_url'],
-				'map_id'       => $data['map_id'],
-				'data'         => json_encode( $data['data'] ),
-				'last_updated' => $data['last_updated'],
-				'status'       => $data['status'] ?? 'new',
+				'profile_url'  => $data['index_data']['profile_url'],
+				'map_id'       => $data['data']['map_id'],
+				'data'         => json_encode( $data['profile_data'] ),
+				'last_updated' => $data['index_data']['last_updated'],
+				'status'       => $data['data']['status'] ?? 'new',
 			) );
 
 			if ( ! $result ) {
 				return new WP_Error( 'node_creation_failed', 'Failed to create node.', array( 'status' => 500 ) );
 			}
 
-			return rest_ensure_response( 'Node created successfully.' );
-		}
+			$inserted_id = $this->wpdb->insert_id;
 
-		public function put_node( $request ) {
-			$data = $request->get_json_params();
+			$response = array(
+				'node_id' => $inserted_id,
+			);
 
-			// validate data
-			if ( ! isset( $data['profile_url'] ) || ! isset( $data['map_id'] ) || ! isset( $data['data'] ) || ! isset( $data['last_updated'] ) ) {
-				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
-			}
-
-			// update data
-			$result = $this->wpdb->update( $this->node_table_name, array(
-				'data'         => json_encode( $data['data'] ),
-				'last_updated' => $data['last_updated'],
-			), array(
-				'profile_url' => $data['profile_url'],
-				'map_id'      => $data['map_id'],
-			) );
-
-			if ( ! $result ) {
-				return new WP_Error( 'node_update_failed', 'Failed to update node.', array( 'status' => 500 ) );
-			}
-
-			return rest_ensure_response( 'Node updated successfully.' );
-		}
-
-		public function delete_node( $request ) {
-			$data = $request->get_json_params();
-
-			// validate data
-			if ( ! isset( $data['profile_url'] ) || ! isset( $data['map_id'] ) ) {
-				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
-			}
-
-			// delete node
-			$result = $this->wpdb->delete( $this->node_table_name, array(
-				'profile_url' => $data['profile_url'],
-				'map_id'      => $data['map_id'],
-			) );
-
-			if ( ! $result ) {
-				return new WP_Error( 'node_deletion_failed', 'Failed to delete node.', array( 'status' => 500 ) );
-			}
-
-			return rest_ensure_response( 'Node deleted successfully.' );
+			return rest_ensure_response( $response );
 		}
 	}
 }

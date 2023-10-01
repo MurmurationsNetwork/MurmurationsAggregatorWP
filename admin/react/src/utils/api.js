@@ -2,6 +2,7 @@
 const wordpressUrl = murmurations_aggregator.wordpress_url
 const apiUrl = `${wordpressUrl}/wp-json/murmurations-aggregator/v1/api`
 
+// Maps Routes
 export const getCustomMaps = async () => {
   return await fetch(`${apiUrl}/maps`)
 }
@@ -67,41 +68,22 @@ export const deleteCustomMap = async mapId => {
   return await fetchRequest(`${apiUrl}/maps/${mapId}`, 'DELETE')
 }
 
-export const saveWpNodes = async (tagSlug, profile) => {
-  const body = {
-    tag_slug: tagSlug,
-    profile: profile
-  }
-
-  return await fetchRequest(`${apiUrl}/wp-nodes`, 'POST', body)
+// WP Nodes Routes
+export const saveWpNodes = async profile => {
+  return await fetchRequest(`${apiUrl}/wp-nodes`, 'POST', profile)
 }
 
 export const updateWpNodes = async profile => {
-  const body = {
-    profile: profile
-  }
+  const postId = profile.data.post_id
 
-  return await fetchRequest(`${apiUrl}/wp-nodes`, 'PUT', body)
+  return await fetchRequest(`${apiUrl}/wp-nodes/${postId}`, 'PUT', profile)
 }
 
-export const deleteWpNodes = async profile => {
-  const body = {
-    profile: profile
-  }
-
-  return await fetchRequest(`${apiUrl}/wp-nodes`, 'DELETE', body)
+export const deleteWpNodes = async postId => {
+  return await fetchRequest(`${apiUrl}/wp-nodes/${postId}`, 'DELETE')
 }
 
-export const compareWithWpNodes = async (mapId, profileUrl, lastUpdated) => {
-  const body = {
-    map_id: mapId,
-    profile_url: profileUrl,
-    last_updated: lastUpdated
-  }
-
-  return await fetchRequest(`${apiUrl}/nodes-comparison`, 'POST', body)
-}
-
+// Custom Nodes Routes
 export const getCustomNodes = async (mapId, profileUrl) => {
   if (profileUrl === undefined) {
     return await fetch(`${apiUrl}/nodes?map_id=${mapId}`)
@@ -112,61 +94,26 @@ export const getCustomNodes = async (mapId, profileUrl) => {
   )
 }
 
-export const saveCustomNodes = async (
-  profileUrl,
-  profileData,
-  mapId,
-  profileStatus,
-  profileLastUpdated
-) => {
-  const body = {
-    profile_url: profileUrl,
-    data: profileData,
-    map_id: mapId,
-    status: profileStatus,
-    last_updated: profileLastUpdated
-  }
-
-  return await fetchRequest(`${apiUrl}/nodes`, 'POST', body)
+export const saveCustomNodes = async profile => {
+  return await fetchRequest(`${apiUrl}/nodes`, 'POST', profile)
 }
 
-export const updateCustomNodes = async (
-  mapId,
-  profileUrl,
-  profileData,
-  profileLastUpdated
-) => {
-  const body = {
-    map_id: mapId,
-    profile_url: profileUrl,
-    data: profileData,
-    last_updated: profileLastUpdated
-  }
+export const updateCustomNodes = async profile => {
+  const nodeId = profile.data.node_id
 
-  return await fetchRequest(`${apiUrl}/nodes`, 'PUT', body)
+  return await fetchRequest(`${apiUrl}/nodes/${nodeId}`, 'PUT', profile)
 }
 
-export const updateCustomNodesStatus = async (
-  mapId,
-  profileUrl,
-  updateStatus
-) => {
-  const body = {
-    map_id: mapId,
-    profile_url: profileUrl,
-    status: updateStatus
-  }
+export const updateCustomNodesStatus = async profile => {
+  const nodeId = profile.data.node_id
 
-  return fetchRequest(`${apiUrl}/nodes-status`, 'POST', body)
+  return fetchRequest(`${apiUrl}/nodes/${nodeId}/status`, 'PUT', profile)
 }
 
-export const deleteCustomNodes = async (mapId, profileUrl) => {
-  const body = {
-    map_id: mapId,
-    profile_url: profileUrl
-  }
+export const deleteCustomNodes = async profile => {
+  const nodeId = profile.data.node_id
 
-  return await fetchRequest(`${apiUrl}/nodes`, 'DELETE', body)
+  return await fetchRequest(`${apiUrl}/nodes/${nodeId}`, 'DELETE')
 }
 
 const fetchRequest = async (url, method, body) => {

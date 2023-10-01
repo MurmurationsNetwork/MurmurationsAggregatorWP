@@ -1,5 +1,4 @@
 import {
-  compareWithWpNodes,
   deleteCustomMap,
   getCustomMap,
   getCustomNodes,
@@ -71,7 +70,7 @@ export default function MapList({
 
       const dataWithIds = []
       const progressStep = 100 / profiles.length
-      let current_id = 1
+      let currentId = 1
       for (let i = 0; i < profiles.length; i++) {
         // update progress
         if ((i + 1) * progressStep > 100) {
@@ -88,39 +87,41 @@ export default function MapList({
             profile_data = await response.json()
           }
         }
+
         // give extra data to profile
-        profile.id = current_id
-        profile.profile_data = profile_data
-        profile.tag_slug = tagSlug
-        profile.map_id = mapId
+        let profileObject = {
+          id: currentId,
+          profile_data: profile_data,
+          index_data: profile,
+          data: {
+            map_id: mapId,
+            tag_slug: tagSlug,
+            status: 'new'
+          }
+        }
 
         // compare with wpdb
-        const profileResponse = await compareWithWpNodes(
+        const customNodeResponse = await getCustomNodes(
           mapId,
-          profile.profile_url,
-          profile.last_updated
+          profile_data.profile_url
         )
-        const profileResponseData = await profileResponse.json()
-
-        if (!profileResponse.ok && profileResponse.status !== 404) {
+        const customNodeResponseData = await customNodeResponse.json()
+        if (!customNodeResponse.ok && customNodeResponse.status !== 404) {
           alert(
-            `Retrieve Error: ${profileResponse.status} ${JSON.stringify(
-              profileResponseData
+            `Retrieve Error: ${customNodeResponse.status} ${JSON.stringify(
+              customNodeResponseData
             )}`
           )
           return
         }
 
-        if (profileResponse.status === 404 && profile.status !== 'deleted') {
-          profile.status = 'new'
+        if (
+          customNodeResponse.status === 404 &&
+          profileObject.index_data.status !== 'deleted'
+        ) {
+          profileObject.data.status = 'new'
 
-          const profileResponse = await saveCustomNodes(
-            profile.profile_url,
-            profile.profile_data,
-            profile.map_id,
-            profile.status,
-            profile.last_updated
-          )
+          const profileResponse = await saveCustomNodes(profileObject)
 
           if (!profileResponse.ok) {
             const profileResponseData = await profileResponse.json()
@@ -135,23 +136,26 @@ export default function MapList({
           }
         } else {
           // if the profile is ignored, don't show up again
-          if (profileResponseData.status === 'ignore') {
+          if (customNodeResponseData[0].status === 'ignore') {
             continue
           }
 
-          if (profile.status !== 'deleted') {
-            profile.status = profileResponseData.status
-            if (profileResponseData.has_update) {
-              profile.extra_notes = 'see updates'
+          if (profileObject.index_data.status !== 'deleted') {
+            profile.data.status = customNodeResponseData[0].status
+            if (
+              customNodeResponseData[0].last_updated !==
+              profileObject.index_data.last_updated
+            ) {
+              profile.data.extra_notes = 'see updates'
             }
           }
         }
 
-        if (profile_data === '' && profile.status !== 'deleted') {
-          profile.extra_notes = 'unavailable'
+        if (profile_data === '' && profile.index_data.status !== 'deleted') {
+          profile.data.extra_notes = 'unavailable'
         }
 
-        current_id++
+        currentId++
         dataWithIds.push(profile)
       }
       setProfileList(dataWithIds)
@@ -175,13 +179,29 @@ export default function MapList({
         return
       }
 
-      let current_id = 1
+      let currentId = 1
+      const dataWithIds = []
       for (let profile of profiles) {
-        profile.id = current_id
-        profile.name = profile.profile_data.name
-        current_id++
+        let profileObject = {
+          id: currentId,
+          profile_data: profile.profile_data,
+          index_data: {
+            profile_url: profile.profile_url,
+            last_updated: profile.last_updated
+          },
+          data: {
+            map_id: mapId,
+            node_id: profile.id,
+            post_id: profile.post_id,
+            tag_slug: profile.map.tag_slug,
+            status: profile.status
+          }
+        }
+
+        currentId++
+        dataWithIds.push(profileObject)
       }
-      setProfileList(profiles)
+      setProfileList(dataWithIds)
     } catch (error) {
       alert(`Edit nodes error: ${JSON.stringify(error)}`)
     } finally {
