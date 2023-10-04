@@ -109,9 +109,7 @@ export default function MapList({
           index_data: profile,
           data: {
             map_id: mapId,
-            tag_slug: tagSlug,
-            node_id: customNodesResponseData[0].id,
-            post_id: customNodesResponseData[0].post_id
+            tag_slug: tagSlug
           }
         }
 
@@ -182,21 +180,23 @@ export default function MapList({
           }
         } else {
           profileObject.data.status = customNodesResponseData[0].status
-        }
+          profileObject.data.node_id = customNodesResponseData[0].id
+          profileObject.data.post_id = customNodesResponseData[0].post_id
 
-        if (
-          customNodesResponseData[0].last_updated !==
-          profile.last_updated.toString()
-        ) {
-          profileObject.data.extra_notes = 'see updates'
-        }
+          if (
+            customNodesResponseData[0].last_updated !==
+            profile.last_updated.toString()
+          ) {
+            profileObject.data.extra_notes = 'see updates'
+          }
 
-        // ignore if status is not new and it doesn't have updates
-        if (
-          customNodesResponseData[0].status !== 'new' &&
-          profileObject.data.extra_notes !== 'see updates'
-        ) {
-          continue
+          // ignore if status is not new and it doesn't have updates
+          if (
+            customNodesResponseData[0].status !== 'new' &&
+            profileObject.data.extra_notes !== 'see updates'
+          ) {
+            continue
+          }
         }
 
         if (profile_data === '') {
@@ -223,7 +223,6 @@ export default function MapList({
         setCurrentTime(null)
       }
     } catch (error) {
-      console.log(error)
       alert(`Retrieve node error: ${error}`)
     } finally {
       setIsLoading(false)
