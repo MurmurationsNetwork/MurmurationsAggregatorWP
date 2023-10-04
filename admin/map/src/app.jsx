@@ -36,9 +36,10 @@ export default function App(props) {
 
   const getMap = async () => {
     try {
-      const response = await fetch(`${apiUrl}/api/maps/${tagSlug}`)
+      const response = await fetch(`${apiUrl}/api/maps`)
       const data = await response.json()
-      setMap(data)
+      const map = data.find((map) => map.tag_slug === tagSlug)
+      setMap(map)
     } catch (error) {
       alert(
         `Error getting maps, please contact the administrator, error: ${error}`
