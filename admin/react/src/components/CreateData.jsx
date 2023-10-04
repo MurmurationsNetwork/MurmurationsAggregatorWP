@@ -182,6 +182,7 @@ export default function CreateData({
 
   return (
     <div>
+      {isLoading && <ProgressBar progress={progress} />}
       <h2 className="text-xl">Create Data Source</h2>
       <form onSubmit={handleSubmit} className="p-6">
         <MapSettings
@@ -194,7 +195,6 @@ export default function CreateData({
           selectedCountry={selectedCountry}
           setSelectedCountry={setSelectedCountry}
         />
-        {isLoading && <ProgressBar progress={progress} />}
         <div className="mt-6">
           <button
             type="submit"

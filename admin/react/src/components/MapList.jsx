@@ -181,20 +181,22 @@ export default function MapList({
             return
           }
         } else {
-          // if the profile is ignored, don't show up again
-          if (customNodesResponseData[0].status === 'ignore') {
-            continue
-          }
+          profileObject.data.status = customNodesResponseData[0].status
+        }
 
-          if (profile.status !== 'deleted') {
-            profileObject.data.status = customNodesResponseData[0].status
-            if (
-              customNodesResponseData[0].last_updated !==
-              profile.last_updated.toString()
-            ) {
-              profileObject.data.extra_notes = 'see updates'
-            }
-          }
+        if (
+          customNodesResponseData[0].last_updated !==
+          profile.last_updated.toString()
+        ) {
+          profileObject.data.extra_notes = 'see updates'
+        }
+
+        // ignore if status is not new and it doesn't have updates
+        if (
+          customNodesResponseData[0].status !== 'new' &&
+          profileObject.data.extra_notes !== 'see updates'
+        ) {
+          continue
         }
 
         if (profile_data === '') {

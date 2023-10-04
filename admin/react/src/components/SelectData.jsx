@@ -288,6 +288,7 @@ export default function SelectData({
 
   return (
     <div>
+      {isLoading && <ProgressBar progress={progress} />}
       <h2 className="text-xl mt-4">Data Select</h2>
       <Table
         tableList={profileList}
@@ -305,7 +306,6 @@ export default function SelectData({
         className="p-6"
       >
         <div className="mt-6">
-          {isLoading && <ProgressBar progress={progress} />}
           <div className="flex items-start">
             <label className="mr-2">Select Action:</label>
             <select
