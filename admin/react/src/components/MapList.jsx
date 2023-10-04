@@ -90,34 +90,35 @@ export default function MapList({
         const profile = profiles[i]
         let profile_data = ''
 
+        // get node information
+        const customNodesResponse = await getCustomNodes(
+          mapId,
+          profile.profile_url
+        )
+        const customNodesResponseData = await customNodesResponse.json()
+        if (!response.ok && response.status !== 404) {
+          alert(
+            `Delete Profile Error: ${
+              customNodesResponse.status
+            } ${JSON.stringify(customNodesResponseData)}`
+          )
+        }
+
+        let profileObject = {
+          profile_data: profile_data,
+          index_data: profile,
+          data: {
+            map_id: mapId,
+            tag_slug: tagSlug,
+            node_id: customNodesResponseData[0].id,
+            post_id: customNodesResponseData[0].post_id
+          }
+        }
+
         // handle deleted profiles
         if (profile.status === 'deleted') {
-          const customNodesResponse = await getCustomNodes(
-            mapId,
-            profile.profile_url
-          )
-          const customNodesResponseData = await customNodesResponse.json()
-          if (!response.ok && response.status !== 404) {
-            alert(
-              `Delete Profile Error: ${
-                customNodesResponse.status
-              } ${JSON.stringify(customNodesResponseData)}`
-            )
-          }
-
           if (customNodesResponse.status === 404) {
             continue
-          }
-
-          const profileObject = {
-            profile_data: customNodesResponseData[0].profile_data,
-            index_data: profile,
-            data: {
-              map_id: mapId,
-              tag_slug: tagSlug,
-              node_id: customNodesResponseData[0].id,
-              post_id: customNodesResponseData[0].post_id
-            }
           }
 
           const deleteNodeResponse = await deleteWpNodes(
@@ -158,34 +159,12 @@ export default function MapList({
         }
 
         // give extra data to profile
-        let profileObject = {
-          id: currentId,
-          profile_data: profile_data,
-          index_data: profile,
-          data: {
-            map_id: mapId,
-            tag_slug: tagSlug,
-            status: 'new',
-            extra_notes: ''
-          }
-        }
+        profileObject.id = currentId
+        profileObject.profile_data = profile_data
+        profileObject.data.status = 'new'
+        profileObject.data.extra_notes = ''
 
-        // compare with wpdb
-        const customNodeResponse = await getCustomNodes(
-          mapId,
-          profile.profile_url
-        )
-        const customNodeResponseData = await customNodeResponse.json()
-        if (!customNodeResponse.ok && customNodeResponse.status !== 404) {
-          alert(
-            `Retrieve Error: ${customNodeResponse.status} ${JSON.stringify(
-              customNodeResponseData
-            )}`
-          )
-          return
-        }
-
-        if (customNodeResponse.status === 404) {
+        if (customNodesResponse.status === 404) {
           profileObject.data.status = 'new'
 
           const profileResponse = await saveCustomNodes(profileObject)
@@ -203,14 +182,14 @@ export default function MapList({
           }
         } else {
           // if the profile is ignored, don't show up again
-          if (customNodeResponseData[0].status === 'ignore') {
+          if (customNodesResponseData[0].status === 'ignore') {
             continue
           }
 
           if (profile.status !== 'deleted') {
-            profileObject.data.status = customNodeResponseData[0].status
+            profileObject.data.status = customNodesResponseData[0].status
             if (
-              customNodeResponseData[0].last_updated !==
+              customNodesResponseData[0].last_updated !==
               profile.last_updated.toString()
             ) {
               profileObject.data.extra_notes = 'see updates'
@@ -242,6 +221,7 @@ export default function MapList({
         setCurrentTime(null)
       }
     } catch (error) {
+      console.log(error)
       alert(`Retrieve node error: ${error}`)
     } finally {
       setIsLoading(false)

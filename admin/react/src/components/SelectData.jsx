@@ -117,59 +117,58 @@ export default function SelectData({
         }
 
         if (
-          (selectedStatusOption === 'dismiss' ||
-            selectedStatusOption === 'ignore') &&
-          profileStatus === 'publish'
+          selectedStatusOption === 'dismiss' ||
+          selectedStatusOption === 'ignore'
         ) {
-          const response = await getCustomNodes(
-            profile.data.map_id,
-            profile.index_data.profile_url
-          )
-          const responseData = await response.json()
-          if (!response.ok) {
-            alert(
-              `Delete Profile Error: ${response.status} ${JSON.stringify(
-                responseData
-              )}`
+          if (profileStatus === 'publish') {
+            const response = await getCustomNodes(
+              profile.data.map_id,
+              profile.index_data.profile_url
             )
-          }
+            const responseData = await response.json()
+            if (!response.ok) {
+              alert(
+                `Delete Profile Error: ${response.status} ${JSON.stringify(
+                  responseData
+                )}`
+              )
+            }
 
-          const postId = responseData[0].post_id
-          const deleteNodeResponse = await deleteWpNodes(postId)
+            const postId = responseData[0].post_id
+            const deleteNodeResponse = await deleteWpNodes(postId)
 
-          if (!deleteNodeResponse.ok) {
-            const deleteNodeResponseData = await deleteNodeResponse.json()
-            alert(
-              `Delete Profile Error: ${
-                deleteNodeResponse.status
-              } ${JSON.stringify(deleteNodeResponseData)}`
-            )
-          }
+            if (!deleteNodeResponse.ok) {
+              const deleteNodeResponseData = await deleteNodeResponse.json()
+              alert(
+                `Delete Profile Error: ${
+                  deleteNodeResponse.status
+                } ${JSON.stringify(deleteNodeResponseData)}`
+              )
+            }
 
-          // update the status of the node
-          profile.data.status = selectedStatusOption
-          const profileResponse = await updateCustomNodesStatus(profile)
-          if (!profileResponse.ok) {
-            const profileResponseData = await profileResponse.json()
-            alert(
-              `Node Error: ${profileResponse.status} ${JSON.stringify(
-                profileResponseData
-              )}`
-            )
-          }
-        }
-
-        if (selectedStatusOption === 'ignore' && profileStatus === 'dismiss') {
-          // update the status of the node
-          profile.data.status = selectedStatusOption
-          const profileResponse = await updateCustomNodesStatus(profile)
-          if (!profileResponse.ok) {
-            const profileResponseData = await profileResponse.json()
-            alert(
-              `Node Error: ${profileResponse.status} ${JSON.stringify(
-                profileResponseData
-              )}`
-            )
+            // update the status of the node
+            profile.data.status = selectedStatusOption
+            const profileResponse = await updateCustomNodesStatus(profile)
+            if (!profileResponse.ok) {
+              const profileResponseData = await profileResponse.json()
+              alert(
+                `Node Error: ${profileResponse.status} ${JSON.stringify(
+                  profileResponseData
+                )}`
+              )
+            }
+          } else {
+            // update the status of the node
+            profile.data.status = selectedStatusOption
+            const profileResponse = await updateCustomNodesStatus(profile)
+            if (!profileResponse.ok) {
+              const profileResponseData = await profileResponse.json()
+              alert(
+                `Node Error: ${profileResponse.status} ${JSON.stringify(
+                  profileResponseData
+                )}`
+              )
+            }
           }
         }
       }
