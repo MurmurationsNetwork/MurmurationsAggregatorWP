@@ -83,6 +83,10 @@ export const deleteWpNodes = async postId => {
   return await fetchRequest(`${apiUrl}/wp-nodes/${postId}`, 'DELETE')
 }
 
+export const restoreWpNodes = async postId => {
+  return await fetchRequest(`${apiUrl}/wp-nodes/${postId}/restore`, 'PUT')
+}
+
 // Custom Nodes Routes
 export const getCustomNodes = async (mapId, profileUrl) => {
   if (profileUrl === undefined) {

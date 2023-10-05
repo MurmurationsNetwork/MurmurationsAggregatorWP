@@ -2,9 +2,9 @@
 
 if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 	class Murmurations_Aggregator_API {
-		private $wpdb;
-		private $table_name;
-		private $node_table_name;
+		private QM_DB|wpdb $wpdb;
+		private string $table_name;
+		private string $node_table_name;
 
 		public function __construct() {
 			global $wpdb;
@@ -15,7 +15,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			add_action( 'rest_api_init', array( $this, 'register_api_routes' ) );
 		}
 
-		public function register_api_routes() {
+		public function register_api_routes(): void {
 			$frontend_namespace = 'murmurations-aggregator/v1';
 			$backend_namespace  = 'murmurations-aggregator/v1/api';
 
@@ -100,6 +100,15 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				array(
 					'methods'  => 'POST',
 					'callback' => array( $this, 'post_wp_node' ),
+				),
+			);
+
+			register_rest_route(
+				$backend_namespace,
+				'wp-nodes/(?P<post_id>[\d]+)/restore',
+				array(
+					'methods'  => 'PUT',
+					'callback' => array( $this, 'restore_wp_node' ),
 				),
 			);
 
@@ -445,6 +454,26 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			return rest_ensure_response( 'WP Node created successfully.' );
 		}
 
+		public function restore_wp_node( $request ): WP_REST_Response|WP_Error {
+			$post_id = $request->get_param( 'post_id' );
+
+			$trashed_post = get_post( $post_id );
+
+			if ( ! $trashed_post || $trashed_post->post_status !== 'trash' ) {
+				return new WP_Error( 'post_not_found', 'Post not found', array( 'status' => 404 ) );
+			}
+
+			$result = wp_untrash_post( $post_id );
+
+			if ( ! $result ) {
+				return new WP_Error( 'wp_post_restore_failed', 'Failed to restore post.', array( 'status' => 500 ) );
+			}
+
+			wp_publish_post($post_id);
+
+			return rest_ensure_response( 'Node restored successfully.' );
+		}
+
 		public function get_nodes( $request ): WP_REST_Response|WP_Error {
 			$mapId      = $request->get_param( 'map_id' );
 			$profileUrl = $request->get_param( 'profile_url' );
@@ -533,7 +562,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$data    = $request->get_json_params();
 
 			// validate data
-			if ( ! isset( $node_id ) || ! isset( $data['data'] ) || ! isset( $data['profile_data'] ) || !isset($data['index_data']) ) {
+			if ( ! isset( $node_id ) || ! isset( $data['data'] ) || ! isset( $data['profile_data'] ) || ! isset( $data['index_data'] ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
 			}
 

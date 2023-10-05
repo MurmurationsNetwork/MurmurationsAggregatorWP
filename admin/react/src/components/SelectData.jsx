@@ -2,7 +2,7 @@ import Table from './Table'
 import ProgressBar from './ProgressBar'
 import {
   deleteWpNodes,
-  getCustomNodes,
+  restoreWpNodes,
   saveWpNodes,
   updateCustomMapLastUpdated,
   updateCustomNodes,
@@ -86,7 +86,26 @@ export default function SelectData({
 
         const profileStatus = profile.data.status
         // if original status and selected status are both publish, we need to update the post
-        if (selectedStatusOption === 'publish' && profileStatus === 'publish') {
+        if (
+          selectedStatusOption === 'publish' &&
+          (profileStatus === 'publish' || profileStatus === 'trash')
+        ) {
+          if (profileStatus === 'trash') {
+            // restore the post
+            const restoreNodeResponse = await restoreWpNodes(
+              profile.data.post_id
+            )
+
+            if (!restoreNodeResponse.ok) {
+              const restoreNodeResponseData = await restoreNodeResponse.json()
+              alert(
+                `Restore Profile Error: ${
+                  restoreNodeResponse.status
+                } ${JSON.stringify(restoreNodeResponseData)}`
+              )
+            }
+          }
+
           const profileResponse = await updateWpNodes(profile)
 
           if (!profileResponse.ok) {
@@ -120,22 +139,8 @@ export default function SelectData({
           selectedStatusOption === 'dismiss' ||
           selectedStatusOption === 'ignore'
         ) {
-          if (profileStatus === 'publish') {
-            const response = await getCustomNodes(
-              profile.data.map_id,
-              profile.index_data.profile_url
-            )
-            const responseData = await response.json()
-            if (!response.ok) {
-              alert(
-                `Delete Profile Error: ${response.status} ${JSON.stringify(
-                  responseData
-                )}`
-              )
-            }
-
-            const postId = responseData[0].post_id
-            const deleteNodeResponse = await deleteWpNodes(postId)
+          if (profileStatus === 'publish' || profileStatus === 'trash') {
+            const deleteNodeResponse = await deleteWpNodes(profile.data.post_id)
 
             if (!deleteNodeResponse.ok) {
               const deleteNodeResponseData = await deleteNodeResponse.json()
@@ -145,30 +150,18 @@ export default function SelectData({
                 } ${JSON.stringify(deleteNodeResponseData)}`
               )
             }
+          }
 
-            // update the status of the node
-            profile.data.status = selectedStatusOption
-            const profileResponse = await updateCustomNodesStatus(profile)
-            if (!profileResponse.ok) {
-              const profileResponseData = await profileResponse.json()
-              alert(
-                `Node Error: ${profileResponse.status} ${JSON.stringify(
-                  profileResponseData
-                )}`
-              )
-            }
-          } else {
-            // update the status of the node
-            profile.data.status = selectedStatusOption
-            const profileResponse = await updateCustomNodesStatus(profile)
-            if (!profileResponse.ok) {
-              const profileResponseData = await profileResponse.json()
-              alert(
-                `Node Error: ${profileResponse.status} ${JSON.stringify(
-                  profileResponseData
-                )}`
-              )
-            }
+          // update the status of the node
+          profile.data.status = selectedStatusOption
+          const profileResponse = await updateCustomNodesStatus(profile)
+          if (!profileResponse.ok) {
+            const profileResponseData = await profileResponse.json()
+            alert(
+              `Node Error: ${profileResponse.status} ${JSON.stringify(
+                profileResponseData
+              )}`
+            )
           }
         }
       }
