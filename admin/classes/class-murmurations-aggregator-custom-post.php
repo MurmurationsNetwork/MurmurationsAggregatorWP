@@ -6,9 +6,10 @@ if ( ! class_exists( 'Murmurations_Aggregator_Custom_Post' ) ) {
 			add_action( 'init', array( $this, 'create_murmurations_node_post_type' ) );
 			add_action( 'init', array( $this, 'create_murmurations_node_taxonomy' ) );
 			add_action( 'save_post', array( $this, 'murmurations_nodes_update_status' ) );
+			add_action( 'before_delete_post', array( $this, 'murmurations_nodes_delete' ) );
 		}
 
-		public function create_murmurations_node_post_type() {
+		public function create_murmurations_node_post_type(): void {
 			$labels = array(
 				'name'          => 'Murmurations Nodes',
 				'singular_name' => 'Murmurations Node',
@@ -27,7 +28,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Custom_Post' ) ) {
 			register_post_type( 'murmurations_node', $args );
 		}
 
-		public function create_murmurations_node_taxonomy() {
+		public function create_murmurations_node_taxonomy(): void {
 			// Add custom tags
 			register_taxonomy(
 				'murmurations_node_tags',
@@ -57,23 +58,40 @@ if ( ! class_exists( 'Murmurations_Aggregator_Custom_Post' ) ) {
 			);
 		}
 
-		public function murmurations_nodes_update_status($post_id) {
+		public function murmurations_nodes_update_status( $post_id ): void {
 			// check if this is an autosave
-			if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+				return;
+			}
 
 			// check the post type
-			if ('murmurations_node' != get_post_type($post_id)) return;
+			if ( 'murmurations_node' != get_post_type( $post_id ) ) {
+				return;
+			}
 
 			// update node table status
 			global $wpdb;
 			$node_table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_NODE_TABLE;
-			$post_status = get_post_status($post_id);
+			$post_status     = get_post_status( $post_id );
 
 			$wpdb->update(
 				$node_table_name,
 				array(
 					'status' => $post_status,
 				),
+				array(
+					'post_id' => $post_id,
+				)
+			);
+		}
+
+		public function murmurations_nodes_delete( $post_id ): void {
+			global $wpdb;
+			$node_table = $wpdb->prefix . MURMURATIONS_AGGREGATOR_NODE_TABLE;
+
+			// direct delete post from node table
+			$wpdb->delete(
+				$node_table,
 				array(
 					'post_id' => $post_id,
 				)
