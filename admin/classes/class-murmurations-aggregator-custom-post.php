@@ -89,9 +89,13 @@ if ( ! class_exists( 'Murmurations_Aggregator_Custom_Post' ) ) {
 			global $wpdb;
 			$node_table = $wpdb->prefix . MURMURATIONS_AGGREGATOR_NODE_TABLE;
 
-			// direct delete post from node table
-			$wpdb->delete(
+			// update status from the table
+			$wpdb->update(
 				$node_table,
+				array(
+					'status' => 'deleted',
+					'post_id' => null,
+				),
 				array(
 					'post_id' => $post_id,
 				)

@@ -88,9 +88,11 @@ export default function SelectData({
         // if original status and selected status are both publish, we need to update the post
         if (
           selectedStatusOption === 'publish' &&
-          (profileStatus === 'publish' || profileStatus === 'trash')
+          (profileStatus === 'publish' ||
+            profileStatus === 'trash' ||
+            profileStatus === 'draft')
         ) {
-          if (profileStatus === 'trash') {
+          if (profileStatus === 'trash' || profileStatus === 'draft') {
             // restore the post
             const restoreNodeResponse = await restoreWpNodes(
               profile.data.post_id
@@ -122,7 +124,8 @@ export default function SelectData({
           selectedStatusOption === 'publish' &&
           (profileStatus === 'new' ||
             profileStatus === 'dismiss' ||
-            profileStatus === 'ignore')
+            profileStatus === 'ignore' ||
+            profileStatus === 'deleted')
         ) {
           const profileResponse = await saveWpNodes(profile)
           if (!profileResponse.ok) {
@@ -139,7 +142,11 @@ export default function SelectData({
           selectedStatusOption === 'dismiss' ||
           selectedStatusOption === 'ignore'
         ) {
-          if (profileStatus === 'publish' || profileStatus === 'trash') {
+          if (
+            profileStatus === 'publish' ||
+            profileStatus === 'trash' ||
+            profileStatus === 'draft'
+          ) {
             const deleteNodeResponse = await deleteWpNodes(profile.data.post_id)
 
             if (!deleteNodeResponse.ok) {
