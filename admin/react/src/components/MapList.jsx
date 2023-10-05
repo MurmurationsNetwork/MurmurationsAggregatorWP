@@ -119,6 +119,13 @@ export default function MapList({
             continue
           }
 
+          // if customNodesResponse is not 404, need to get the node_id and post_id
+          profileObject.data.node_id = customNodesResponseData[0].id
+          profileObject.data.post_id = customNodesResponseData[0].post_id
+
+          // if the status is deleted, we need to get profile_data from wpdb
+          profileObject.profile_data = customNodesResponseData[0].profile_data
+
           const deleteNodeResponse = await deleteWpNodes(
             profileObject.data.post_id
           )
