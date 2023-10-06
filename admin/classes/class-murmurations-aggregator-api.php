@@ -158,7 +158,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 		public function get_map_nodes( $request ): WP_REST_Response|WP_Error {
 			$tag_slug = $request->get_param( 'tag_slug' );
-			$view = $request->get_param( 'view' );
+			$view     = $request->get_param( 'view' );
 
 			$args = array(
 				'post_type'      => 'murmurations_node',
@@ -183,12 +183,12 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			while ( $query->have_posts() ) {
 				$query->the_post();
 
-				if ($view === 'dict') {
+				if ( $view === 'dict' ) {
 					$map[] = [
-						'id' => get_the_ID(),
+						'id'   => get_the_ID(),
 						'name' => get_the_title(),
-						'lon' => get_post_meta( get_the_ID(), 'murmurations_geolocation_lon', true ),
-						'lat' => get_post_meta( get_the_ID(), 'murmurations_geolocation_lat', true ),
+						'lon'  => get_post_meta( get_the_ID(), 'murmurations_geolocation_lon', true ),
+						'lat'  => get_post_meta( get_the_ID(), 'murmurations_geolocation_lat', true ),
 					];
 				} else {
 					$map[] = [
@@ -480,7 +480,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				return new WP_Error( 'wp_post_restore_failed', 'Failed to restore post.', array( 'status' => 500 ) );
 			}
 
-			wp_publish_post($post_id);
+			wp_publish_post( $post_id );
 
 			return rest_ensure_response( 'Node restored successfully.' );
 		}
