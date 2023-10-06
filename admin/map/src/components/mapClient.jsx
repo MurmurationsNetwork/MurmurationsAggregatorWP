@@ -29,7 +29,7 @@ const markerClicked = async (postId, apiUrl) => {
   }
 }
 
-function MapClient({ profiles, apiUrl, map, isMapLoaded }) {
+function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
   let defaultCenter = []
   defaultCenter[0] = parseFloat(map.map_center_lat) || 48.864716
   defaultCenter[1] = parseFloat(map.map_center_lon) || 2.349014
@@ -45,7 +45,7 @@ function MapClient({ profiles, apiUrl, map, isMapLoaded }) {
     <div id="map">
       { isMapLoaded ? (
         <MapContainer
-          style={{ width: '100%', height: 'calc(100vh - 16rem)' }}
+          style={{ height: `${height}px`, width: '100%' }}
           center={defaultCenter}
           zoom={zoom}
         >
@@ -104,7 +104,8 @@ MapClient.propTypes = {
   profiles: PropTypes.array.isRequired,
   apiUrl: PropTypes.string.isRequired,
   map: PropTypes.object.isRequired,
-  isMapLoaded: PropTypes.bool.isRequired
+  isMapLoaded: PropTypes.bool.isRequired,
+  height: PropTypes.number.isRequired
 }
 
 export default MapClient

@@ -7,7 +7,7 @@ export default function App(props) {
   const wordpressUrl = murmurations_aggregator.wordpress_url
   const apiUrl = `${wordpressUrl}/wp-json/murmurations-aggregator/v1`
 
-  const { tagSlug, view } = props
+  const { tagSlug, view, height } = props
 
   const [profiles, setProfiles] = useState([])
   const [map, setMap] = useState({})
@@ -71,6 +71,7 @@ export default function App(props) {
           apiUrl={apiUrl}
           map={map}
           isMapLoaded={isMapLoaded}
+          height={height}
         />
       )}
     </div>
@@ -80,4 +81,5 @@ export default function App(props) {
 App.propTypes = {
   tagSlug: PropTypes.string.isRequired,
   view: PropTypes.string.isRequired,
+  height: PropTypes.number.isRequired,
 }
