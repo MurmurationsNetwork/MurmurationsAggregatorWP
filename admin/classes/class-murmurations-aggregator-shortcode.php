@@ -7,15 +7,15 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		}
 
-		public function murmurations_map( $atts ) {
+		public function murmurations_map( $atts ): string {
 			if ( empty( $atts['tag_slug'] ) ) {
 				return '<div class="text-center font-bold">Please provide a tag_slug in your shortcode.</div>';
 			}
 
-			return '<div id="wp-map-plugin-page-root" data-tag-slug="' . esc_attr( $atts['tag_slug'] ) . '"></div>';
+			return '<div id="wp-map-plugin-page-root" data-tag-slug="' . esc_attr( $atts['tag_slug'] ) . '" data-view="' . esc_attr( $atts['view'] ) . '"></div>';
 		}
 
-		public function enqueue_assets() {
+		public function enqueue_assets(): void {
 			$script      = 'admin/assets/map.js';
 			$script_file = MURMURATIONS_AGGREGATOR_DIR . '/' . $script;
 

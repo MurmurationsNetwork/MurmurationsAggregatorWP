@@ -7,7 +7,7 @@ export default function App(props) {
   const wordpressUrl = murmurations_aggregator.wordpress_url
   const apiUrl = `${wordpressUrl}/wp-json/murmurations-aggregator/v1`
 
-  const { tagSlug } = props
+  const { tagSlug, view } = props
 
   const [profiles, setProfiles] = useState([])
   const [map, setMap] = useState({})
@@ -24,7 +24,12 @@ export default function App(props) {
 
   const getProfiles = async () => {
     try {
-      const response = await fetch(`${apiUrl}/maps/${tagSlug}`)
+      let response
+      if (view === 'dict') {
+        response = await fetch(`${apiUrl}/maps/${tagSlug}?view=dict`)
+      } else {
+        response = await fetch(`${apiUrl}/maps/${tagSlug}`)
+      }
       const data = await response.json()
       setProfiles(data)
     } catch (error) {
@@ -50,19 +55,29 @@ export default function App(props) {
   return (
     <div>
       <h1 className="text-3xl">{map.name}</h1>
-      <p>
-        {map.map_center_lat}, {map.map_center_lon}, {map.map_scale}
-      </p>
-      <MapClient
-        profiles={profiles}
-        apiUrl={apiUrl}
-        map={map}
-        isMapLoaded={isMapLoaded}
-      />
+      { view === 'dict' ? (
+        <div>
+          <ul>
+            {profiles.map((profile) => (
+              <li key={profile.id}>
+                <p>Profile Title: {profile.name}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <MapClient
+          profiles={profiles}
+          apiUrl={apiUrl}
+          map={map}
+          isMapLoaded={isMapLoaded}
+        />
+      )}
     </div>
   )
 }
 
 App.propTypes = {
-  tagSlug: PropTypes.string.isRequired
+  tagSlug: PropTypes.string.isRequired,
+  view: PropTypes.string.isRequired,
 }

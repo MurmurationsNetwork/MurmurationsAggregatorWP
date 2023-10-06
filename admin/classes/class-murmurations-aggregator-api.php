@@ -158,6 +158,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 		public function get_map_nodes( $request ): WP_REST_Response|WP_Error {
 			$tag_slug = $request->get_param( 'tag_slug' );
+			$view = $request->get_param( 'view' );
 
 			$args = array(
 				'post_type'      => 'murmurations_node',
@@ -181,11 +182,21 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			while ( $query->have_posts() ) {
 				$query->the_post();
-				$map[] = [
-					get_post_meta( get_the_ID(), 'murmurations_geolocation_lon', true ),
-					get_post_meta( get_the_ID(), 'murmurations_geolocation_lat', true ),
-					get_the_ID(),
-				];
+
+				if ($view === 'dict') {
+					$map[] = [
+						'id' => get_the_ID(),
+						'name' => get_the_title(),
+						'lon' => get_post_meta( get_the_ID(), 'murmurations_geolocation_lon', true ),
+						'lat' => get_post_meta( get_the_ID(), 'murmurations_geolocation_lat', true ),
+					];
+				} else {
+					$map[] = [
+						get_post_meta( get_the_ID(), 'murmurations_geolocation_lon', true ),
+						get_post_meta( get_the_ID(), 'murmurations_geolocation_lat', true ),
+						get_the_ID(),
+					];
+				}
 			}
 
 			wp_reset_postdata();
