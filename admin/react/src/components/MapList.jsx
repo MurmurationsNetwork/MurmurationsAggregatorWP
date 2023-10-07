@@ -337,7 +337,8 @@ export default function MapList({
               </a>
             </p>
             <p>
-              <strong>Tag Slug:</strong> {map.tag_slug}
+              <strong>Shortcode:</strong> [murmurations_map tag_slug=&quot;
+              {map.tag_slug}&quot; height=&quot;50&quot; view=&quot;map&quot;]
             </p>
             <p>
               <strong>Map Center:</strong>{' '}
