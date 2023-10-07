@@ -331,10 +331,10 @@ export default function MapList({
           <div className="bg-white p-4 rounded shadow-md mt-4" key={index}>
             <h2 className="text-xl font-semibold mb-2">{map.name}</h2>
             <p>
-              <strong>Index URL:</strong> {map.index_url}
-            </p>
-            <p>
-              <strong>Query URL:</strong> {map.query_url}
+              <strong>Query URL:</strong>{' '}
+              <a href={map.index_url + map.query_url}>
+                {map.index_url + map.query_url}
+              </a>
             </p>
             <p>
               <strong>Tag Slug:</strong> {map.tag_slug}
