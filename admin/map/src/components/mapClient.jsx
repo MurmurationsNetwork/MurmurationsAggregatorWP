@@ -45,7 +45,7 @@ function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
     <div id="map">
       { isMapLoaded ? (
         <MapContainer
-          style={{ height: `${height}px`, width: '100%' }}
+          style={{ height: `${height}vh`, width: '100%' }}
           center={defaultCenter}
           zoom={zoom}
         >
