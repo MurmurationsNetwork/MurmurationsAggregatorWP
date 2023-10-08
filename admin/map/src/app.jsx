@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types'
 import { useEffect, useState } from 'react'
 import MapClient from './components/mapClient'
+import {Promise} from "es6-promise";
+import {iterateObject} from "./utils/iterateObject";
 
 export default function App(props) {
   // eslint-disable-next-line no-undef
@@ -14,19 +16,25 @@ export default function App(props) {
   const [isMapLoaded, setIsMapLoaded] = useState(false)
 
   useEffect(() => {
-    getProfiles().then(() => {
-      console.log('profiles are loaded')
-    })
-    getMap().then(() => {
-      setIsMapLoaded(true)
-    })
+    async function fetchData() {
+      try {
+        await Promise.all([getProfiles(), getMap()]);
+        setIsMapLoaded(true)
+      } catch (error) {
+        alert(
+          `Error getting profiles, please contact the administrator, error: ${error}`
+        )
+      }
+    }
+
+    fetchData().then(() => console.log('fetched data'));
   }, [])
 
   const getProfiles = async () => {
     try {
       let response
-      if (view === 'dict') {
-        response = await fetch(`${apiUrl}/maps/${tagSlug}?view=dict`)
+      if (view === 'dir') {
+        response = await fetch(`${apiUrl}/maps/${tagSlug}?view=dir`)
       } else {
         response = await fetch(`${apiUrl}/maps/${tagSlug}`)
       }
@@ -55,12 +63,19 @@ export default function App(props) {
   return (
     <div>
       <h1 className="text-3xl">{map.name}</h1>
-      { view === 'dict' ? (
+      { view === 'dir' ? (
         <div>
           <ul>
-            {profiles.map((profile) => (
+            {profiles.map(profile => (
               <li key={profile.id}>
-                <p>Profile Title: {profile.name}</p>
+                <p>Title: {profile.name}</p>
+                {Object.entries(iterateObject(profile.profile_data)).map(([key, value]) => {
+                  return (
+                    <p key={key}>
+                      {key}: {value}
+                    </p>
+                  )
+                })}
               </li>
             ))}
           </ul>

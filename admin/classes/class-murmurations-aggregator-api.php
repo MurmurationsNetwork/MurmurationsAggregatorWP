@@ -182,18 +182,18 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			while ( $query->have_posts() ) {
 				$query->the_post();
+				$profile_data = get_post_meta( get_the_ID(), 'murmurations_profile_data', true );
 
-				if ( $view === 'dict' ) {
+				if ( $view === 'dir' ) {
 					$map[] = [
 						'id'   => get_the_ID(),
 						'name' => get_the_title(),
-						'lon'  => get_post_meta( get_the_ID(), 'murmurations_geolocation_lon', true ),
-						'lat'  => get_post_meta( get_the_ID(), 'murmurations_geolocation_lat', true ),
+						'profile_data'  => $profile_data,
 					];
 				} else {
 					$map[] = [
-						get_post_meta( get_the_ID(), 'murmurations_geolocation_lon', true ),
-						get_post_meta( get_the_ID(), 'murmurations_geolocation_lat', true ),
+						$profile_data['geolocation']['lon'] ?? "",
+						$profile_data['geolocation']['lat'] ?? "",
 						get_the_ID(),
 					];
 				}
@@ -371,7 +371,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$response = array(
 				'title'       => $post->post_title,
 				'post_url'    => get_permalink( $post_id ),
-				'description' => get_post_meta( $post_id, 'murmurations_description', true ),
+				'profile_data' => get_post_meta( $post_id, 'murmurations_profile_data'),
 			);
 
 			return rest_ensure_response( $response );
@@ -391,9 +391,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			}
 
 			// update custom fields
-			update_post_meta( $post_id, 'murmurations_description', $data['profile_data']['description'] );
-			update_post_meta( $post_id, 'murmurations_geolocation_lon', $data['profile_data']['geolocation']['lon'] );
-			update_post_meta( $post_id, 'murmurations_geolocation_lat', $data['profile_data']['geolocation']['lat'] );
+			update_post_meta( $post_id, 'murmurations_profile_data', $data['profile_data'] );
 
 			return rest_ensure_response( 'Node updated successfully.' );
 		}
@@ -440,9 +438,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			// set custom fields
 			if ( ! is_wp_error( $post_id ) ) {
-				update_post_meta( $post_id, 'murmurations_description', $data['profile_data']['description'] );
-				update_post_meta( $post_id, 'murmurations_geolocation_lon', $data['profile_data']['geolocation']['lon'] );
-				update_post_meta( $post_id, 'murmurations_geolocation_lat', $data['profile_data']['geolocation']['lat'] );
+				update_post_meta( $post_id, 'murmurations_profile_data', $data['profile_data'] );
 			}
 
 			if ( is_wp_error( $post_id ) ) {

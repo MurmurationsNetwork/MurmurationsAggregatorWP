@@ -7,7 +7,7 @@ const tagSlug = document
 
 let view = document.querySelector('#wp-map-plugin-page-root').getAttribute('data-view')
 
-if (view !== 'map' && view !== 'dict') {
+if (view !== 'map' && view !== 'dir') {
   view = 'map'
 }
 
