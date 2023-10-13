@@ -19,6 +19,11 @@ const eslint = require('esbuild-plugin-eslint')
     format: 'cjs',
     jsx: 'automatic',
     outfile: path.join(outDir, 'map.js'),
+    assetNames: 'images/[name]-[hash]',
+    publicPath: '/wp-content/plugins/murmurations-aggregator/admin/assets/',
+    loader: {
+      '.png': 'file'
+    },
 
     plugins: [eslint()]
   })
