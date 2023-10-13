@@ -12,4 +12,4 @@ build-react:
 	cd admin/react && npm run build
 
 prepare:
-	rm -rf .git .idea .gitignore admin/map admin/react
+	rm -rf .git .idea .vscode .gitignore admin/map admin/react
