@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types'
 import { useEffect, useState } from 'react'
 import MapClient from './components/mapClient'
-import {Promise} from "es6-promise";
-import {iterateObject} from "./utils/iterateObject";
+import { Promise } from 'es6-promise'
+import { iterateObject } from './utils/iterateObject'
 
 export default function App(props) {
   // eslint-disable-next-line no-undef
@@ -18,7 +18,7 @@ export default function App(props) {
   useEffect(() => {
     async function fetchData() {
       try {
-        await Promise.all([getProfiles(), getMap()]);
+        await Promise.all([getProfiles(), getMap()])
         setIsMapLoaded(true)
       } catch (error) {
         alert(
@@ -27,7 +27,7 @@ export default function App(props) {
       }
     }
 
-    fetchData().then(() => console.log('fetched data'));
+    fetchData().then(() => console.log('fetched data'))
   }, [])
 
   const getProfiles = async () => {
@@ -51,7 +51,7 @@ export default function App(props) {
     try {
       const response = await fetch(`${apiUrl}/api/maps`)
       const data = await response.json()
-      const map = data.find((map) => map.tag_slug === tagSlug)
+      const map = data.find(map => map.tag_slug === tagSlug)
       setMap(map)
     } catch (error) {
       alert(
@@ -63,19 +63,21 @@ export default function App(props) {
   return (
     <div>
       <h1 className="text-3xl">{map.name}</h1>
-      { view === 'dir' ? (
+      {view === 'dir' ? (
         <div>
           <ul>
             {profiles.map(profile => (
               <li key={profile.id}>
                 <p>Title: {profile.name}</p>
-                {Object.entries(iterateObject(profile.profile_data)).map(([key, value]) => {
-                  return (
-                    <p key={key}>
-                      {key}: {value}
-                    </p>
-                  )
-                })}
+                {Object.entries(iterateObject(profile.profile_data)).map(
+                  ([key, value]) => {
+                    return (
+                      <p key={key}>
+                        {key}: {value}
+                      </p>
+                    )
+                  }
+                )}
               </li>
             ))}
           </ul>
@@ -96,5 +98,5 @@ export default function App(props) {
 App.propTypes = {
   tagSlug: PropTypes.string.isRequired,
   view: PropTypes.string.isRequired,
-  height: PropTypes.number.isRequired,
+  height: PropTypes.number.isRequired
 }

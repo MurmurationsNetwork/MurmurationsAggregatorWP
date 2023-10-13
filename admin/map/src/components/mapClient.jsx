@@ -43,7 +43,7 @@ function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
 
   return (
     <div id="map">
-      { isMapLoaded ? (
+      {isMapLoaded ? (
         <MapContainer
           style={{ height: `${height}vh`, width: '100%' }}
           center={defaultCenter}
@@ -94,8 +94,7 @@ function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
             ))}
           </MarkerClusterGroup>
         </MapContainer>
-      ) : null
-      }
+      ) : null}
     </div>
   )
 }
