@@ -9,8 +9,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_Admin_Page' ) ) {
 
 	    public function add_menus() {
 		    add_menu_page(
-			    'Murmurations Aggregator',
-			    'Murmurations Aggregator',
+			    'Murmurations Maps',
+			    'Murm-Maps',
 			    'edit_posts', // capability
 			    'murmurations-aggregator',
 			    array( $this, 'admin_page' ),

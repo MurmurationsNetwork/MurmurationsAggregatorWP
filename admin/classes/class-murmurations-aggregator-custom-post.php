@@ -13,7 +13,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Custom_Post' ) ) {
 			$labels = array(
 				'name'          => 'Murmurations Nodes',
 				'singular_name' => 'Murmurations Node',
-				'menu_name'     => 'Murmurations Nodes',
+				'menu_name'     => 'Murm-Nodes',
 				'add_new'       => 'Add New Murmurations Node',
 				'add_new_item'  => 'Add New Murmurations Node',
 			);
