@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "GPLv3",
   "scripts": {
-    "build": "rimraf ../assets/* && node ./scripts/build-prod.js && npx tailwindcss -i ./src/styles/styles.css -o ../assets/map.css",
+    "build": "node ./scripts/build-prod.js && npx tailwindcss -i ./src/styles/styles.css -o ../assets/map.css",
     "dev": "npm-run-all --parallel watch:*",
     "watch:dev": "nodemon --watch src --ext '*' --exec 'node ./scripts/build-dev.js'",
     "watch:css": "npx tailwindcss -i ./src/styles/styles.css -o ../assets/map.css --watch",
