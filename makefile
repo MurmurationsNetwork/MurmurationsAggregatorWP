@@ -3,7 +3,7 @@
 all: clean build-map build-react
 
 clean:
-	rm -r admin/assets/*
+	rm -rf admin/assets
 
 build-map:
 	cd admin/map && npm run build
