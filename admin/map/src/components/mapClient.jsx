@@ -4,7 +4,6 @@ import MarkerClusterGroup from '@changey/react-leaflet-markercluster'
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png'
 import iconUrl from 'leaflet/dist/images/marker-icon.png'
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png'
-import { useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
 
@@ -34,12 +33,6 @@ function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
   defaultCenter[0] = parseFloat(map.map_center_lat) || 48.864716
   defaultCenter[1] = parseFloat(map.map_center_lon) || 2.349014
   let zoom = parseInt(map.map_scale) || 5
-
-  useEffect(() => {
-    (async function init() {
-      delete L.Icon.Default.prototype._getIconUrl
-    })()
-  }, [])
 
   return (
     <div id="map">
