@@ -37,15 +37,20 @@ export default function DataSource({
           >
             Data URL
           </label>
-          <input
-            type="text"
+          <select
             id="data_url"
             name="data_url"
             value={formData.data_url}
             onChange={handleInputChange}
             className="w-full border rounded py-2 px-3"
-            required={true}
-          />
+          >
+            <option value="https://test-index.murmurations.network/v2/nodes">
+              https://test-index.murmurations.network/v2/nodes
+            </option>
+            <option value="https://index.murmurations.network/v2/nodes">
+              https://index.murmurations.network/v2/nodes
+            </option>
+          </select>
         </div>
         <div className="mb-4">
           <label
