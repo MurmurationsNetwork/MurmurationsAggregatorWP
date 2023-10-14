@@ -78,7 +78,7 @@ export default function App() {
 
   return (
     <div>
-      <h1 className="text-3xl">Murmurations Aggregator</h1>
+      <h1 className="text-3xl">Murmurations Collaborative Map Builder</h1>
       <div className="flex">
         <div className="w-1/2 mt-4 p-4">
           <DeletedData deletedProfiles={deletedProfiles} />

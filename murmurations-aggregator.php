@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:       Murmurations Aggregator
+ * Plugin Name:       Murmurations Collaborative Map Builder
  * Plugin URI:        https://github.com/MurmurationsNetwork/MurmurationsAggregatorWP
  * Description:       Collect and display data from the Murmurations network
  * Version:           1.0.0-beta.0
@@ -11,11 +11,11 @@
  */
 
 /*
-The Murmurations Aggregator plugin is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
+The Murmurations Collaborative Map Builder plugin is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
 
-Murmurations Aggregator is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+Murmurations Collaborative Map Builder is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along with the Murmurations Aggregator plugin. If not, see https://www.gnu.org/licenses/gpl-3.0.html.
+You should have received a copy of the GNU General Public License along with the Murmurations Collaborative Map Builder plugin. If not, see https://www.gnu.org/licenses/gpl-3.0.html.
 */
 
 if ( ! defined( 'ABSPATH' ) ) {

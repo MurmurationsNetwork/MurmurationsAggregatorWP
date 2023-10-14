@@ -1,4 +1,4 @@
-# Murmurations Aggregator Wordpress Plugin
+# Murmurations Collaborative Map Builder Wordpress Plugin
 
 ## What this plugin does
 The aggregator plugin is designed to collect data from the Murmurations network, store it locally (while allowing manual approval/rejection of collected nodes), and display it in a variety of ways, including via a built in Leaflet map interface, a built-in directory interface, or through WP REST API endpoints that provide data to local or remote client-side interfaces or other services.
