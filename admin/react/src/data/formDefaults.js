@@ -3,7 +3,7 @@ export const formDefaults = {
   map_center_lat: '',
   map_center_lon: '',
   map_scale: '',
-  data_url: '',
+  data_url: 'https://test-index.murmurations.network/v2/nodes',
   schema: 'organizations_schema-v1.0.0',
   name: '',
   lat: '',
