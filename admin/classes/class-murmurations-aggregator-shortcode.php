@@ -16,14 +16,14 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 		}
 
 		public function enqueue_assets(): void {
-			$script      = 'admin/assets/map.js';
+			$script      = 'admin/assets/map/index.js';
 			$script_file = MURMURATIONS_AGGREGATOR_DIR . '/' . $script;
 
 			if ( file_exists( $script_file ) ) {
 				wp_enqueue_script( 'murmurations-aggregator', MURMURATIONS_AGGREGATOR_URL . $script, array(), filemtime( $script_file ), true );
 			}
 
-			$style      = 'admin/assets/map.css';
+			$style      = 'admin/assets/map/index.css';
 			$style_file = MURMURATIONS_AGGREGATOR_DIR . '/' . $style;
 
 			if ( file_exists( $style_file ) ) {
