@@ -38,7 +38,7 @@ if ( ! class_exists( 'MurmurationsAggregator' ) ) {
 			$this->regsiter_shortcode();
 		}
 
-		private function register_autoloads() {
+		private function register_autoloads(): void {
 			spl_autoload_register( function ( $name ) {
 				$name = strtolower( $name );
 				$name = str_replace( '_', '-', $name );
@@ -51,23 +51,23 @@ if ( ! class_exists( 'MurmurationsAggregator' ) ) {
 			} );
 		}
 
-		public function register_admin_page() {
+		public function register_admin_page(): void {
 			new Murmurations_Aggregator_Admin_Page();
 		}
 
-		public function register_upgrade() {
+		public function register_upgrade(): void {
 			new Murmurations_Aggregator_Upgrade();
 		}
 
-		public function register_custom_post() {
+		public function register_custom_post(): void {
 			new Murmurations_Aggregator_Custom_Post();
 		}
 
-		public function register_api() {
+		public function register_api(): void {
 			new Murmurations_Aggregator_API();
 		}
 
-		public function regsiter_shortcode() {
+		public function regsiter_shortcode(): void {
 			new Murmurations_Aggregator_Shortcode();
 		}
 	}
@@ -79,6 +79,6 @@ if ( class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 	register_activation_hook( __FILE__, array( 'Murmurations_Aggregator_Activation', 'activate' ) );
 }
 
-if ( class_exists( 'Murmurations_Node_Uninstall' ) ) {
+if ( class_exists( 'Murmurations_Aggregator_Uninstall' ) ) {
 	register_uninstall_hook( __FILE__, array( 'Murmurations_Aggregator_Uninstall', 'uninstall' ) );
 }
