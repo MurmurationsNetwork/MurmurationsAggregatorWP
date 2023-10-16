@@ -371,7 +371,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$response = array(
 				'title'       => $post->post_title,
 				'post_url'    => get_permalink( $post_id ),
-				'profile_data' => get_post_meta( $post_id, 'murmurations_profile_data'),
+				'profile_data' => get_post_meta( $post_id, 'murmurations_profile_data', true),
 			);
 
 			return rest_ensure_response( $response );

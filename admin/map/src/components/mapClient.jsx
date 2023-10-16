@@ -74,12 +74,12 @@ function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
                       content +=
                         '<p>Description: ' + responseData.description + '</p>'
                     }
-                    if (responseData.post_url) {
+                    if (responseData?.profile_data?.primary_url) {
                       content +=
                         "<p>URL: <a target='_blank' rel='noreferrer' href='" +
-                        responseData.post_url +
+                        responseData.profile_data.primary_url +
                         "'>" +
-                        responseData.post_url +
+                        responseData.profile_data.primary_url +
                         '</a></p>'
                     }
                     popupInfo.setContent(content)
