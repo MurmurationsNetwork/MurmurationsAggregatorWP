@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types'
 import { useEffect, useState } from 'react'
 import MapClient from './components/mapClient'
-import { Promise } from 'es6-promise'
 import { iterateObject } from './utils/iterateObject'
 
 export default function App(props) {

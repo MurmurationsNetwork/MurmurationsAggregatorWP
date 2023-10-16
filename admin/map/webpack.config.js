@@ -1,11 +1,18 @@
 const path = require('path');
 
+let publicPath
+if (process.env.NODE_ENV === 'production') {
+  publicPath = '/wp-content/plugins/MurmurationsAggregatorWP/admin/assets/map/'
+} else {
+  publicPath = '/wp-content/plugins/murmurations-aggregator/admin/assets/map/'
+}
+
 module.exports = {
   entry: './src/index.js',
   output: {
     path: path.resolve(__dirname, '../assets/map'),
     filename: 'index.js',
-    publicPath: '/wp-content/plugins/MurmurationsAggregatorWP/admin/assets/map/',
+    publicPath: publicPath,
   },
   module: {
     rules: [
