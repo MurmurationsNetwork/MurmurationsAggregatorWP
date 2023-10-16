@@ -90,6 +90,10 @@ function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
                         responseData.profile_data.primary_url +
                         '</a></p>'
                     }
+                    if (responseData?.profile_data?.image) {
+                        content +=
+                        "<img src='" + responseData.profile_data.image + "' alt='profile image' width='25' height='25' />"
+                    }
                     popupInfo.setContent(content)
                   }
                 }}
