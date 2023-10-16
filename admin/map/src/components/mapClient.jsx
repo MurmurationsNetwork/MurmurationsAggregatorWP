@@ -28,6 +28,14 @@ const markerClicked = async (postId, apiUrl) => {
   }
 }
 
+function limitString(inputString, maxLength) {
+  if (inputString.length <= maxLength) {
+    return inputString
+  } else {
+    return inputString.substr(0, maxLength) + "...";
+  }
+}
+
 function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
   let defaultCenter = []
   defaultCenter[0] = parseFloat(map.map_center_lat) || 48.864716
@@ -70,9 +78,9 @@ function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
                       content +=
                         '<strong>Title: ' + responseData.title + '</strong>'
                     }
-                    if (responseData.description) {
+                    if (responseData?.profile_data?.description) {
                       content +=
-                        '<p>Description: ' + responseData.description + '</p>'
+                        '<p>Description: ' + limitString(responseData.profile_data.description, 100) + '</p>'
                     }
                     if (responseData?.profile_data?.primary_url) {
                       content +=
