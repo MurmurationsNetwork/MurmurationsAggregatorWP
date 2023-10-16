@@ -53,6 +53,11 @@ function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
                 position={[profile[1], profile[0]]}
                 eventHandlers={{
                   click: async event => {
+                    // show loading while waiting for response
+                    let popupInfo = event.target.getPopup()
+                    popupInfo.setContent('loading from data source...')
+
+                    // get profile data
                     const response = await markerClicked(profile[2], apiUrl)
                     const responseData = await response.json()
                     if (response.status !== 200) {
@@ -60,7 +65,6 @@ function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
                         `Error getting post, please contact the administrator, error: ${responseData}`
                       )
                     }
-                    let popupInfo = event.target.getPopup()
                     let content = ''
                     if (responseData.title) {
                       content +=
