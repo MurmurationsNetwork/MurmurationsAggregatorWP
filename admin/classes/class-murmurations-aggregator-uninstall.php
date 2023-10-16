@@ -8,8 +8,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_Uninstall' ) ) {
 			$node_table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_NODE_TABLE;
 
 			if ( $wpdb->get_var( "SHOW TABLES LIKE '$node_table_name'" ) === $node_table_name ) {
-				// remove foreign key constraint before dropping the table
-				$wpdb->query( "ALTER TABLE $node_table_name DROP FOREIGN KEY map_id" );
 				$wpdb->query( "DROP TABLE IF EXISTS $node_table_name" );
 			}
 
