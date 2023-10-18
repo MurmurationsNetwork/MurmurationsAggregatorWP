@@ -9,7 +9,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Admin_Page' ) ) {
 
 	    public function add_menus() {
 		    add_menu_page(
-			    'Murmurations Maps',
+			    'Murmurations Collaborative Map Builder',
 			    'Murm-Maps',
 			    'edit_posts', // capability
 			    'murmurations-aggregator',
