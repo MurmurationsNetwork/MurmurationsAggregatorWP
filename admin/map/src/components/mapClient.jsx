@@ -32,7 +32,7 @@ function limitString(inputString, maxLength) {
   if (inputString.length <= maxLength) {
     return inputString
   } else {
-    return inputString.substr(0, maxLength) + "...";
+    return inputString.substring(0, maxLength) + '...'
   }
 }
 
@@ -80,7 +80,12 @@ function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
                     }
                     if (responseData?.profile_data?.description) {
                       content +=
-                        '<p>Description: ' + limitString(responseData.profile_data.description, 100) + '</p>'
+                        '<p>Description: ' +
+                        limitString(
+                          responseData.profile_data.description,
+                          100
+                        ) +
+                        '</p>'
                     }
                     if (responseData?.profile_data?.primary_url) {
                       content +=
@@ -91,8 +96,10 @@ function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
                         '</a></p>'
                     }
                     if (responseData?.profile_data?.image) {
-                        content +=
-                        "<img src='" + responseData.profile_data.image + "' alt='profile image' width='25' height='25' onerror='this.style.display = \"none\"' />"
+                      content +=
+                        "<img src='" +
+                        responseData.profile_data.image +
+                        "' alt='profile image' width='25' height='25' onerror='this.style.display = \"none\"' />"
                     }
                     popupInfo.setContent(content)
                   }

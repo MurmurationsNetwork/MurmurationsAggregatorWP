@@ -5,13 +5,17 @@ const tagSlug = document
   .querySelector('#wp-map-plugin-page-root')
   .getAttribute('data-tag-slug')
 
-let view = document.querySelector('#wp-map-plugin-page-root').getAttribute('data-view')
+let view = document
+  .querySelector('#wp-map-plugin-page-root')
+  .getAttribute('data-view')
 
 if (view !== 'map' && view !== 'dir') {
   view = 'map'
 }
 
-let height = document.querySelector('#wp-map-plugin-page-root').getAttribute('data-height')
+let height = document
+  .querySelector('#wp-map-plugin-page-root')
+  .getAttribute('data-height')
 
 let heightNumber = parseInt(height)
 
