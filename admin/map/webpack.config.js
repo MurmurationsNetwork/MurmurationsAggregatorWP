@@ -40,6 +40,9 @@ module.exports = (env, argv) => {
     devtool: 'source-map',
     resolve: {
       extensions: ['.js', '.jsx']
+    },
+    performance: {
+      hints: false,
     }
   }
 }
