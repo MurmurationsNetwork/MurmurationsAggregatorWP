@@ -1,0 +1,6 @@
+# IDE
+.idea/
+.vscode/
+
+admin/assets/
+node_modules/
