@@ -40,7 +40,13 @@ export default function SelectData({
     if (selectedIds.length === profileList.length) {
       setSelectedIds([])
     } else {
-      setSelectedIds(profileList.map(response => response.id))
+      setSelectedIds(
+        profileList
+          .filter(
+            response => !response.data.extra_notes.includes('unavailable')
+          )
+          .map(response => response.id)
+      )
     }
   }
 
