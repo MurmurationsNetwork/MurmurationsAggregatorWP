@@ -3,7 +3,7 @@
  * Plugin Name:       Murmurations Collaborative Map Builder
  * Plugin URI:        https://github.com/MurmurationsNetwork/MurmurationsAggregatorWP
  * Description:       Collect and display data from the Murmurations network.
- * Version:           1.0.0-beta.0
+ * Version:           1.0.0-beta.1
  * Text Domain:       murmurations-aggregator
  * Author:            Murmurations Network
  * Author URI:        https://murmurations.network
