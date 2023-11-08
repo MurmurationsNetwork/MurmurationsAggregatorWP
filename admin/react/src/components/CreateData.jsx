@@ -121,7 +121,9 @@ export default function CreateData({
           const profile = profiles[i]
           let profile_data = ''
           if (profile.profile_url) {
-            const response = await fetch(profile.profile_url)
+            const response = await fetch(profile.profile_url, {
+              mode: 'no-cors'
+            })
             if (response.ok) {
               profile_data = await response.json()
             }
