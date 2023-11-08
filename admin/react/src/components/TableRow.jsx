@@ -34,7 +34,7 @@ function TableRow({
           type="checkbox"
           checked={isSelected}
           onChange={() => onSelect(response.id)}
-          disabled={response.data.extra_notes === 'unavailable'}
+          disabled={response.data.extra_notes.includes('unavailable')}
         />
       </td>
       <td className="text-center">{response.id}</td>

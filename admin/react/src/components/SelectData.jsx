@@ -245,8 +245,8 @@ export default function SelectData({
     // if the extra_notes of all profiles are unavailable, it means all nodes are handled, we can refresh the page
     if (
       newProfileList.length === 0 ||
-      newProfileList.every(
-        profile => profile.data.extra_notes === 'unavailable'
+      newProfileList.every(profile =>
+        profile.data.extra_notes.includes('unavailable')
       )
     ) {
       if (currentTime !== null) {

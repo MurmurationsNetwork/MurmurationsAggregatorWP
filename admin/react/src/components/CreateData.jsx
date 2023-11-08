@@ -120,12 +120,19 @@ export default function CreateData({
 
           const profile = profiles[i]
           let profile_data = ''
+          let fetchProfileError = ''
           if (profile.profile_url) {
-            const response = await fetch(profile.profile_url, {
-              mode: 'no-cors'
-            })
-            if (response.ok) {
-              profile_data = await response.json()
+            try {
+              const response = await fetch(profile.profile_url)
+              if (response.ok) {
+                profile_data = await response.json()
+              }
+            } catch (error) {
+              if (error.message === 'Failed to fetch') {
+                fetchProfileError = 'unavailable-CORS'
+              } else {
+                fetchProfileError = 'unavailable-UNKNOWN'
+              }
             }
           }
 
@@ -161,8 +168,13 @@ export default function CreateData({
           profileObject.data.node_id = profileResponseData.node_id
 
           // set extra notes
-          profileObject.data.extra_notes =
-            profile_data === '' ? 'unavailable' : ''
+          if (profile_data === '') {
+            if (fetchProfileError !== '') {
+              profileObject.data.extra_notes = fetchProfileError
+            } else {
+              profileObject.data.extra_notes = 'unavailable'
+            }
+          }
 
           currentId++
           dataWithIds.push(profileObject)
