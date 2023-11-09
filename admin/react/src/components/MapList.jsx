@@ -9,6 +9,7 @@ import {
 } from '../utils/api'
 import PropTypes from 'prop-types'
 import { formDefaults } from '../data/formDefaults'
+import { useState } from 'react'
 
 export default function MapList({
   maps,
@@ -23,6 +24,9 @@ export default function MapList({
   setProgress,
   setDeletedProfiles
 }) {
+  const [isPopupOpen, setIsPopupOpen] = useState(false)
+  const [mapIdToDelete, setMapIdToDelete] = useState(null)
+
   const handleCreate = () => {
     setFormData(formDefaults)
     setIsEdit(false)
@@ -307,12 +311,23 @@ export default function MapList({
     })
   }
 
-  const handleDelete = async map_id => {
+  const handleDelete = mapId => {
+    setIsPopupOpen(true)
+    setMapIdToDelete(mapId)
+  }
+
+  const handleDeleteConfirm = async () => {
+    setIsPopupOpen(false)
     setIsLoading(true)
     setDeletedProfiles([])
 
+    if (!mapIdToDelete) {
+      alert(`Delete Map ID is missing.`)
+      return
+    }
+
     try {
-      const mapResponse = await deleteCustomMap(map_id)
+      const mapResponse = await deleteCustomMap(mapIdToDelete)
       if (!mapResponse.ok) {
         const mapResponseData = await mapResponse.json()
         alert(
@@ -324,8 +339,14 @@ export default function MapList({
     } finally {
       setProfileList([])
       setIsLoading(false)
+      setMapIdToDelete(null)
       await getMaps()
     }
+  }
+
+  const handleDeleteCancel = () => {
+    setIsPopupOpen(false)
+    setMapIdToDelete(null)
   }
 
   return (
@@ -408,6 +429,27 @@ export default function MapList({
         ))
       ) : (
         <p>No maps found.</p>
+      )}
+      {isPopupOpen && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded shadow-lg">
+            <p className="text-xl">Are you sure you want to delete?</p>
+            <div className="mt-4">
+              <button
+                onClick={handleDeleteConfirm}
+                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-4 text-lg"
+              >
+                Confirm
+              </button>
+              <button
+                onClick={handleDeleteCancel}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded text-lg"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
