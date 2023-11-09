@@ -21,9 +21,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_Custom_Post' ) ) {
 				'public'      => true,
 				'has_archive' => true,
 				'supports'    => array( 'title', 'editor', 'thumbnail', 'custom-fields', 'revisions' ),
+				'capability_type' => 'post',
 				'capabilities' => array(
 					'create_posts' => false,
-				)
+				),
+				'map_meta_cap' => true,
 			);
 
 			register_post_type( 'murmurations_node', $args );
