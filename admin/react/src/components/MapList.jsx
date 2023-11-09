@@ -59,7 +59,7 @@ export default function MapList({
       }
 
       // get data from requestUrl - Index URL + Query URL
-      const currentTime = new Date().getTime()
+      const currentTime = new Date().getTime().toString()
       setCurrentTime(currentTime)
       const response = await fetch(requestUrl)
       const responseData = await response.json()

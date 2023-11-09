@@ -253,7 +253,7 @@ export default function SelectData({
         profile.data.extra_notes.includes('unavailable')
       )
     ) {
-      if (currentTime !== null) {
+      if (currentTime !== '') {
         const response = await updateCustomMapLastUpdated(mapId, currentTime)
         if (!response.ok) {
           const responseData = await response.json()
@@ -264,7 +264,7 @@ export default function SelectData({
           )
         }
 
-        setCurrentTime(null)
+        setCurrentTime('')
       }
 
       setFormData(formDefaults)

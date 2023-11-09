@@ -16,7 +16,7 @@ export default function App() {
 
   // MapList states
   const [maps, setMaps] = useState([])
-  const [currentTime, setCurrentTime] = useState(null)
+  const [currentTime, setCurrentTime] = useState('')
 
   // DataSource states
   const [formData, setFormData] = useState(formDefaults)
