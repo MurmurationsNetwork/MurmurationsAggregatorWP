@@ -14,8 +14,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_Custom_Post' ) ) {
 				'name'          => 'Murmurations Nodes',
 				'singular_name' => 'Murmurations Node',
 				'menu_name'     => 'Murm-Nodes',
-				'add_new'       => 'Add New Murmurations Node',
-				'add_new_item'  => 'Add New Murmurations Node',
 			);
 
 			$args = array(
@@ -23,6 +21,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_Custom_Post' ) ) {
 				'public'      => true,
 				'has_archive' => true,
 				'supports'    => array( 'title', 'editor', 'thumbnail', 'custom-fields', 'revisions' ),
+				'capabilities' => array(
+					'create_posts' => false,
+				)
 			);
 
 			register_post_type( 'murmurations_node', $args );
