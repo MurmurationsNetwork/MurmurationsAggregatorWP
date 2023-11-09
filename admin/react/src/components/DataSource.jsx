@@ -201,11 +201,7 @@ export default function DataSource({
             className="w-full border rounded py-2 px-3"
           >
             {countries.map(country => (
-              <option
-                key={country}
-                value={country}
-                selected={selectedCountry.includes(country)}
-              >
+              <option key={country} value={country}>
                 {country}
               </option>
             ))}
