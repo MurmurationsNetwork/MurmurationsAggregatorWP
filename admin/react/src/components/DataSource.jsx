@@ -236,18 +236,16 @@ export default function DataSource({
             className="block text-gray-700 font-bold mb-2"
             htmlFor="tags_filter"
           >
-            Tags Filter
+            All Tags
           </label>
-          <select
+          <input
+            type="checkbox"
             id="tags_filter"
             name="tags_filter"
-            value={formData.tags_filter}
+            checked={formData.tags_filter === 'and'}
             onChange={handleInputChange}
-            className="w-full border rounded py-2 px-3"
-          >
-            <option value="or">OR</option>
-            <option value="and">AND</option>
-          </select>
+            className="mr-2"
+          />
           <p className="text-gray-500 text-xs mt-1">
             Only return entities with all of the tags specified above
           </p>
