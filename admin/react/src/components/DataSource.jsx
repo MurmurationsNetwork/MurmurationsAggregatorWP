@@ -88,6 +88,9 @@ export default function DataSource({
             onChange={handleInputChange}
             className="w-full border rounded py-2 px-3"
           />
+          <p className="text-gray-500 text-xs mt-1">
+            Search for entities with a specific name
+          </p>
         </div>
         <div className="mb-4">
           <label className="block text-gray-700 font-bold mb-2" htmlFor="lat">
@@ -104,6 +107,9 @@ export default function DataSource({
             onChange={handleInputChange}
             className="w-full border rounded py-2 px-3"
           />
+          <p className="text-gray-500 text-xs mt-1">
+            Search for entities near a specific latitude
+          </p>
         </div>
         <div className="mb-4">
           <label className="block text-gray-700 font-bold mb-2" htmlFor="lon">
@@ -120,6 +126,9 @@ export default function DataSource({
             onChange={handleInputChange}
             className="w-full border rounded py-2 px-3"
           />
+          <p className="text-gray-500 text-xs mt-1">
+            Search for entities near a specific longitude
+          </p>
         </div>
         <div className="mb-4">
           <label className="block text-gray-700 font-bold mb-2" htmlFor="range">
@@ -133,6 +142,10 @@ export default function DataSource({
             onChange={handleInputChange}
             className="w-full border rounded py-2 px-3"
           />
+          <p className="text-gray-500 text-xs mt-1">
+            Search for entities within a specific distance of the latitude and
+            longitude specified above
+          </p>
         </div>
         <div className="mb-4">
           <label
@@ -149,6 +162,9 @@ export default function DataSource({
             onChange={handleInputChange}
             className="w-full border rounded py-2 px-3"
           />
+          <p className="text-gray-500 text-xs mt-1">
+            Search for entities which list a specific locality
+          </p>
         </div>
         <div className="mb-4">
           <label
@@ -165,6 +181,9 @@ export default function DataSource({
             onChange={handleInputChange}
             className="w-full border rounded py-2 px-3"
           />
+          <p className="text-gray-500 text-xs mt-1">
+            Search for entities which list a specific region
+          </p>
         </div>
         <div className="mb-4">
           <label
@@ -191,6 +210,9 @@ export default function DataSource({
               </option>
             ))}
           </select>
+          <p className="text-gray-500 text-xs mt-1">
+            Search for entities which list a specific country code
+          </p>
         </div>
         <div className="mb-4">
           <label className="block text-gray-700 font-bold mb-2" htmlFor="tags">
@@ -204,6 +226,10 @@ export default function DataSource({
             onChange={handleInputChange}
             className="w-full border rounded py-2 px-3"
           />
+          <p className="text-gray-500 text-xs mt-1">
+            Search for entities which list specific tags (use commas to search
+            for multiple tags)
+          </p>
         </div>
         <div className="mb-4">
           <label
@@ -222,6 +248,9 @@ export default function DataSource({
             <option value="or">OR</option>
             <option value="and">AND</option>
           </select>
+          <p className="text-gray-500 text-xs mt-1">
+            Only return entities with all of the tags specified above
+          </p>
         </div>
         <div className="mb-4">
           <label
@@ -238,6 +267,9 @@ export default function DataSource({
             onChange={handleInputChange}
             className="mr-2"
           />
+          <p className="text-gray-500 text-xs mt-1">
+            Only return entities with exact matches (turns off fuzzy matching)
+          </p>
         </div>
         <div className="mb-4">
           <label
@@ -254,6 +286,10 @@ export default function DataSource({
             onChange={handleInputChange}
             className="w-full border rounded py-2 px-3"
           />
+          <p className="text-gray-500 text-xs mt-1">
+            Search for entities with a specific primary URL (don’t include http
+            or www, e.g., example.com)
+          </p>
         </div>
       </div>
     </div>
