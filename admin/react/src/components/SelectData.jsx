@@ -16,6 +16,7 @@ import {
   removeUnselectedProfiles
 } from '../utils/filterProfile'
 import PropTypes from 'prop-types'
+import { unavailableList } from '../data/unavailableList'
 
 export default function SelectData({
   profileList,
@@ -37,21 +38,13 @@ export default function SelectData({
   const [selectedStatusOption, setSelectedStatusOption] = useState('publish')
 
   const toggleSelectAll = () => {
+    profileList = profileList.filter(
+      response => !unavailableList.includes(response.data.extra_notes)
+    )
     if (selectedIds.length === profileList.length) {
       setSelectedIds([])
     } else {
-      setSelectedIds(
-        profileList
-          .filter(
-            response =>
-              [
-                'unavailable',
-                'unavailable-CORS',
-                'unavailable-UNKNOWN'
-              ].includes(response.data.extra_notes) === false
-          )
-          .map(response => response.id)
-      )
+      setSelectedIds(profileList.map(response => response.id))
     }
   }
 

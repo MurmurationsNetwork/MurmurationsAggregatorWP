@@ -1,6 +1,7 @@
 import React from 'react'
 import TableRow from './TableRow'
 import PropTypes from 'prop-types'
+import { unavailableList } from '../data/unavailableList'
 
 function Table({
   tableList,
@@ -11,7 +12,11 @@ function Table({
   setOriginalJson,
   setModifiedJson
 }) {
-  const isAllSelected = selectedIds.length === tableList.length
+  const isAllSelected =
+    selectedIds.length ===
+    tableList.filter(
+      response => !unavailableList.includes(response.data.extra_notes)
+    ).length
 
   return (
     <table>
