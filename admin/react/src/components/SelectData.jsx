@@ -43,7 +43,12 @@ export default function SelectData({
       setSelectedIds(
         profileList
           .filter(
-            response => !response.data.extra_notes.includes('unavailable')
+            response =>
+              [
+                'unavailable',
+                'unavailable-CORS',
+                'unavailable-UNKNOWN'
+              ].includes(response.data.extra_notes) === false
           )
           .map(response => response.id)
       )
