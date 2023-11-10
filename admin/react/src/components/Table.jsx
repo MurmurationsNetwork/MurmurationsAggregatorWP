@@ -13,10 +13,11 @@ function Table({
   setModifiedJson
 }) {
   const isAllSelected =
+    selectedIds.length > 0 &&
     selectedIds.length ===
-    tableList.filter(
-      response => !unavailableList.includes(response.data.extra_notes)
-    ).length
+      tableList.filter(
+        response => !unavailableList.includes(response.data.extra_notes)
+      ).length
 
   return (
     <table>
