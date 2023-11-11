@@ -484,6 +484,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		public function get_nodes( $request ): WP_REST_Response|WP_Error {
 			$mapId      = $request->get_param( 'map_id' );
 			$profileUrl = $request->get_param( 'profile_url' );
+			$isAvailable = $request->get_param( 'is_available' );
 
 			if ( ! isset( $mapId ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
@@ -493,6 +494,15 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE map_id = %d AND profile_url = %s", $mapId, $profileUrl );
 			} else {
 				$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE map_id = %d", $mapId );
+			}
+
+			if ( isset( $isAvailable ) ) {
+				if ( $isAvailable === 'false' ) {
+					$isAvailable = 0;
+				} else {
+					$isAvailable = 1;
+				}
+				$query .= $this->wpdb->prepare( " AND is_available = %d", $isAvailable );
 			}
 
 			$nodes = $this->wpdb->get_results( $query );
@@ -521,6 +531,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				} else {
 					$node->is_available = false;
 				}
+
+				// handle unavailable_message field
+				if ($node->unavailable_message === NULL) {
+					$node->unavailable_message = "";
+				}
 			}
 
 			return rest_ensure_response( $nodes );
@@ -535,12 +550,18 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
 			}
 
+			if ($data['data']['unavailable_message'] || $data['data']['unavailable_message'] === "") {
+				$unavailable_message = NULL;
+			} else {
+				$unavailable_message = $data['data']['unavailable_message'];
+			}
+
 			// update data
 			$result = $this->wpdb->update( $this->node_table_name, array(
 				'data'         => json_encode( $data['profile_data'] ),
 				'last_updated' => $data['index_data']['last_updated'],
 				'is_available' => $data['data']['is_available'] ?? true,
-				'unavailable_message' => $data['data']['unavailable_message'] ?? NULL
+				'unavailable_message' => $unavailable_message
 			), array(
 				'profile_url' => $data['index_data']['profile_url'],
 				'map_id'      => $data['data']['map_id'],

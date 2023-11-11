@@ -4,6 +4,7 @@ import {
   deleteWpNodes,
   getCustomMap,
   getCustomNodes,
+  getCustomUnavailableNodes,
   saveCustomNodes,
   updateCustomMapLastUpdated
 } from '../utils/api'
@@ -69,173 +70,241 @@ export default function MapList({
         )
         return
       }
-
-      // check with wpdb
       const profiles = responseData.data
 
-      if (profiles.length === 0) {
-        setProfileList(profiles)
+      // get unavailable profiles
+      const unavailableNodesResponse = await getCustomUnavailableNodes(mapId)
+      if (!unavailableNodesResponse.ok) {
+        const unavailableNodesResponseData =
+          await unavailableNodesResponse.json()
+        alert(
+          `Unavailable Nodes Error: ${
+            unavailableNodesResponse.status
+          } ${JSON.stringify(unavailableNodesResponseData)}`
+        )
+      }
+      const unavailableProfiles = await unavailableNodesResponse.json()
+
+      let dataWithIds = []
+      let deletedProfiles = []
+      let currentId = 1
+      const progressStep = 100 / (profiles.length + unavailableProfiles.length)
+      let progress = 0
+
+      if (profiles.length > 0) {
+        for (let i = 0; i < profiles.length; i++) {
+          // update progress
+          progress = (i + 1) * progressStep
+          if (progress > 100) {
+            setProgress(100)
+          } else {
+            setProgress(progress)
+          }
+
+          const profile = profiles[i]
+          let profile_data = ''
+
+          // get node information
+          const customNodesResponse = await getCustomNodes(
+            mapId,
+            profile.profile_url
+          )
+          const customNodesResponseData = await customNodesResponse.json()
+          if (!response.ok && response.status !== 404) {
+            alert(
+              `Delete Profile Error: ${
+                customNodesResponse.status
+              } ${JSON.stringify(customNodesResponseData)}`
+            )
+          }
+
+          let profileObject = {
+            profile_data: profile_data,
+            index_data: profile,
+            data: {
+              map_id: mapId,
+              tag_slug: tagSlug,
+              is_available: true,
+              unavailable_message: ''
+            }
+          }
+
+          // handle deleted profiles
+          if (profile.status === 'deleted') {
+            if (customNodesResponse.status === 404) {
+              continue
+            }
+
+            // if customNodesResponse is not 404, need to get the node_id and post_id
+            profileObject.data.node_id = customNodesResponseData[0].id
+            profileObject.data.post_id = customNodesResponseData[0].post_id
+
+            // if the status is deleted, we need to get profile_data from wpdb
+            profileObject.profile_data = customNodesResponseData[0].profile_data
+
+            const deleteNodeResponse = await deleteWpNodes(
+              profileObject.data.post_id
+            )
+
+            if (!deleteNodeResponse.ok) {
+              const deleteNodeResponseData = await deleteNodeResponse.json()
+              alert(
+                `Delete Profile Error: ${
+                  deleteNodeResponse.status
+                } ${JSON.stringify(deleteNodeResponseData)}`
+              )
+            }
+
+            // delete node from nodes table
+            const deleteResponse = await deleteCustomNodes(profileObject)
+
+            if (!deleteResponse.ok) {
+              const deleteResponseData = await deleteResponse.json()
+              alert(
+                `Delete Node Error: ${deleteResponse.status} ${JSON.stringify(
+                  deleteResponseData
+                )}`
+              )
+            }
+
+            // put deleted profile in list
+            deletedProfiles.push(profileObject)
+            continue
+          }
+
+          let fetchProfileError = ''
+          if (profile.profile_url) {
+            try {
+              const response = await fetch(profile.profile_url)
+              if (response.ok) {
+                profile_data = await response.json()
+              } else {
+                fetchProfileError = 'STATUS-' + response.status
+              }
+            } catch (error) {
+              if (error.message === 'Failed to fetch') {
+                fetchProfileError = 'CORS'
+              } else {
+                fetchProfileError = 'UNKNOWN'
+              }
+            }
+          }
+
+          if (profile_data === '') {
+            profileObject.data.is_available = false
+            profileObject.data.unavailable_message = fetchProfileError
+          }
+
+          // give extra data to profile
+          profileObject.id = currentId
+          profileObject.profile_data = profile_data
+          profileObject.data.status = 'new'
+          profileObject.data.extra_notes = ''
+
+          if (customNodesResponse.status === 404) {
+            const profileResponse = await saveCustomNodes(profileObject)
+
+            if (!profileResponse.ok) {
+              const profileResponseData = await profileResponse.json()
+              alert(
+                `Unable to save profiles to wpdb, errors: ${
+                  profileResponse.status
+                } ${JSON.stringify(
+                  profileResponseData
+                )}. Please delete the map and try again.`
+              )
+              return
+            }
+          } else {
+            profileObject.data.status = customNodesResponseData[0].status
+            profileObject.data.node_id = customNodesResponseData[0].id
+            profileObject.data.post_id = customNodesResponseData[0].post_id
+
+            if (
+              customNodesResponseData[0].last_updated !==
+              profile.last_updated.toString()
+            ) {
+              profileObject.data.extra_notes = 'see updates'
+            }
+
+            // ignore if status is not new and it doesn't have updates
+            if (
+              customNodesResponseData[0].status !== 'new' &&
+              profileObject.data.extra_notes !== 'see updates'
+            ) {
+              continue
+            }
+          }
+
+          currentId++
+          dataWithIds.push(profileObject)
+        }
+      }
+
+      // handle unavailable profiles
+      if (unavailableProfiles.length > 0) {
+        for (let i = 0; i < unavailableProfiles.length; i++) {
+          // update progress
+          progress += progressStep
+          if (progress > 100) {
+            setProgress(100)
+          } else {
+            setProgress(progress)
+          }
+
+          const profile = unavailableProfiles[i]
+
+          // check this profile is already in the list or not
+          const isProfileInList = dataWithIds.find(
+            profileInList => profileInList.data.node_id === profile.id
+          )
+
+          if (isProfileInList) {
+            continue
+          }
+
+          // fetch the data, if it's available now, add it to the list
+          let profile_data = ''
+          if (profile.profile_url) {
+            try {
+              const response = await fetch(profile.profile_url)
+              if (response.ok) {
+                profile_data = await response.json()
+              }
+            } catch (error) {
+              // if there is an error, don't add it to the list
+              continue
+            }
+          }
+
+          if (profile_data !== '') {
+            let profileObject = {
+              id: currentId,
+              profile_data: profile_data,
+              index_data: profile,
+              data: {
+                map_id: mapId,
+                tag_slug: tagSlug,
+                node_id: profile.id,
+                status: profile.status,
+                is_available: true,
+                unavailable_message: ''
+              }
+            }
+            currentId++
+            dataWithIds.push(profileObject)
+          }
+        }
+      }
+
+      if (deletedProfiles.length === 0 && dataWithIds.length === 0) {
+        setProfileList([])
         alert(`No update profiles found.`)
         return
       }
 
-      let dataWithIds = []
-      let deletedProfiles = []
-      const progressStep = 100 / profiles.length
-      let currentId = 1
-      for (let i = 0; i < profiles.length; i++) {
-        // update progress
-        if ((i + 1) * progressStep > 100) {
-          setProgress(100)
-        } else {
-          setProgress((i + 1) * progressStep)
-        }
-
-        const profile = profiles[i]
-        let profile_data = ''
-
-        // get node information
-        const customNodesResponse = await getCustomNodes(
-          mapId,
-          profile.profile_url
-        )
-        const customNodesResponseData = await customNodesResponse.json()
-        if (!response.ok && response.status !== 404) {
-          alert(
-            `Delete Profile Error: ${
-              customNodesResponse.status
-            } ${JSON.stringify(customNodesResponseData)}`
-          )
-        }
-
-        let profileObject = {
-          profile_data: profile_data,
-          index_data: profile,
-          data: {
-            map_id: mapId,
-            tag_slug: tagSlug,
-            is_available: true,
-            unavailable_message: ''
-          }
-        }
-
-        // handle deleted profiles
-        if (profile.status === 'deleted') {
-          if (customNodesResponse.status === 404) {
-            continue
-          }
-
-          // if customNodesResponse is not 404, need to get the node_id and post_id
-          profileObject.data.node_id = customNodesResponseData[0].id
-          profileObject.data.post_id = customNodesResponseData[0].post_id
-
-          // if the status is deleted, we need to get profile_data from wpdb
-          profileObject.profile_data = customNodesResponseData[0].profile_data
-
-          const deleteNodeResponse = await deleteWpNodes(
-            profileObject.data.post_id
-          )
-
-          if (!deleteNodeResponse.ok) {
-            const deleteNodeResponseData = await deleteNodeResponse.json()
-            alert(
-              `Delete Profile Error: ${
-                deleteNodeResponse.status
-              } ${JSON.stringify(deleteNodeResponseData)}`
-            )
-          }
-
-          // delete node from nodes table
-          const deleteResponse = await deleteCustomNodes(profileObject)
-
-          if (!deleteResponse.ok) {
-            const deleteResponseData = await deleteResponse.json()
-            alert(
-              `Delete Node Error: ${deleteResponse.status} ${JSON.stringify(
-                deleteResponseData
-              )}`
-            )
-          }
-
-          // put deleted profile in list
-          deletedProfiles.push(profileObject)
-          continue
-        }
-
-        let fetchProfileError = ''
-        if (profile.profile_url) {
-          try {
-            const response = await fetch(profile.profile_url)
-            if (response.ok) {
-              profile_data = await response.json()
-            } else {
-              fetchProfileError = 'STATUS-' + response.status
-            }
-          } catch (error) {
-            if (error.message === 'Failed to fetch') {
-              fetchProfileError = 'CORS'
-            } else {
-              fetchProfileError = 'UNKNOWN'
-            }
-          }
-        }
-
-        // give extra data to profile
-        profileObject.id = currentId
-        profileObject.profile_data = profile_data
-        profileObject.data.status = 'new'
-        profileObject.data.extra_notes = ''
-
-        if (customNodesResponse.status === 404) {
-          profileObject.data.status = 'new'
-
-          const profileResponse = await saveCustomNodes(profileObject)
-
-          if (!profileResponse.ok) {
-            const profileResponseData = await profileResponse.json()
-            alert(
-              `Unable to save profiles to wpdb, errors: ${
-                profileResponse.status
-              } ${JSON.stringify(
-                profileResponseData
-              )}. Please delete the map and try again.`
-            )
-            return
-          }
-        } else {
-          profileObject.data.status = customNodesResponseData[0].status
-          profileObject.data.node_id = customNodesResponseData[0].id
-          profileObject.data.post_id = customNodesResponseData[0].post_id
-
-          if (
-            customNodesResponseData[0].last_updated !==
-            profile.last_updated.toString()
-          ) {
-            profileObject.data.extra_notes = 'see updates'
-          }
-
-          // ignore if status is not new and it doesn't have updates
-          if (
-            customNodesResponseData[0].status !== 'new' &&
-            profileObject.data.extra_notes !== 'see updates'
-          ) {
-            continue
-          }
-        }
-
-        if (profile_data === '') {
-          profileObject.data.is_available = false
-          profileObject.data.unavailable_message = fetchProfileError
-        }
-
-        currentId++
-        dataWithIds.push(profileObject)
-      }
-      setDeletedProfiles(deletedProfiles)
-      setProfileList(dataWithIds)
-
       // if it only has deleted profiles, update map timestamp
-      if (dataWithIds.length === 0) {
+      if (deletedProfiles.length > 0 && dataWithIds.length === 0) {
         const mapResponse = await updateCustomMapLastUpdated(mapId, currentTime)
         if (!mapResponse.ok) {
           const mapResponseData = await mapResponse.json()
@@ -247,10 +316,14 @@ export default function MapList({
         }
         setCurrentTime('')
       }
+
+      setDeletedProfiles(deletedProfiles)
+      setProfileList(dataWithIds)
     } catch (error) {
       alert(`Retrieve node error: ${error}`)
     } finally {
       setIsLoading(false)
+      setProgress(0)
     }
   }
 

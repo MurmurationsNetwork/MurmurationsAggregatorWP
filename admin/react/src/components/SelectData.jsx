@@ -2,6 +2,7 @@ import Table from './Table'
 import ProgressBar from './ProgressBar'
 import {
   deleteWpNodes,
+  getCustomNodes,
   restoreWpNodes,
   saveWpNodes,
   updateCustomMapLastUpdated,
@@ -71,8 +72,25 @@ export default function SelectData({
 
         const profile = selectedProfiles[i]
 
-        // need to update the node first
-        if (profile.data.extra_notes === 'see updates') {
+        // check the node is original unavailable or not
+        const customNodeResponse = await getCustomNodes(
+          profile.data.map_id,
+          profile.index_data.profile_url
+        )
+        const customNodeResponseData = await customNodeResponse.json()
+        if (!customNodeResponse.ok) {
+          alert(
+            `Get Custom Node Error: ${
+              customNodeResponse.status
+            } ${JSON.stringify(customNodeResponseData)}`
+          )
+        }
+
+        // if data has update or is originally unavailable, we need to update the node first
+        if (
+          profile.data.extra_notes === 'see updates' ||
+          !customNodeResponseData[0].is_available
+        ) {
           const profileResponse = await updateCustomNodes(profile)
 
           if (!profileResponse.ok) {

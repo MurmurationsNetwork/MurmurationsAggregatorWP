@@ -98,6 +98,10 @@ export const getCustomNodes = async (mapId, profileUrl) => {
   )
 }
 
+export const getCustomUnavailableNodes = async mapId => {
+  return await fetch(`${apiUrl}/nodes?map_id=${mapId}&is_available=false`)
+}
+
 export const saveCustomNodes = async profile => {
   return await fetchRequest(`${apiUrl}/nodes`, 'POST', profile)
 }
