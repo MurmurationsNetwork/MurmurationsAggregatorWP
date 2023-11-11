@@ -6,6 +6,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 			// force flush rewrite rules
 			flush_rewrite_rules();
 
+			// update the plugin version in the database
+			update_option( 'murmurations_aggregator_version', MURMURATIONS_AGGREGATOR_VERSION );
+
 			global $wpdb;
 			$table_name      = $wpdb->prefix . MURMURATIONS_AGGREGATOR_TABLE;
 			$node_table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_NODE_TABLE;
