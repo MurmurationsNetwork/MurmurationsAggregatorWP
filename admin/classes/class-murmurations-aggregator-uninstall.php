@@ -14,6 +14,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_Uninstall' ) ) {
 			if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name ) {
 				$wpdb->query( "DROP TABLE IF EXISTS $table_name" );
 			}
+
+			delete_option( 'murmurations_aggregator_version' );
 		}
 	}
 }
