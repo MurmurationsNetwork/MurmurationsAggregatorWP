@@ -514,6 +514,13 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				unset( $node->data );
 				$node->map = $map;
 				unset( $node->map_id );
+
+				// handle is_available field
+				if ( $node->is_available === '1' ) {
+					$node->is_available = true;
+				} else {
+					$node->is_available = false;
+				}
 			}
 
 			return rest_ensure_response( $nodes );
@@ -532,6 +539,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$result = $this->wpdb->update( $this->node_table_name, array(
 				'data'         => json_encode( $data['profile_data'] ),
 				'last_updated' => $data['index_data']['last_updated'],
+				'is_available' => $data['data']['is_available'] ?? true,
+				'unavailable_message' => $data['data']['unavailable_message'] ?? NULL
 			), array(
 				'profile_url' => $data['index_data']['profile_url'],
 				'map_id'      => $data['data']['map_id'],
@@ -614,6 +623,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'data'         => json_encode( $data['profile_data'] ),
 				'last_updated' => $data['index_data']['last_updated'],
 				'status'       => $data['data']['status'] ?? 'new',
+				'is_available' => $data['data']['is_available'] ?? true,
+				'unavailable_message' => $data['data']['unavailable_message'] ?? NULL
 			) );
 
 			if ( ! $result ) {

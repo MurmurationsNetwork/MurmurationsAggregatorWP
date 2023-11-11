@@ -18,8 +18,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_Upgrade' ) ) {
 				$table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_NODE_TABLE;
 
 				$sql = "ALTER TABLE $table_name 
-                        ADD COLUMN availability BOOLEAN NOT NULL DEFAULT 0, 
-                        ADD COLUMN availability_message VARCHAR(255) DEFAULT NULL";
+                        ADD COLUMN is_available BOOLEAN NOT NULL DEFAULT 0, 
+                        ADD COLUMN unavailable_message VARCHAR(255) DEFAULT NULL";
 
 				$wpdb->query( $sql );
 

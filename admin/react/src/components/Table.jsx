@@ -1,7 +1,6 @@
 import React from 'react'
 import TableRow from './TableRow'
 import PropTypes from 'prop-types'
-import { unavailableList } from '../data/unavailableList'
 
 function Table({
   tableList,
@@ -15,9 +14,7 @@ function Table({
   const isAllSelected =
     selectedIds.length > 0 &&
     selectedIds.length ===
-      tableList.filter(
-        response => !unavailableList.includes(response.data.extra_notes)
-      ).length
+      tableList.filter(response => response.data.is_available).length
 
   return (
     <table>
@@ -34,6 +31,8 @@ function Table({
           <th className="text-center">Name</th>
           <th className="text-center">Profile URL</th>
           <th className="text-center">Current Status</th>
+          <th className="text-center">Availability</th>
+          <th className="text-center">Update</th>
         </tr>
       </thead>
       <tbody>

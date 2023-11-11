@@ -62,7 +62,7 @@ export default function CreateData({
       pageQueries
 
     try {
-      setCurrentTime(new Date().getTime())
+      setCurrentTime(new Date().getTime().toString())
       const response = await fetch(urlWithParams)
       if (response.ok) {
         const responseData = await response.json()
@@ -126,12 +126,14 @@ export default function CreateData({
               const response = await fetch(profile.profile_url)
               if (response.ok) {
                 profile_data = await response.json()
+              } else {
+                fetchProfileError = 'STATUS-' + response.status
               }
             } catch (error) {
               if (error.message === 'Failed to fetch') {
-                fetchProfileError = 'unavailable-CORS'
+                fetchProfileError = 'CORS'
               } else {
-                fetchProfileError = 'unavailable-UNKNOWN'
+                fetchProfileError = 'UNKNOWN'
               }
             }
           }
@@ -144,8 +146,15 @@ export default function CreateData({
             data: {
               map_id: mapResponseData.map_id,
               tag_slug: tagSlug,
-              status: 'new'
+              status: 'new',
+              is_available: true
             }
+          }
+
+          // set availability
+          if (profile_data === '') {
+            profileObject.data.is_available = false
+            profileObject.data.unavailable_message = fetchProfileError
           }
 
           // save data to wpdb
@@ -166,15 +175,6 @@ export default function CreateData({
 
           // set node_id
           profileObject.data.node_id = profileResponseData.node_id
-
-          // set extra notes
-          if (profile_data === '') {
-            if (fetchProfileError !== '') {
-              profileObject.data.extra_notes = fetchProfileError
-            } else {
-              profileObject.data.extra_notes = 'unavailable'
-            }
-          }
 
           currentId++
           dataWithIds.push(profileObject)

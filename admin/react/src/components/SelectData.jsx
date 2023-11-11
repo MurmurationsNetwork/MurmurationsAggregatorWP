@@ -16,7 +16,6 @@ import {
   removeUnselectedProfiles
 } from '../utils/filterProfile'
 import PropTypes from 'prop-types'
-import { unavailableList } from '../data/unavailableList'
 
 export default function SelectData({
   profileList,
@@ -38,9 +37,7 @@ export default function SelectData({
   const [selectedStatusOption, setSelectedStatusOption] = useState('publish')
 
   const toggleSelectAll = () => {
-    profileList = profileList.filter(
-      response => !unavailableList.includes(response.data.extra_notes)
-    )
+    profileList = profileList.filter(response => response.data.is_available)
     if (selectedIds.length === profileList.length) {
       setSelectedIds([])
     } else {
@@ -249,9 +246,7 @@ export default function SelectData({
     // if the extra_notes of all profiles are unavailable, it means all nodes are handled, we can refresh the page
     if (
       newProfileList.length === 0 ||
-      newProfileList.every(profile =>
-        profile.data.extra_notes.includes('unavailable')
-      )
+      newProfileList.every(profile => !profile.data.is_available)
     ) {
       if (currentTime !== '') {
         const response = await updateCustomMapLastUpdated(mapId, currentTime)

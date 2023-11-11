@@ -32,7 +32,7 @@ export default function MapList({
     setIsEdit(false)
     setIsRetrieving(false)
     setProfileList([])
-    setCurrentTime(null)
+    setCurrentTime('')
     setDeletedProfiles([])
   }
 
@@ -113,7 +113,9 @@ export default function MapList({
           index_data: profile,
           data: {
             map_id: mapId,
-            tag_slug: tagSlug
+            tag_slug: tagSlug,
+            is_available: true,
+            unavailable_message: ''
           }
         }
 
@@ -166,12 +168,14 @@ export default function MapList({
             const response = await fetch(profile.profile_url)
             if (response.ok) {
               profile_data = await response.json()
+            } else {
+              fetchProfileError = 'STATUS-' + response.status
             }
           } catch (error) {
             if (error.message === 'Failed to fetch') {
-              fetchProfileError = 'unavailable-CORS'
+              fetchProfileError = 'CORS'
             } else {
-              fetchProfileError = 'unavailable-UNKNOWN'
+              fetchProfileError = 'UNKNOWN'
             }
           }
         }
@@ -220,11 +224,8 @@ export default function MapList({
         }
 
         if (profile_data === '') {
-          if (fetchProfileError !== '') {
-            profileObject.data.extra_notes = fetchProfileError
-          } else {
-            profileObject.data.extra_notes = 'unavailable'
-          }
+          profileObject.data.is_available = false
+          profileObject.data.unavailable_message = fetchProfileError
         }
 
         currentId++
@@ -244,7 +245,7 @@ export default function MapList({
             )}`
           )
         }
-        setCurrentTime(null)
+        setCurrentTime('')
       }
     } catch (error) {
       alert(`Retrieve node error: ${error}`)
@@ -282,7 +283,9 @@ export default function MapList({
             node_id: profile.id,
             post_id: profile.post_id,
             tag_slug: profile.map.tag_slug,
-            status: profile.status
+            status: profile.status,
+            is_available: profile.is_available,
+            unavailable_message: profile.unavailable_message
           }
         }
 
