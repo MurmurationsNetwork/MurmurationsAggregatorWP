@@ -22,10 +22,10 @@ if ( ! class_exists( 'Murmurations_Aggregator_Upgrade' ) ) {
                         ADD COLUMN unavailable_message VARCHAR(255) DEFAULT NULL";
 
 				$wpdb->query( $sql );
-
-				// update the plugin version in the database
-				update_option( 'murmurations_aggregator_version', $new_version );
 			}
+
+			// update the plugin version in the database
+			update_option( 'murmurations_aggregator_version', $new_version );
 		}
 	}
 }
