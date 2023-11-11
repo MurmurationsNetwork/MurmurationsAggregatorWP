@@ -42,6 +42,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 			    data TEXT NOT NULL,
 			    last_updated VARCHAR(100) NOT NULL,
 			    status VARCHAR(100) NOT NULL DEFAULT 'ignored',
+			    availability BOOLEAN NOT NULL DEFAULT 0,
+			    availability_message VARCHAR(100) DEFAULT NULL,
 			    PRIMARY KEY (id),
 			    FOREIGN KEY (map_id) REFERENCES $table_name(id) ON DELETE CASCADE
 		    ) $charset_collate;";
