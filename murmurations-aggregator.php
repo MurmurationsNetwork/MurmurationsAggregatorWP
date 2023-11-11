@@ -4,6 +4,7 @@
  * Plugin URI:        https://github.com/MurmurationsNetwork/MurmurationsAggregatorWP
  * Description:       Collect and display data from the Murmurations network.
  * Version:           1.0.0-beta.1
+ * Requires at least: 6.4
  * Text Domain:       murmurations-aggregator
  * Author:            Murmurations Network
  * Author URI:        https://murmurations.network
