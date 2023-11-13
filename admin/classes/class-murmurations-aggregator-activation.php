@@ -1,9 +1,67 @@
 <?php
 
+function create_murmurations_node_post_type(): void {
+	$labels = array(
+		'name'          => 'Murmurations Nodes',
+		'singular_name' => 'Murmurations Node',
+		'menu_name'     => 'Murm-Nodes',
+	);
+
+	$args = array(
+		'labels'          => $labels,
+		'public'          => true,
+		'has_archive'     => true,
+		'supports'        => array( 'title', 'editor', 'thumbnail', 'custom-fields', 'revisions' ),
+		'capability_type' => 'post',
+		'capabilities'    => array(
+			'create_posts' => false,
+		),
+		'map_meta_cap'    => true,
+	);
+
+	register_post_type( 'murmurations_node', $args );
+}
+
+function create_murmurations_node_taxonomy(): void {
+	// Add custom tags
+	register_taxonomy(
+		'murmurations_node_tags',
+		'murmurations_node',
+		array(
+			'label'             => 'Murmurations Node Tags',
+			'hierarchical'      => false,
+			'show_ui'           => false,
+			'show_admin_column' => true,
+			'query_var'         => true,
+			'rewrite'           => array( 'slug' => 'murmurations-node-tags' ),
+		)
+	);
+
+	// Add custom categories
+	register_taxonomy(
+		'murmurations_node_categories',
+		'murmurations_node',
+		array(
+			'label'             => 'Murmurations Node Categories',
+			'hierarchical'      => true,
+			'show_ui'           => false,
+			'show_admin_column' => true,
+			'query_var'         => true,
+			'rewrite'           => array( 'slug' => 'murmurations-node-categories' ),
+		)
+	);
+}
+
+add_action( 'init', 'create_murmurations_node_post_type' );
+add_action( 'init', 'create_murmurations_node_taxonomy' );
+
 if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 	class Murmurations_Aggregator_Activation {
 		public static function activate(): void {
-			// force flush rewrite rules
+			// Trigger our function that registers the custom post type plugin.
+			create_murmurations_node_post_type();
+			create_murmurations_node_taxonomy();
+			// Clear the permalinks after the post type has been registered.
 			flush_rewrite_rules();
 
 			// update the plugin version in the database

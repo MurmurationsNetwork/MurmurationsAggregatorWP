@@ -90,6 +90,10 @@ if ( class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 	register_activation_hook( __FILE__, array( 'Murmurations_Aggregator_Activation', 'activate' ) );
 }
 
+if ( class_exists( 'Murmurations_Aggregator_Deactivation' ) ) {
+	register_deactivation_hook( __FILE__, array( 'Murmurations_Aggregator_Deactivation', 'deactivate' ) );
+}
+
 if ( class_exists( 'Murmurations_Aggregator_Uninstall' ) ) {
 	register_uninstall_hook( __FILE__, array( 'Murmurations_Aggregator_Uninstall', 'uninstall' ) );
 }
