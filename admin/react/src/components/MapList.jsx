@@ -73,17 +73,18 @@ export default function MapList({
       const profiles = responseData.data
 
       // get unavailable profiles
+      let unavailableProfiles = []
       const unavailableNodesResponse = await getCustomUnavailableNodes(mapId)
+      const unavailableNodesResponseData = await unavailableNodesResponse.json()
       if (!unavailableNodesResponse.ok) {
-        const unavailableNodesResponseData =
-          await unavailableNodesResponse.json()
         alert(
           `Unavailable Nodes Error: ${
             unavailableNodesResponse.status
           } ${JSON.stringify(unavailableNodesResponseData)}`
         )
+      } else {
+        unavailableProfiles = unavailableNodesResponseData
       }
-      const unavailableProfiles = await unavailableNodesResponse.json()
 
       let dataWithIds = []
       let deletedProfiles = []
