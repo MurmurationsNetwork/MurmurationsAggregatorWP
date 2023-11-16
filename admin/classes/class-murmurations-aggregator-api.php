@@ -24,8 +24,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				$frontend_namespace,
 				'/maps/(?P<tag_slug>[\w]+)',
 				array(
-					'methods'  => 'GET',
-					'callback' => array( $this, 'get_map_nodes' ),
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_map_nodes' ),
+					'permission_callback' => '__return_true',
 				),
 			);
 
@@ -36,12 +37,16 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'/maps',
 				array(
 					array(
-						'methods'  => 'GET',
-						'callback' => array( $this, 'get_maps' ),
+						'methods'             => 'GET',
+						'callback'            => array( $this, 'get_maps' ),
+						'permission_callback' => '__return_true',
 					),
 					array(
-						'methods'  => 'POST',
-						'callback' => array( $this, 'post_map' ),
+						'methods'             => 'POST',
+						'callback'            => array( $this, 'post_map' ),
+						'permission_callback' => function () {
+							return current_user_can( 'activate_plugins' );
+						},
 					),
 				),
 			);
@@ -51,16 +56,25 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'/maps/(?P<map_id>[\d]+)',
 				array(
 					array(
-						'methods'  => 'GET',
-						'callback' => array( $this, 'get_map' ),
+						'methods'             => 'GET',
+						'callback'            => array( $this, 'get_map' ),
+						'permission_callback' => function () {
+							return current_user_can( 'activate_plugins' );
+						},
 					),
 					array(
-						'methods'  => 'PUT',
-						'callback' => array( $this, 'put_map' ),
+						'methods'             => 'PUT',
+						'callback'            => array( $this, 'put_map' ),
+						'permission_callback' => function () {
+							return current_user_can( 'activate_plugins' );
+						},
 					),
 					array(
-						'methods'  => 'DELETE',
-						'callback' => array( $this, 'delete_map' ),
+						'methods'             => 'DELETE',
+						'callback'            => array( $this, 'delete_map' ),
+						'permission_callback' => function () {
+							return current_user_can( 'activate_plugins' );
+						},
 					),
 				)
 			);
@@ -69,8 +83,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				$backend_namespace,
 				'/maps/(?P<map_id>[\d]+)/last-updated',
 				array(
-					'methods'  => 'PUT',
-					'callback' => array( $this, 'put_map_last_updated' ),
+					'methods'             => 'PUT',
+					'callback'            => array( $this, 'put_map_last_updated' ),
+					'permission_callback' => function () {
+						return current_user_can( 'activate_plugins' );
+					},
 				),
 			);
 
@@ -80,16 +97,25 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'/wp-nodes/(?P<post_id>[\d]+)',
 				array(
 					array(
-						'methods'  => 'GET',
-						'callback' => array( $this, 'get_wp_node' )
+						'methods'             => 'GET',
+						'callback'            => array( $this, 'get_wp_node' ),
+						'permission_callback' => function () {
+							return current_user_can( 'activate_plugins' );
+						},
 					),
 					array(
-						'methods'  => 'PUT',
-						'callback' => array( $this, 'put_wp_node' )
+						'methods'             => 'PUT',
+						'callback'            => array( $this, 'put_wp_node' ),
+						'permission_callback' => function () {
+							return current_user_can( 'activate_plugins' );
+						},
 					),
 					array(
-						'methods'  => 'DELETE',
-						'callback' => array( $this, 'delete_wp_node' ),
+						'methods'             => 'DELETE',
+						'callback'            => array( $this, 'delete_wp_node' ),
+						'permission_callback' => function () {
+							return current_user_can( 'activate_plugins' );
+						},
 					),
 				)
 			);
@@ -98,17 +124,23 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				$backend_namespace,
 				'/wp-nodes',
 				array(
-					'methods'  => 'POST',
-					'callback' => array( $this, 'post_wp_node' ),
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'post_wp_node' ),
+					'permission_callback' => function () {
+						return current_user_can( 'activate_plugins' );
+					},
 				),
 			);
 
 			register_rest_route(
 				$backend_namespace,
-				'wp-nodes/(?P<post_id>[\d]+)/restore',
+				'/wp-nodes/(?P<post_id>[\d]+)/restore',
 				array(
-					'methods'  => 'PUT',
-					'callback' => array( $this, 'restore_wp_node' ),
+					'methods'             => 'PUT',
+					'callback'            => array( $this, 'restore_wp_node' ),
+					'permission_callback' => function () {
+						return current_user_can( 'activate_plugins' );
+					},
 				),
 			);
 
@@ -117,8 +149,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				$backend_namespace,
 				'/nodes',
 				array(
-					'methods'  => 'GET',
-					'callback' => array( $this, 'get_nodes' ),
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_nodes' ),
+					'permission_callback' => function () {
+						return current_user_can( 'activate_plugins' );
+					},
 				),
 			);
 
@@ -127,12 +162,18 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'/nodes/(?P<node_id>[\d]+)',
 				array(
 					array(
-						'methods'  => 'PUT',
-						'callback' => array( $this, 'put_node' ),
+						'methods'             => 'PUT',
+						'callback'            => array( $this, 'put_node' ),
+						'permission_callback' => function () {
+							return current_user_can( 'activate_plugins' );
+						},
 					),
 					array(
-						'methods'  => 'DELETE',
-						'callback' => array( $this, 'delete_node' ),
+						'methods'             => 'DELETE',
+						'callback'            => array( $this, 'delete_node' ),
+						'permission_callback' => function () {
+							return current_user_can( 'activate_plugins' );
+						},
 					),
 				),
 			);
@@ -141,8 +182,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				$backend_namespace,
 				'/nodes/(?P<node_id>[\d]+)/status',
 				array(
-					'methods'  => 'PUT',
-					'callback' => array( $this, 'put_node_status' ),
+					'methods'             => 'PUT',
+					'callback'            => array( $this, 'put_node_status' ),
+					'permission_callback' => function () {
+						return current_user_can( 'activate_plugins' );
+					},
 				),
 			);
 
@@ -150,8 +194,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				$backend_namespace,
 				'/nodes',
 				array(
-					'methods'  => 'POST',
-					'callback' => array( $this, 'post_node' ),
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'post_node' ),
+					'permission_callback' => function () {
+						return current_user_can( 'activate_plugins' );
+					},
 				),
 			);
 		}
@@ -186,9 +233,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 				if ( $view === 'dir' ) {
 					$map[] = [
-						'id'   => get_the_ID(),
-						'name' => get_the_title(),
-						'profile_data'  => $profile_data,
+						'id'           => get_the_ID(),
+						'name'         => get_the_title(),
+						'profile_data' => $profile_data,
 					];
 				} else {
 					$map[] = [
@@ -216,6 +263,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function post_map( $request ): WP_REST_Response|WP_Error {
+			$nonce_error = $this->verify_nonce( $request );
+			if ( is_wp_error( $nonce_error ) ) {
+				return $nonce_error;
+			}
+
 			$data = $request->get_json_params();
 
 			// validate data
@@ -261,6 +313,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function get_map( $request ): WP_REST_Response|WP_Error {
+			$nonce_error = $this->verify_nonce( $request );
+			if ( is_wp_error( $nonce_error ) ) {
+				return $nonce_error;
+			}
+
 			$map_id = $request->get_param( 'map_id' );
 
 			$query    = $this->wpdb->prepare( "SELECT * , UNIX_TIMESTAMP(last_updated) as last_updated FROM $this->table_name WHERE id = %s", $map_id );
@@ -274,6 +331,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function put_map( $request ): WP_REST_Response|WP_Error {
+			$nonce_error = $this->verify_nonce( $request );
+			if ( is_wp_error( $nonce_error ) ) {
+				return $nonce_error;
+			}
+
 			$map_id = $request->get_param( 'map_id' );
 
 			$data = $request->get_json_params();
@@ -295,6 +357,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function delete_map( $request ): WP_REST_Response|WP_Error {
+			$nonce_error = $this->verify_nonce( $request );
+			if ( is_wp_error( $nonce_error ) ) {
+				return $nonce_error;
+			}
+
 			$map_id = $request->get_param( 'map_id' );
 
 			// validate
@@ -339,6 +406,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function put_map_last_updated( $request ): WP_REST_Response|WP_Error {
+			$nonce_error = $this->verify_nonce( $request );
+			if ( is_wp_error( $nonce_error ) ) {
+				return $nonce_error;
+			}
+
 			$map_id = $request->get_param( 'map_id' );
 			$data   = $request->get_json_params();
 
@@ -360,6 +432,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function get_wp_node( $request ): WP_REST_Response|WP_Error {
+			$nonce_error = $this->verify_nonce( $request );
+			if ( is_wp_error( $nonce_error ) ) {
+				return $nonce_error;
+			}
+
 			$post_id = $request->get_param( 'post_id' );
 
 			$post = get_post( $post_id );
@@ -369,15 +446,20 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			}
 
 			$response = array(
-				'title'       => $post->post_title,
-				'post_url'    => get_permalink( $post_id ),
-				'profile_data' => get_post_meta( $post_id, 'murmurations_profile_data', true),
+				'title'        => $post->post_title,
+				'post_url'     => get_permalink( $post_id ),
+				'profile_data' => get_post_meta( $post_id, 'murmurations_profile_data', true ),
 			);
 
 			return rest_ensure_response( $response );
 		}
 
 		public function put_wp_node( $request ): WP_REST_Response|WP_Error {
+			$nonce_error = $this->verify_nonce( $request );
+			if ( is_wp_error( $nonce_error ) ) {
+				return $nonce_error;
+			}
+
 			$post_id = $request->get_param( 'post_id' );
 			$data    = $request->get_json_params();
 
@@ -397,6 +479,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function delete_wp_node( $request ): WP_REST_Response|WP_Error {
+			$nonce_error = $this->verify_nonce( $request );
+			if ( is_wp_error( $nonce_error ) ) {
+				return $nonce_error;
+			}
+
 			$post_id = $request->get_param( 'post_id' );
 
 			// delete post
@@ -410,6 +497,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function post_wp_node( $request ): WP_REST_Response|WP_Error {
+			$nonce_error = $this->verify_nonce( $request );
+			if ( is_wp_error( $nonce_error ) ) {
+				return $nonce_error;
+			}
+
 			$data     = $request->get_json_params();
 			$tag_slug = sanitize_text_field( $data['data']['tag_slug'] );
 
@@ -462,6 +554,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function restore_wp_node( $request ): WP_REST_Response|WP_Error {
+			$nonce_error = $this->verify_nonce( $request );
+			if ( is_wp_error( $nonce_error ) ) {
+				return $nonce_error;
+			}
+
 			$post_id = $request->get_param( 'post_id' );
 
 			$trashed_post = get_post( $post_id );
@@ -482,8 +579,13 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function get_nodes( $request ): WP_REST_Response|WP_Error {
-			$mapId      = $request->get_param( 'map_id' );
-			$profileUrl = $request->get_param( 'profile_url' );
+			$nonce_error = $this->verify_nonce( $request );
+			if ( is_wp_error( $nonce_error ) ) {
+				return $nonce_error;
+			}
+
+			$mapId       = $request->get_param( 'map_id' );
+			$profileUrl  = $request->get_param( 'profile_url' );
 			$isAvailable = $request->get_param( 'is_available' );
 
 			if ( ! isset( $mapId ) ) {
@@ -533,7 +635,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				}
 
 				// handle unavailable_message field
-				if ($node->unavailable_message === NULL) {
+				if ( $node->unavailable_message === null ) {
 					$node->unavailable_message = "";
 				}
 			}
@@ -542,6 +644,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function put_node( $request ): WP_REST_Response|WP_Error {
+			$nonce_error = $this->verify_nonce( $request );
+			if ( is_wp_error( $nonce_error ) ) {
+				return $nonce_error;
+			}
+
 			$node_id = $request->get_param( 'node_id' );
 			$data    = $request->get_json_params();
 
@@ -550,17 +657,17 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
 			}
 
-			if ($data['data']['unavailable_message'] || $data['data']['unavailable_message'] === "") {
-				$unavailable_message = NULL;
+			if ( $data['data']['unavailable_message'] || $data['data']['unavailable_message'] === "" ) {
+				$unavailable_message = null;
 			} else {
 				$unavailable_message = $data['data']['unavailable_message'];
 			}
 
 			// update data
 			$result = $this->wpdb->update( $this->node_table_name, array(
-				'data'         => json_encode( $data['profile_data'] ),
-				'last_updated' => $data['index_data']['last_updated'],
-				'is_available' => $data['data']['is_available'] ?? true,
+				'data'                => json_encode( $data['profile_data'] ),
+				'last_updated'        => $data['index_data']['last_updated'],
+				'is_available'        => $data['data']['is_available'] ?? true,
 				'unavailable_message' => $unavailable_message
 			), array(
 				'profile_url' => $data['index_data']['profile_url'],
@@ -575,6 +682,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function delete_node( $request ): WP_REST_Response|WP_Error {
+			$nonce_error = $this->verify_nonce( $request );
+			if ( is_wp_error( $nonce_error ) ) {
+				return $nonce_error;
+			}
+
 			$node_id = $request->get_param( 'node_id' );
 
 			// validate data
@@ -595,6 +707,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function put_node_status( $request ): WP_REST_Response|WP_Error {
+			$nonce_error = $this->verify_nonce( $request );
+			if ( is_wp_error( $nonce_error ) ) {
+				return $nonce_error;
+			}
+
 			$node_id = $request->get_param( 'node_id' );
 			$data    = $request->get_json_params();
 
@@ -630,6 +747,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function post_node( $request ): WP_REST_Response|WP_Error {
+			$nonce_error = $this->verify_nonce( $request );
+			if ( is_wp_error( $nonce_error ) ) {
+				return $nonce_error;
+			}
+
 			$data = $request->get_json_params();
 
 			// validate data
@@ -639,13 +761,13 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			// insert data
 			$result = $this->wpdb->insert( $this->node_table_name, array(
-				'profile_url'  => $data['index_data']['profile_url'],
-				'map_id'       => $data['data']['map_id'],
-				'data'         => json_encode( $data['profile_data'] ),
-				'last_updated' => $data['index_data']['last_updated'],
-				'status'       => $data['data']['status'] ?? 'new',
-				'is_available' => $data['data']['is_available'] ?? true,
-				'unavailable_message' => $data['data']['unavailable_message'] ?? NULL
+				'profile_url'         => $data['index_data']['profile_url'],
+				'map_id'              => $data['data']['map_id'],
+				'data'                => json_encode( $data['profile_data'] ),
+				'last_updated'        => $data['index_data']['last_updated'],
+				'status'              => $data['data']['status'] ?? 'new',
+				'is_available'        => $data['data']['is_available'] ?? true,
+				'unavailable_message' => $data['data']['unavailable_message'] ?? null
 			) );
 
 			if ( ! $result ) {
@@ -659,6 +781,16 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			);
 
 			return rest_ensure_response( $response );
+		}
+
+		private function verify_nonce( $request ): WP_Error|bool {
+			$nonce = $request['_wpnonce'] ?? '';
+
+			if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+				return new WP_Error( 'rest_forbidden', esc_html__( 'Permission denied' ), array( 'status' => 401 ) );
+			}
+
+			return true;
 		}
 	}
 }

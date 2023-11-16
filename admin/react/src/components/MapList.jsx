@@ -76,12 +76,16 @@ export default function MapList({
       let unavailableProfiles = []
       const unavailableNodesResponse = await getCustomUnavailableNodes(mapId)
       const unavailableNodesResponseData = await unavailableNodesResponse.json()
-      if (!unavailableNodesResponse.ok) {
+      if (
+        !unavailableNodesResponse.ok &&
+        unavailableNodesResponse.status !== 404
+      ) {
         alert(
           `Unavailable Nodes Error: ${
             unavailableNodesResponse.status
           } ${JSON.stringify(unavailableNodesResponseData)}`
         )
+        return
       } else {
         unavailableProfiles = unavailableNodesResponseData
       }
