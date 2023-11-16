@@ -99,9 +99,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 					array(
 						'methods'             => 'GET',
 						'callback'            => array( $this, 'get_wp_node' ),
-						'permission_callback' => function () {
-							return current_user_can( 'activate_plugins' );
-						},
+						'permission_callback' => '__return_true',
 					),
 					array(
 						'methods'             => 'PUT',
@@ -432,11 +430,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function get_wp_node( $request ): WP_REST_Response|WP_Error {
-			$nonce_error = $this->verify_nonce( $request );
-			if ( is_wp_error( $nonce_error ) ) {
-				return $nonce_error;
-			}
-
 			$post_id = $request->get_param( 'post_id' );
 
 			$post = get_post( $post_id );
