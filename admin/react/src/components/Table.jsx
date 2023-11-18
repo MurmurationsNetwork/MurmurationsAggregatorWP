@@ -11,7 +11,10 @@ function Table({
   setOriginalJson,
   setModifiedJson
 }) {
-  const isAllSelected = selectedIds.length === tableList.length
+  const isAllSelected =
+    selectedIds.length > 0 &&
+    selectedIds.length ===
+      tableList.filter(response => response.data.is_available).length
 
   return (
     <table>
@@ -28,6 +31,8 @@ function Table({
           <th className="text-center">Name</th>
           <th className="text-center">Profile URL</th>
           <th className="text-center">Current Status</th>
+          <th className="text-center">Availability</th>
+          <th className="text-center">Update</th>
         </tr>
       </thead>
       <tbody>

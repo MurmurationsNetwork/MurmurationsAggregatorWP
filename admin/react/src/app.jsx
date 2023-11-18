@@ -16,7 +16,7 @@ export default function App() {
 
   // MapList states
   const [maps, setMaps] = useState([])
-  const [currentTime, setCurrentTime] = useState(null)
+  const [currentTime, setCurrentTime] = useState('')
 
   // DataSource states
   const [formData, setFormData] = useState(formDefaults)
@@ -67,7 +67,14 @@ export default function App() {
 
   const handleInputChange = event => {
     const { name, value, type, checked } = event.target
-    const newValue = type === 'checkbox' ? checked : value
+    let newValue
+    if (name === 'tags_filter') {
+      newValue = checked ? 'and' : 'or'
+    } else if (type === 'checkbox') {
+      newValue = checked
+    } else {
+      newValue = value
+    }
 
     setFormData(prevData => {
       const newData = Object.assign({}, prevData)

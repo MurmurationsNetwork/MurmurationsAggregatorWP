@@ -1,14 +1,71 @@
 <?php
 
+function create_murmurations_node_post_type(): void {
+	$labels = array(
+		'name'          => 'Murmurations Nodes',
+		'singular_name' => 'Murmurations Node',
+		'menu_name'     => 'Murm-Nodes',
+	);
+
+	$args = array(
+		'labels'          => $labels,
+		'public'          => true,
+		'has_archive'     => true,
+		'supports'        => array( 'title', 'editor', 'thumbnail', 'custom-fields', 'revisions' ),
+		'capability_type' => 'post',
+		'capabilities'    => array(
+			'create_posts' => false,
+		),
+		'map_meta_cap'    => true,
+	);
+
+	register_post_type( 'murmurations_node', $args );
+}
+
+function create_murmurations_node_taxonomy(): void {
+	// Add custom tags
+	register_taxonomy(
+		'murmurations_node_tags',
+		'murmurations_node',
+		array(
+			'label'             => 'Murmurations Node Tags',
+			'hierarchical'      => false,
+			'show_ui'           => false,
+			'show_admin_column' => true,
+			'query_var'         => true,
+			'rewrite'           => array( 'slug' => 'murmurations-node-tags' ),
+		)
+	);
+
+	// Add custom categories
+	register_taxonomy(
+		'murmurations_node_categories',
+		'murmurations_node',
+		array(
+			'label'             => 'Murmurations Node Categories',
+			'hierarchical'      => true,
+			'show_ui'           => false,
+			'show_admin_column' => true,
+			'query_var'         => true,
+			'rewrite'           => array( 'slug' => 'murmurations-node-categories' ),
+		)
+	);
+}
+
+add_action( 'init', 'create_murmurations_node_post_type' );
+add_action( 'init', 'create_murmurations_node_taxonomy' );
+
 if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 	class Murmurations_Aggregator_Activation {
-		public static function activate() {
-			// force flush rewrite rules
+		public static function activate(): void {
+			// Trigger our function that registers the custom post type plugin.
+			create_murmurations_node_post_type();
+			create_murmurations_node_taxonomy();
+			// Clear the permalinks after the post type has been registered.
 			flush_rewrite_rules();
 
-			// set plugin version for future DB upgrade
-			$current_version = '1.0.0';
-			update_option( 'murmurations_aggregator_version', $current_version );
+			// update the plugin version in the database
+			update_option( 'murmurations_aggregator_version', MURMURATIONS_AGGREGATOR_VERSION );
 
 			global $wpdb;
 			$table_name      = $wpdb->prefix . MURMURATIONS_AGGREGATOR_TABLE;
@@ -42,6 +99,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 			    data TEXT NOT NULL,
 			    last_updated VARCHAR(100) NOT NULL,
 			    status VARCHAR(100) NOT NULL DEFAULT 'ignored',
+			    is_available BOOLEAN NOT NULL DEFAULT 0,
+			    unavailable_message VARCHAR(100) DEFAULT NULL,
 			    PRIMARY KEY (id),
 			    FOREIGN KEY (map_id) REFERENCES $table_name(id) ON DELETE CASCADE
 		    ) $charset_collate;";

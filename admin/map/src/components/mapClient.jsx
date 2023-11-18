@@ -76,11 +76,11 @@ function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
                     let content = ''
                     if (responseData.title) {
                       content +=
-                        '<strong>Title: ' + responseData.title + '</strong>'
+                        '<strong>' + responseData.title + '</strong>'
                     }
                     if (responseData?.profile_data?.description) {
                       content +=
-                        '<p>Description: ' +
+                        '<p>' +
                         limitString(
                           responseData.profile_data.description,
                           100
@@ -89,7 +89,7 @@ function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
                     }
                     if (responseData?.profile_data?.primary_url) {
                       content +=
-                        "<p>URL: <a target='_blank' rel='noreferrer' href='" +
+                        "<p>More: <a target='_blank' rel='noreferrer' href='" +
                         responseData.profile_data.primary_url +
                         "'>" +
                         responseData.profile_data.primary_url +

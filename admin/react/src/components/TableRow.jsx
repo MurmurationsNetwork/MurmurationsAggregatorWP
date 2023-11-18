@@ -34,13 +34,21 @@ function TableRow({
           type="checkbox"
           checked={isSelected}
           onChange={() => onSelect(response.id)}
-          disabled={response.data.extra_notes === 'unavailable'}
+          disabled={!response.data.is_available}
         />
       </td>
       <td className="text-center">{response.id}</td>
       <td className="text-center">{response.profile_data.name}</td>
       <td className="text-center">{response.index_data.profile_url}</td>
       <td className="text-center">{response.data.status}</td>
+      <td className="text-center">
+        {response.data.is_available
+          ? 'Available'
+          : 'Unavailable-' +
+            (response.data.unavailable_message
+              ? response.data.unavailable_message
+              : '')}
+      </td>
       <td className="text-center">
         {response.data.extra_notes === 'see updates' ? (
           <button
