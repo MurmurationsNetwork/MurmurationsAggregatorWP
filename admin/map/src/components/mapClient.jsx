@@ -36,7 +36,13 @@ function limitString(inputString, maxLength) {
   }
 }
 
-function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
+export default function MapClient({
+  profiles,
+  apiUrl,
+  map,
+  isMapLoaded,
+  height
+}) {
   let defaultCenter = []
   defaultCenter[0] = parseFloat(map.map_center_lat) || 48.864716
   defaultCenter[1] = parseFloat(map.map_center_lon) || 2.349014
@@ -121,5 +127,3 @@ MapClient.propTypes = {
   isMapLoaded: PropTypes.bool.isRequired,
   height: PropTypes.number.isRequired
 }
-
-export default MapClient

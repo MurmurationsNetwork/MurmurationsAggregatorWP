@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import { useEffect, useState } from 'react'
 import MapClient from './components/mapClient'
-import { iterateObject } from './utils/iterateObject'
+import Directory from './components/directory'
 
 export default function App(props) {
   // eslint-disable-next-line no-undef
@@ -63,24 +63,7 @@ export default function App(props) {
     <div>
       <h1 className="text-3xl">{map.name}</h1>
       {view === 'dir' ? (
-        <div>
-          <ul>
-            {profiles.map(profile => (
-              <li key={profile.id}>
-                <p>Title: {profile.name}</p>
-                {Object.entries(iterateObject(profile.profile_data)).map(
-                  ([key, value]) => {
-                    return (
-                      <p key={key}>
-                        {key}: {value}
-                      </p>
-                    )
-                  }
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
+        <Directory profiles={profiles} />
       ) : (
         <MapClient
           profiles={profiles}
