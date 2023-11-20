@@ -75,10 +75,9 @@ function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
                     }
                     let content = ''
                     if (responseData.title) {
-                      content +=
-                        '<strong>' + responseData.title + '</strong>'
+                      content += '<strong>' + responseData.title + '</strong>'
                     }
-                    if (responseData?.profile_data?.description) {
+                    if (responseData.profile_data.description) {
                       content +=
                         '<p>' +
                         limitString(
@@ -87,7 +86,7 @@ function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
                         ) +
                         '</p>'
                     }
-                    if (responseData?.profile_data?.primary_url) {
+                    if (responseData.profile_data.primary_url) {
                       content +=
                         "<p>More: <a target='_blank' rel='noreferrer' href='" +
                         responseData.profile_data.primary_url +
@@ -95,7 +94,7 @@ function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
                         responseData.profile_data.primary_url +
                         '</a></p>'
                     }
-                    if (responseData?.profile_data?.image) {
+                    if (responseData.profile_data.image) {
                       content +=
                         "<img src='" +
                         responseData.profile_data.image +

@@ -1,21 +1,14 @@
 const path = require('path')
 
-module.exports = (env, argv) => {
-  let publicPath
-  if (argv.mode === 'production') {
-    publicPath =
-      '/wp-content/plugins/MurmurationsAggregatorWP/admin/assets/map/'
-  } else {
-    publicPath = '/wp-content/plugins/murmurations-aggregator/admin/assets/map/'
-  }
-
+module.exports = () => {
   return {
     mode: 'development',
     entry: './src/index.js',
     output: {
       path: path.resolve(__dirname, '../assets/map'),
       filename: 'index.js',
-      publicPath: publicPath
+      publicPath:
+        '/wp-content/plugins/MurmurationsAggregatorWP/admin/assets/map/'
     },
     module: {
       rules: [
@@ -42,7 +35,7 @@ module.exports = (env, argv) => {
       extensions: ['.js', '.jsx']
     },
     performance: {
-      hints: false,
+      hints: false
     }
   }
 }
