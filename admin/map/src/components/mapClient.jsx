@@ -75,8 +75,7 @@ function MapClient({ profiles, apiUrl, map, isMapLoaded, height }) {
                     }
                     let content = ''
                     if (responseData.title) {
-                      content +=
-                        '<strong>' + responseData.title + '</strong>'
+                      content += '<strong>' + responseData.title + '</strong>'
                     }
                     if (responseData?.profile_data?.description) {
                       content +=
