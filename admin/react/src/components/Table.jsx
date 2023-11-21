@@ -33,6 +33,7 @@ function Table({
           <th className="text-center">Current Status</th>
           <th className="text-center">Availability</th>
           <th className="text-center">Update</th>
+          <th className="text-center">Geolocation</th>
         </tr>
       </thead>
       <tbody>

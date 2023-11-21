@@ -66,6 +66,9 @@ function TableRow({
           response.data.extra_notes
         )}
       </td>
+      <td className="text-center">
+        {response?.profile_data?.geolocation ? '📍' : ''}
+      </td>
     </tr>
   )
 }
