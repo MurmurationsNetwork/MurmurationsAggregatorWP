@@ -61,7 +61,6 @@ export default function App(props) {
 
   return (
     <div>
-      <h1 className="text-3xl">{map.name}</h1>
       {view === 'dir' ? (
         <Directory profiles={profiles} />
       ) : (
