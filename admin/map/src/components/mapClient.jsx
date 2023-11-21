@@ -18,7 +18,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: shadowUrl
 })
 
-const markerClicked = async (postId, apiUrl) => {
+const getPost = async (postId, apiUrl) => {
   try {
     return await fetch(`${apiUrl}/api/wp-nodes/${postId}`)
   } catch (error) {
@@ -26,6 +26,47 @@ const markerClicked = async (postId, apiUrl) => {
       `Error getting post, please contact the administrator, error: ${error}`
     )
   }
+}
+
+const markerClicked = async (profile, apiUrl, linkType) => {
+  // get profile data
+  const response = await getPost(profile, apiUrl)
+  const responseData = await response.json()
+  if (response.status !== 200) {
+    alert(
+      `Error getting post, please contact the administrator, error: ${responseData}`
+    )
+  }
+  let content = ''
+  const title = responseData?.title
+  if (title) {
+    content += `<strong>${title}</strong>`
+  }
+  const description = responseData?.profile_data?.description
+  if (description) {
+    content += `<p>${limitString(description, 100)}</p>`
+  }
+  const postUrl =
+    linkType === 'wp'
+      ? responseData.post_url
+      : responseData?.profile_data?.primary_url
+  if (postUrl) {
+    content += `<p>More: <a target='_blank' rel='noreferrer' href='${postUrl}'>${postUrl}</a></p>`
+  }
+  const imageUrl = responseData?.profile_data?.image
+  if (imageUrl) {
+    content += `<img src='${imageUrl}' alt='profile image' width='100' height='100' id="profile_image" />`
+
+    const img = new Image()
+    img.src = imageUrl
+    img.onerror = () => {
+      const profileImage = document.getElementById('profile_image')
+      if (profileImage) {
+        profileImage.style.display = 'none'
+      }
+    }
+  }
+  return content
 }
 
 function limitString(inputString, maxLength) {
@@ -73,51 +114,11 @@ export default function MapClient({
                     // show loading while waiting for response
                     let popupInfo = event.target.getPopup()
                     popupInfo.setContent('loading from data source...')
-
-                    // get profile data
-                    const response = await markerClicked(profile[2], apiUrl)
-                    const responseData = await response.json()
-                    if (response.status !== 200) {
-                      alert(
-                        `Error getting post, please contact the administrator, error: ${responseData}`
-                      )
-                    }
-                    let content = ''
-                    if (responseData.title) {
-                      content += '<strong>' + responseData.title + '</strong>'
-                    }
-                    if (responseData?.profile_data?.description) {
-                      content +=
-                        '<p>' +
-                        limitString(
-                          responseData.profile_data.description,
-                          100
-                        ) +
-                        '</p>'
-                    }
-                    if (linkType === 'wp') {
-                      content +=
-                        "<p>More: <a target='_blank' rel='noreferrer' href='" +
-                        responseData.post_url +
-                        "'>" +
-                        responseData.post_url +
-                        '</a></p>'
-                    } else {
-                      if (responseData?.profile_data?.primary_url) {
-                        content +=
-                          "<p>More: <a target='_blank' rel='noreferrer' href='" +
-                          responseData.profile_data.primary_url +
-                          "'>" +
-                          responseData.profile_data.primary_url +
-                          '</a></p>'
-                      }
-                    }
-                    if (responseData?.profile_data?.image) {
-                      content +=
-                        "<img src='" +
-                        responseData.profile_data.image +
-                        "' alt='profile image' width='100' height='100' onerror='this.style.display = \"none\"' />"
-                    }
+                    const content = await markerClicked(
+                      profile[2],
+                      apiUrl,
+                      linkType
+                    )
                     popupInfo.setContent(content)
                   }
                 }}
