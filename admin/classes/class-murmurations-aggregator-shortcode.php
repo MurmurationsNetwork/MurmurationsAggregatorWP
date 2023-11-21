@@ -12,7 +12,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 				return '<div class="text-center font-bold">Please provide a tag_slug in your shortcode.</div>';
 			}
 
-			return '<div id="wp-map-plugin-page-root" data-tag-slug="' . esc_attr( $atts['tag_slug'] ) . '" data-view="' . esc_attr( $atts['view'] ) . '" data-height="' . esc_attr( $atts['height'] ) . '" data-link-type="' . esc_attr( $atts['link_type'] ) . '"></div>';
+			return '<div id="wp-map-plugin-page-root" data-tag-slug="' . esc_attr( $atts['tag_slug'] ) . '" data-view="' . esc_attr( $atts['view'] ) . '" data-height="' . esc_attr( $atts['height'] ) . '" data-link-type="' . esc_attr( $atts['link_type'] ) . '" data-image-height="' . esc_attr( $atts['image_height'] ) . '" data-image-width="' . esc_attr( $atts['image_width'] ) . '"></div>';
 		}
 
 		public function enqueue_assets(): void {
