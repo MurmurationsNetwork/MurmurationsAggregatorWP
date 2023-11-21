@@ -2,7 +2,7 @@ import MapSettings from './MapSettings'
 import DataSource from './DataSource'
 import ProgressBar from './ProgressBar'
 import { createId } from '@paralleldrive/cuid2'
-import { saveCustomMap, saveCustomNodes } from '../utils/api'
+import {getProxyData, saveCustomMap, saveCustomNodes} from '../utils/api'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
 
@@ -123,7 +123,7 @@ export default function CreateData({
           let fetchProfileError = ''
           if (profile.profile_url) {
             try {
-              const response = await fetch(profile.profile_url)
+              const response = await getProxyData(profile.profile_url)
               if (response.ok) {
                 profile_data = await response.json()
               } else {

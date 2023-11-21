@@ -199,6 +199,19 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 					},
 				),
 			);
+
+			// API proxy
+			register_rest_route(
+				$backend_namespace,
+				'/proxy',
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_proxy' ),
+					'permission_callback' => function () {
+						return current_user_can( 'activate_plugins' );
+					},
+				),
+			);
 		}
 
 		public function get_map_nodes( $request ): WP_REST_Response|WP_Error {
@@ -233,7 +246,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 					$map[] = [
 						'id'           => get_the_ID(),
 						'name'         => get_the_title(),
-						'post_url'  => get_permalink(),
+						'post_url'     => get_permalink(),
 						'profile_data' => $profile_data,
 					];
 				} else {
@@ -775,6 +788,27 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			);
 
 			return rest_ensure_response( $response );
+		}
+
+		public function get_proxy( $request ): WP_REST_Response|WP_Error {
+			$nonce_error = $this->verify_nonce( $request );
+			if ( is_wp_error( $nonce_error ) ) {
+				return $nonce_error;
+			}
+
+			$url = $request->get_param( 'url' );
+
+			if ( ! isset( $url ) ) {
+				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
+			}
+
+			$response = wp_remote_get( $url );
+
+			if ( is_wp_error( $response ) ) {
+				return new WP_Error( 'proxy_failed', 'Failed to get data from the url.', array( 'status' => 500 ) );
+			}
+
+			return rest_ensure_response( json_decode( $response['body'] ) );
 		}
 
 		private function verify_nonce( $request ): WP_Error|bool {

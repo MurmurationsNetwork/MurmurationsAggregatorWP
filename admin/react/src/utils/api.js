@@ -168,6 +168,11 @@ export const deleteCustomNodes = async profile => {
   )
 }
 
+// Proxy Routes
+export const getProxyData = async url => {
+  return await fetch(`${apiUrl}/proxy?url=${url}&_wpnonce=${wp_nonce}`)
+}
+
 const fetchRequest = async (url, method, body) => {
   try {
     return await fetch(url, {
