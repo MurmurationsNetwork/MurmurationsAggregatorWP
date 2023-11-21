@@ -6,32 +6,8 @@ const view = getAttribute('data-view', 'map')
 const height = getAttribute('data-height', 500, 'number')
 const linkType = getAttribute('data-link-type', 'primary')
 
-const defaultImageSize = 30
-const imageHeight = getAttribute(
-  'data-image-height',
-  defaultImageSize,
-  'number'
-)
-const imageWidth = getAttribute('data-image-width', defaultImageSize, 'number')
-// if the user has set both height and width, we'll use the height
-let imageSetSide = 'width'
-let imageSize = defaultImageSize
-if (imageHeight !== defaultImageSize) {
-  imageSetSide = 'height'
-  imageSize = imageHeight
-} else if (imageWidth !== defaultImageSize) {
-  imageSize = imageWidth
-}
-
 ReactDOM.createRoot(document.querySelector('#wp-map-plugin-page-root')).render(
-  <App
-    tagSlug={tagSlug}
-    view={view}
-    height={height}
-    linkType={linkType}
-    imageSize={imageSize}
-    imageSetSide={imageSetSide}
-  />
+  <App tagSlug={tagSlug} view={view} height={height} linkType={linkType} />
 )
 
 function getAttribute(name, defaultValue, type = 'string') {

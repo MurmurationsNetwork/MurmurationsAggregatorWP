@@ -1,19 +1,7 @@
 import { iterateObject } from '../utils/iterateObject'
 import PropTypes from 'prop-types'
 
-export default function Directory({
-  profiles,
-  linkType,
-  imageSize,
-  imageSetSide
-}) {
-  let imageStyle
-  if (imageSetSide === 'width') {
-    imageStyle = { width: imageSize + 'vw', height: 'auto' }
-  } else {
-    imageStyle = { width: 'auto', height: imageSize + 'vh' }
-  }
-
+export default function Directory({ profiles, linkType }) {
   return (
     <div className="max-w-screen-md mx-auto">
       <ul className="divide-y divide-gray-300">
@@ -49,8 +37,7 @@ export default function Directory({
               <img
                 src={profile.profile_data.image}
                 alt="Profile Image"
-                className="mt-4"
-                style={imageStyle}
+                className="mt-4 w-52 h-52"
                 onError={e => {
                   e.target.style.display = 'none'
                 }}
@@ -65,7 +52,5 @@ export default function Directory({
 
 Directory.propTypes = {
   profiles: PropTypes.array.isRequired,
-  linkType: PropTypes.string.isRequired,
-  imageSize: PropTypes.number.isRequired,
-  imageSetSide: PropTypes.string.isRequired
+  linkType: PropTypes.string.isRequired
 }

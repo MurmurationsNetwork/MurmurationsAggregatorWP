@@ -42,21 +42,12 @@ export default function MapClient({
   map,
   isMapLoaded,
   height,
-  linkType,
-  imageSize,
-  imageSetSide
+  linkType
 }) {
   let defaultCenter = []
   defaultCenter[0] = parseFloat(map.map_center_lat) || 48.864716
   defaultCenter[1] = parseFloat(map.map_center_lon) || 2.349014
   let zoom = parseInt(map.map_scale) || 5
-
-  let imageStyle
-  if (imageSetSide === 'width') {
-    imageStyle = 'width: ' + imageSize + 'vw; height: auto;'
-  } else {
-    imageStyle = 'width: auto; height: ' + imageSize + 'vh;'
-  }
 
   return (
     <div id="map">
@@ -123,9 +114,7 @@ export default function MapClient({
                       content +=
                         "<img src='" +
                         responseData.profile_data.image +
-                        "' alt='profile image' style='" +
-                        imageStyle +
-                        "'  onerror='this.style.display = \"none\"' />"
+                        "' alt='profile image' width='100' height='100' onerror='this.style.display = \"none\"' />"
                     }
                     popupInfo.setContent(content)
                   }
@@ -147,7 +136,5 @@ MapClient.propTypes = {
   map: PropTypes.object.isRequired,
   isMapLoaded: PropTypes.bool.isRequired,
   height: PropTypes.number.isRequired,
-  linkType: PropTypes.string.isRequired,
-  imageSize: PropTypes.number.isRequired,
-  imageSetSide: PropTypes.string.isRequired
+  linkType: PropTypes.string.isRequired
 }
