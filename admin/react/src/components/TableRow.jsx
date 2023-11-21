@@ -39,7 +39,7 @@ function TableRow({
       </td>
       <td className="text-center">{response.id}</td>
       <td className="text-center">{response.profile_data.name}</td>
-      <td className="text-center">{response.index_data.profile_url}</td>
+      <td className="text-center"><a href={response.index_data.profile_url}  target="_blank" rel="noreferrer">{response.index_data.profile_url}</a></td>
       <td className="text-center">{response.data.status}</td>
       <td className="text-center">
         {response.data.is_available
