@@ -41,7 +41,8 @@ export default function MapClient({
   apiUrl,
   map,
   isMapLoaded,
-  height
+  height,
+  linkType
 }) {
   let defaultCenter = []
   defaultCenter[0] = parseFloat(map.map_center_lat) || 48.864716
@@ -92,13 +93,22 @@ export default function MapClient({
                         ) +
                         '</p>'
                     }
-                    if (responseData?.profile_data?.primary_url) {
+                    if (linkType === 'wp') {
                       content +=
                         "<p>More: <a target='_blank' rel='noreferrer' href='" +
-                        responseData.profile_data.primary_url +
+                        responseData.post_url +
                         "'>" +
-                        responseData.profile_data.primary_url +
+                        responseData.post_url +
                         '</a></p>'
+                    } else {
+                      if (responseData?.profile_data?.primary_url) {
+                        content +=
+                          "<p>More: <a target='_blank' rel='noreferrer' href='" +
+                          responseData.profile_data.primary_url +
+                          "'>" +
+                          responseData.profile_data.primary_url +
+                          '</a></p>'
+                      }
                     }
                     if (responseData?.profile_data?.image) {
                       content +=
@@ -125,5 +135,6 @@ MapClient.propTypes = {
   apiUrl: PropTypes.string.isRequired,
   map: PropTypes.object.isRequired,
   isMapLoaded: PropTypes.bool.isRequired,
-  height: PropTypes.number.isRequired
+  height: PropTypes.number.isRequired,
+  linkType: PropTypes.string.isRequired
 }

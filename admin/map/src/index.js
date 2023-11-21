@@ -25,6 +25,10 @@ if (isNaN(heightNumber)) {
   height = heightNumber
 }
 
+let linkType = document
+  .querySelector('#wp-map-plugin-page-root')
+  .getAttribute('data-link-type')
+
 ReactDOM.createRoot(document.querySelector('#wp-map-plugin-page-root')).render(
-  <App tagSlug={tagSlug} view={view} height={height} />
+  <App tagSlug={tagSlug} view={view} height={height} linkType={linkType} />
 )

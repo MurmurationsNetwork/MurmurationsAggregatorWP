@@ -233,6 +233,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 					$map[] = [
 						'id'           => get_the_ID(),
 						'name'         => get_the_title(),
+						'post_url'  => get_permalink(),
 						'profile_data' => $profile_data,
 					];
 				} else {
