@@ -38,6 +38,9 @@ if ( ! class_exists( 'MurmurationsAggregator' ) ) {
 	define( 'MURMURATIONS_AGGREGATOR_DIR', __DIR__ );
 	define( 'MURMURATIONS_AGGREGATOR_TABLE', 'murmurations_maps' );
 	define( 'MURMURATIONS_AGGREGATOR_NODE_TABLE', 'murmurations_nodes' );
+	define( 'MURMURATIONS_AGGREGATOR_POST_TYPE', 'murmurations_node' );
+	define( 'MURMURATIONS_AGGREGATOR_TAG_TAXONOMY', 'murmurations_node_tags' );
+	define( 'MURMURATIONS_AGGREGATOR_CATEGORY_TAXONOMY', 'murmurations_node_categories' );
 
 	class MurmurationsAggregator {
 		public function __construct() {

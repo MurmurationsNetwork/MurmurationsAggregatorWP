@@ -19,14 +19,14 @@ function create_murmurations_node_post_type(): void {
 		'map_meta_cap'    => true,
 	);
 
-	register_post_type( 'murmurations_node', $args );
+	register_post_type( MURMURATIONS_AGGREGATOR_POST_TYPE, $args );
 }
 
 function create_murmurations_node_taxonomy(): void {
 	// Add custom tags
 	register_taxonomy(
-		'murmurations_node_tags',
-		'murmurations_node',
+		MURMURATIONS_AGGREGATOR_TAG_TAXONOMY,
+		MURMURATIONS_AGGREGATOR_POST_TYPE,
 		array(
 			'label'             => 'Murmurations Node Tags',
 			'hierarchical'      => false,
@@ -39,8 +39,8 @@ function create_murmurations_node_taxonomy(): void {
 
 	// Add custom categories
 	register_taxonomy(
-		'murmurations_node_categories',
-		'murmurations_node',
+		MURMURATIONS_AGGREGATOR_CATEGORY_TAXONOMY,
+		MURMURATIONS_AGGREGATOR_POST_TYPE,
 		array(
 			'label'             => 'Murmurations Node Categories',
 			'hierarchical'      => true,
