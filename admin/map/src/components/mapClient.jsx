@@ -42,6 +42,7 @@ export default function MapClient({
   map,
   isMapLoaded,
   height,
+  width,
   linkType
 }) {
   let defaultCenter = []
@@ -53,7 +54,8 @@ export default function MapClient({
     <div id="map">
       {isMapLoaded ? (
         <MapContainer
-          style={{ height: `${height}vh`, width: '100%' }}
+          style={{ height: `${height}vh`, width: `${width}vw` }}
+          className="max-w-full"
           center={defaultCenter}
           zoom={zoom}
         >
@@ -136,5 +138,6 @@ MapClient.propTypes = {
   map: PropTypes.object.isRequired,
   isMapLoaded: PropTypes.bool.isRequired,
   height: PropTypes.number.isRequired,
+  width: PropTypes.number.isRequired,
   linkType: PropTypes.string.isRequired
 }

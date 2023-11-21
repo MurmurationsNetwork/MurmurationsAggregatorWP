@@ -3,11 +3,18 @@ import App from './app'
 
 const tagSlug = getAttribute('data-tag-slug', '')
 const view = getAttribute('data-view', 'map')
-const height = getAttribute('data-height', 500, 'number')
+const height = getAttribute('data-height', 50, 'number')
+const width = getAttribute('data-width', 75, 'number')
 const linkType = getAttribute('data-link-type', 'primary')
 
 ReactDOM.createRoot(document.querySelector('#wp-map-plugin-page-root')).render(
-  <App tagSlug={tagSlug} view={view} height={height} linkType={linkType} />
+  <App
+    tagSlug={tagSlug}
+    view={view}
+    height={height}
+    width={width}
+    linkType={linkType}
+  />
 )
 
 function getAttribute(name, defaultValue, type = 'string') {
