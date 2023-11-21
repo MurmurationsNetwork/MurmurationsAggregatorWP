@@ -418,6 +418,7 @@ export default function MapList({
       alert(`Delete map error: ${error}`)
     } finally {
       setProfileList([])
+      setFormData(formDefaults)
       setIsLoading(false)
       setMapIdToDelete(null)
       await getMaps()
