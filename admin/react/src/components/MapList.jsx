@@ -4,7 +4,8 @@ import {
   deleteWpNodes,
   getCustomMap,
   getCustomNodes,
-  getCustomUnavailableNodes, getProxyData,
+  getCustomUnavailableNodes,
+  getProxyData,
   saveCustomNodes,
   updateCustomMapLastUpdated
 } from '../utils/api'

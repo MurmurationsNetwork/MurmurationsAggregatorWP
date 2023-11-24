@@ -7,7 +7,8 @@ module.exports = () => {
     output: {
       path: path.resolve(__dirname, '../assets/react'),
       filename: 'index.js',
-      publicPath: '/wp-content/plugins/MurmurationsAggregatorWP/admin/assets/react/'
+      publicPath:
+        '/wp-content/plugins/MurmurationsAggregatorWP/admin/assets/react/'
     },
     module: {
       rules: [

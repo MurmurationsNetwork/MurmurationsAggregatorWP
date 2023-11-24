@@ -2,7 +2,7 @@ import MapSettings from './MapSettings'
 import DataSource from './DataSource'
 import ProgressBar from './ProgressBar'
 import { createId } from '@paralleldrive/cuid2'
-import {getProxyData, saveCustomMap, saveCustomNodes} from '../utils/api'
+import { getProxyData, saveCustomMap, saveCustomNodes } from '../utils/api'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
 
