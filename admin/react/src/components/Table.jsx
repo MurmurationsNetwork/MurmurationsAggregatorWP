@@ -28,12 +28,12 @@ function Table({
             />
           </th>
           <th className="text-center">ID</th>
+          <th className="text-center"></th>
           <th className="text-center">Name</th>
           <th className="text-center">Profile URL</th>
           <th className="text-center">Current Status</th>
           <th className="text-center">Availability</th>
-          <th className="text-center">Update</th>
-          <th className="text-center">Geolocation</th>
+          <th className="text-center"></th>
         </tr>
       </thead>
       <tbody>

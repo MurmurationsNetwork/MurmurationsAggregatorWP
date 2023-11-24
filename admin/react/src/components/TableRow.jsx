@@ -38,6 +38,9 @@ function TableRow({
         />
       </td>
       <td className="text-center">{response.id}</td>
+      <td className="text-center">
+        {response?.profile_data?.geolocation ? '📍' : ''}
+      </td>
       <td className="text-center">{response.profile_data.name}</td>
       <td className="text-center underline">
         <a
@@ -73,9 +76,6 @@ function TableRow({
         ) : (
           response.data.extra_notes
         )}
-      </td>
-      <td className="text-center">
-        {response?.profile_data?.geolocation ? '📍' : ''}
       </td>
     </tr>
   )
