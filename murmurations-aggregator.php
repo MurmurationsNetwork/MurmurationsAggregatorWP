@@ -33,7 +33,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! class_exists( 'MurmurationsAggregator' ) ) {
-	define( 'MURMURATIONS_AGGREGATOR_VERSION', '1.0.0-beta.1' );
+	define( 'MURMURATIONS_AGGREGATOR_VERSION', '1.0.0-beta.2' );
 	define( 'MURMURATIONS_AGGREGATOR_URL', plugin_dir_url( __FILE__ ) );
 	define( 'MURMURATIONS_AGGREGATOR_DIR', __DIR__ );
 	define( 'MURMURATIONS_AGGREGATOR_TABLE', 'murmurations_maps' );
