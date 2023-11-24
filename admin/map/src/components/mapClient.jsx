@@ -102,7 +102,11 @@ export default function MapClient({
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+            attribution='&copy; <a target="_blank" rel="noreferrer" href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+          />
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='Data powered by <a target="_blank" rel="noreferrer" href="https://murmurations.network">Murmurations</a>'
           />
           <MarkerClusterGroup>
             {profiles.map(profile => (
