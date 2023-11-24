@@ -804,6 +804,10 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			$response = wp_remote_get( $url );
 
+			if ( wp_remote_retrieve_response_code( $response ) === 404 ) {
+				return new WP_Error( 'proxy_failed', 'Failed to get data from the url.', array( 'status' => 404 ) );
+			}
+
 			if ( is_wp_error( $response ) ) {
 				return new WP_Error( 'proxy_failed', 'Failed to get data from the url.', array( 'status' => 500 ) );
 			}
