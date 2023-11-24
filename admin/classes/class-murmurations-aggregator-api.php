@@ -802,7 +802,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
 			}
 
-			$response = wp_remote_get( $url );
+			$response = wp_remote_get( $url, array( 'sslverify' => false ) );
 
 			if ( wp_remote_retrieve_response_code( $response ) === 404 ) {
 				return new WP_Error( 'proxy_failed', 'Failed to get data from the url.', array( 'status' => 404 ) );
