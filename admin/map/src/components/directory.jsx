@@ -7,6 +7,16 @@ export default function Directory({ profiles, linkType }) {
       <ul className="divide-y divide-gray-300">
         {profiles.map(profile => (
           <li key={profile.id} className="py-4">
+            {profile.profile_data.image && (
+              <img
+                src={profile.profile_data.image}
+                alt="Profile Image"
+                className="mb-4 max-h-16"
+                onError={e => {
+                  e.target.style.display = 'none'
+                }}
+              />
+            )}
             <p className="text-lg font-bold mb-2">Title: {profile.name}</p>
             <div className="space-y-2">
               <p className="text-sm truncate">
@@ -33,16 +43,6 @@ export default function Directory({ profiles, linkType }) {
                 )
               )}
             </div>
-            {profile.profile_data.image && (
-              <img
-                src={profile.profile_data.image}
-                alt="Profile Image"
-                className="mt-4 w-52 h-52"
-                onError={e => {
-                  e.target.style.display = 'none'
-                }}
-              />
-            )}
           </li>
         ))}
       </ul>
