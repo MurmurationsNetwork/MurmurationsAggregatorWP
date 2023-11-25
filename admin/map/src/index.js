@@ -1,30 +1,37 @@
 import ReactDOM from 'react-dom/client'
 import App from './app'
 
-const tagSlug = document
-  .querySelector('#wp-map-plugin-page-root')
-  .getAttribute('data-tag-slug')
-
-let view = document
-  .querySelector('#wp-map-plugin-page-root')
-  .getAttribute('data-view')
-
-if (view !== 'map' && view !== 'dir') {
-  view = 'map'
-}
-
-let height = document
-  .querySelector('#wp-map-plugin-page-root')
-  .getAttribute('data-height')
-
-let heightNumber = parseInt(height)
-
-if (isNaN(heightNumber)) {
-  height = 500
-} else {
-  height = heightNumber
-}
+const tagSlug = getAttribute('data-tag-slug', '')
+const view = getAttribute('data-view', 'map')
+const height = getAttribute('data-height', 50, 'number')
+const width = getAttribute('data-width', 75, 'number')
+const linkType = getAttribute('data-link-type', 'primary')
 
 ReactDOM.createRoot(document.querySelector('#wp-map-plugin-page-root')).render(
-  <App tagSlug={tagSlug} view={view} height={height} />
+  <App
+    tagSlug={tagSlug}
+    view={view}
+    height={height}
+    width={width}
+    linkType={linkType}
+  />
 )
+
+function getAttribute(name, defaultValue, type = 'string') {
+  const value = document
+    .querySelector('#wp-map-plugin-page-root')
+    .getAttribute(name)
+
+  if (type === 'number') {
+    const number = parseInt(value)
+    if (isNaN(number)) {
+      return defaultValue
+    }
+    return number
+  }
+
+  if (value) {
+    return value
+  }
+  return defaultValue
+}

@@ -5,6 +5,7 @@ import {
   getCustomMap,
   getCustomNodes,
   getCustomUnavailableNodes,
+  getProxyData,
   saveCustomNodes,
   updateCustomMapLastUpdated
 } from '../utils/api'
@@ -179,7 +180,7 @@ export default function MapList({
           let fetchProfileError = ''
           if (profile.profile_url) {
             try {
-              const response = await fetch(profile.profile_url)
+              const response = await getProxyData(profile.profile_url)
               if (response.ok) {
                 profile_data = await response.json()
               } else {
@@ -271,7 +272,7 @@ export default function MapList({
           let profile_data = ''
           if (profile.profile_url) {
             try {
-              const response = await fetch(profile.profile_url)
+              const response = await getProxyData(profile.profile_url)
               if (response.ok) {
                 profile_data = await response.json()
               }
@@ -418,6 +419,7 @@ export default function MapList({
       alert(`Delete map error: ${error}`)
     } finally {
       setProfileList([])
+      setFormData(formDefaults)
       setIsLoading(false)
       setMapIdToDelete(null)
       await getMaps()

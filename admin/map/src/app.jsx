@@ -1,14 +1,14 @@
 import PropTypes from 'prop-types'
 import { useEffect, useState } from 'react'
 import MapClient from './components/mapClient'
-import { iterateObject } from './utils/iterateObject'
+import Directory from './components/directory'
 
 export default function App(props) {
   // eslint-disable-next-line no-undef
   const wordpressUrl = murmurations_aggregator.wordpress_url
   const apiUrl = `${wordpressUrl}/wp-json/murmurations-aggregator/v1`
 
-  const { tagSlug, view, height } = props
+  const { tagSlug, view, height, width, linkType } = props
 
   const [profiles, setProfiles] = useState([])
   const [map, setMap] = useState({})
@@ -61,26 +61,8 @@ export default function App(props) {
 
   return (
     <div>
-      <h1 className="text-3xl">{map.name}</h1>
       {view === 'dir' ? (
-        <div>
-          <ul>
-            {profiles.map(profile => (
-              <li key={profile.id}>
-                <p>Title: {profile.name}</p>
-                {Object.entries(iterateObject(profile.profile_data)).map(
-                  ([key, value]) => {
-                    return (
-                      <p key={key}>
-                        {key}: {value}
-                      </p>
-                    )
-                  }
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
+        <Directory profiles={profiles} linkType={linkType} />
       ) : (
         <MapClient
           profiles={profiles}
@@ -88,6 +70,8 @@ export default function App(props) {
           map={map}
           isMapLoaded={isMapLoaded}
           height={height}
+          width={width}
+          linkType={linkType}
         />
       )}
     </div>
@@ -97,5 +81,7 @@ export default function App(props) {
 App.propTypes = {
   tagSlug: PropTypes.string.isRequired,
   view: PropTypes.string.isRequired,
-  height: PropTypes.number.isRequired
+  height: PropTypes.number.isRequired,
+  width: PropTypes.number.isRequired,
+  linkType: PropTypes.string.isRequired
 }
