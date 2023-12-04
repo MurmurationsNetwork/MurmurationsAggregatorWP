@@ -472,7 +472,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			$result = wp_update_post( array(
 				'ID'         => $post_id,
-				'post_title' => $data['profile_data']['name'],
+				'post_title' => isset($data['profile_data']['name']) && !empty($data['profile_data']['name']) ?: $data['profile_data']['title'],
 			) );
 
 			if ( ! $result ) {
@@ -519,7 +519,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			// create a post
 			$post_id = wp_insert_post( array(
-				'post_title'  => $data['profile_data']['name'],
+				'post_title'  => isset($data['profile_data']['name']) && !empty($data['profile_data']['name']) ?: $data['profile_data']['title'],
 				'post_type'   => 'murmurations_node',
 				'post_status' => 'publish',
 			) );

@@ -41,7 +41,11 @@ function TableRow({
       <td className="text-center">
         {response?.profile_data?.geolocation ? '📍' : ''}
       </td>
-      <td className="text-center">{response.profile_data.name}</td>
+      <td className="text-center">
+        {response.profile_data.name
+          ? response.profile_data.name
+          : response.profile_data.title}
+      </td>
       <td className="text-center underline">
         <a
           href={response.index_data.profile_url}
