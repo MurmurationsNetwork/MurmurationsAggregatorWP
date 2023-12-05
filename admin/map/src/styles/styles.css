@@ -7,3 +7,9 @@
     font-family: system-ui, sans-serif;
   }
 }
+
+@layer components {
+  .dir-item {
+    @apply list-none;
+  }
+}
