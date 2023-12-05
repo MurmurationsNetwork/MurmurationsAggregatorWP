@@ -84,7 +84,7 @@ export default function App() {
   }
 
   return (
-    <div>
+    <div className="bg-gray-50 px-4 py-2">
       <h1 className="text-3xl">Murmurations Collaborative Map Builder</h1>
       <div className="flex">
         <div className="w-1/2 mt-4 p-4">
