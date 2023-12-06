@@ -11,6 +11,7 @@ import {
 } from '../utils/api'
 import PropTypes from 'prop-types'
 import { formDefaults } from '../data/formDefaults'
+import ProgressBar from './ProgressBar'
 import { useState } from 'react'
 
 export default function MapList({
@@ -25,6 +26,7 @@ export default function MapList({
   setProfileList,
   setCurrentTime,
   setProgress,
+  progress,
   setDeletedProfiles
 }) {
   const [isPopupOpen, setIsPopupOpen] = useState(false)
@@ -307,7 +309,9 @@ export default function MapList({
       if (deletedProfiles.length === 0 && dataWithIds.length === 0) {
         setProfileList([])
         setIsMapSelected(false)
-        alert(`No update profiles found.`)
+        setIsRetrieving(false)
+        setIsLoading(false)
+        alert(`No updated profiles found.`)
         return
       }
 
@@ -425,113 +429,122 @@ export default function MapList({
     } catch (error) {
       alert(`Delete map error: ${error}`)
     } finally {
-      setProfileList([])
-      setFormData(formDefaults)
-      setIsLoading(false)
-      setMapIdToDelete(null)
-      await getMaps()
+      await getMaps().then(() => {
+        setProfileList([])
+        setFormData(formDefaults)
+        setIsLoading(false)
+        setMapIdToDelete(null)
+      })
     }
   }
 
   const handleDeleteCancel = () => {
     setIsPopupOpen(false)
     setMapIdToDelete(null)
+    window.scrollTo(0, 0)
   }
 
   return (
     <div>
-      <button
-        className={`mx-2 max-w-fit rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
-          isLoading ? 'opacity-50 cursor-not-allowed' : ''
-        }`}
-        onClick={() => handleCreate()}
-      >
-        Create Map
-      </button>
-      {maps.length > 0 ? (
-        maps.map((map, index) => (
-          <div className="bg-white p-4 rounded shadow-md mt-4" key={index}>
-            <h2 className="text-xl font-semibold mb-2">{map.name}</h2>
-            <p>
-              <strong>Query URL:</strong>{' '}
-              <a
-                className="text-blue-500 underline"
-                href={map.index_url + map.query_url}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {map.index_url + map.query_url}
-              </a>
+      {!isLoading && (
+        <div>
+          <button
+            className={`mx-2 mb-4 max-w-fit rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
+              isLoading ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+            onClick={() => handleCreate()}
+          >
+            Create Map
+          </button>
+          {maps.length > 0 ? (
+            maps.map((map, index) => (
+              <div className="bg-white p-4 rounded shadow-md mt-4" key={index}>
+                <h2 className="text-xl font-semibold mb-2">{map.name}</h2>
+                <p>
+                  <strong>Query URL:</strong>{' '}
+                  <a
+                    className="text-blue-500 underline"
+                    href={map.index_url + map.query_url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {map.index_url + map.query_url}
+                  </a>
+                </p>
+                <p>
+                  <strong>Shortcode:</strong> [murmurations_map tag_slug=&quot;
+                  {map.tag_slug}&quot; height=&quot;50&quot;
+                  view=&quot;map&quot;]
+                </p>
+                <p>
+                  <strong>Map Center:</strong>{' '}
+                  {map.map_center_lon + ',' + map.map_center_lat}
+                </p>
+                <p>
+                  <strong>Map Scale:</strong> {map.map_scale}
+                </p>
+                <p>
+                  <strong>Created At:</strong> {map.created_at}
+                </p>
+                <p>
+                  <strong>Updated At:</strong> {map.updated_at}
+                </p>
+                <div className="box-border flex flex-wrap xl:min-w-max flex-row mt-4 justify-between">
+                  <button
+                    className={`my-1 mx-2 max-w-fit rounded-full bg-yellow-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
+                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    onClick={() =>
+                      handleRetrieve(
+                        map.id,
+                        map.index_url + map.query_url,
+                        map.tag_slug
+                      )
+                    }
+                  >
+                    Update Nodes
+                  </button>
+                  <button
+                    className={`my-1 mx-2 max-w-fit rounded-full bg-yellow-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
+                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    onClick={() => handleEditNodes(map.id)}
+                  >
+                    Manage Nodes
+                  </button>
+                  <button
+                    className={`my-1 mx-2 max-w-fit rounded-full bg-yellow-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
+                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    onClick={() => handleEditMap(map.id)}
+                  >
+                    Edit Map
+                  </button>
+                  <button
+                    className={`my-1 mx-2 max-w-fit rounded-full bg-red-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-red-400 disabled:opacity-75 ${
+                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    onClick={() => handleDelete(map.id)}
+                  >
+                    Delete Map
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="mt-4 mx-4 text-lg">
+              No maps have been created. Create your first map or directory by
+              clicking the Create Map button above.
             </p>
-            <p>
-              <strong>Shortcode:</strong> [murmurations_map tag_slug=&quot;
-              {map.tag_slug}&quot; height=&quot;50&quot; view=&quot;map&quot;]
-            </p>
-            <p>
-              <strong>Map Center:</strong>{' '}
-              {map.map_center_lon + ',' + map.map_center_lat}
-            </p>
-            <p>
-              <strong>Map Scale:</strong> {map.map_scale}
-            </p>
-            <p>
-              <strong>Created At:</strong> {map.created_at}
-            </p>
-            <p>
-              <strong>Updated At:</strong> {map.updated_at}
-            </p>
-            <div className="box-border flex flex-wrap xl:min-w-max flex-row mt-4 justify-between">
-              <button
-                className={`my-1 mx-2 max-w-fit rounded-full bg-yellow-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
-                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-                onClick={() =>
-                  handleRetrieve(
-                    map.id,
-                    map.index_url + map.query_url,
-                    map.tag_slug
-                  )
-                }
-              >
-                Update Nodes
-              </button>
-              <button
-                className={`my-1 mx-2 max-w-fit rounded-full bg-yellow-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
-                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-                onClick={() => handleEditNodes(map.id)}
-              >
-                Manage Nodes
-              </button>
-              <button
-                className={`my-1 mx-2 max-w-fit rounded-full bg-yellow-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
-                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-                onClick={() => handleEditMap(map.id)}
-              >
-                Edit Map
-              </button>
-              <button
-                className={`my-1 mx-2 max-w-fit rounded-full bg-red-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-red-400 disabled:opacity-75 ${
-                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-                onClick={() => handleDelete(map.id)}
-              >
-                Delete Map
-              </button>
-            </div>
-          </div>
-        ))
-      ) : (
-        <p className="mt-4 mx-4 text-lg">
-          No maps have been created. Create your first map or directory by
-          clicking the Create Map button above.
-        </p>
+          )}
+        </div>
       )}
+
       {isLoading && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-yellow-100 p-8 rounded shadow-xl">
+          <div className="bg-yellow-100 p-8 rounded shadow-xl w-1/2">
             <p className="text-xl">Loading...</p>
+            {<ProgressBar progress={progress} />}
           </div>
         </div>
       )}
@@ -574,5 +587,6 @@ MapList.propTypes = {
   setProfileList: PropTypes.func.isRequired,
   setCurrentTime: PropTypes.func.isRequired,
   setProgress: PropTypes.func.isRequired,
+  progress: PropTypes.number.isRequired,
   setDeletedProfiles: PropTypes.func.isRequired
 }

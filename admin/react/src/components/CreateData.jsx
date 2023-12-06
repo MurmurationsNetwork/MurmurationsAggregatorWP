@@ -31,6 +31,7 @@ export default function CreateData({
   const [selectedCountry, setSelectedCountry] = useState([])
 
   const handleSubmit = async event => {
+    window.scrollTo(0, 0)
     event.preventDefault()
     setIsLoading(true)
     setIsRetrieving(false)
@@ -199,6 +200,7 @@ export default function CreateData({
 
   const handleCancel = () => {
     setIsMapSelected(false)
+    window.scrollTo(0, 0)
   }
 
   return (

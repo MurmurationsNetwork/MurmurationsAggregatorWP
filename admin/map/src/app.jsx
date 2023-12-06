@@ -26,7 +26,7 @@ export default function App(props) {
       }
     }
 
-    fetchData().then(() => console.log('fetched data'))
+    fetchData()
   }, [])
 
   const getProfiles = async () => {

@@ -45,6 +45,7 @@ export default function EditData({
   const handleCancel = () => {
     setIsMapSelected(false)
     setIsEdit(false)
+    window.scrollTo(0, 0)
   }
 
   return (

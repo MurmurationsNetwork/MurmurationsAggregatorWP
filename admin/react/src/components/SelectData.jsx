@@ -310,6 +310,7 @@ export default function SelectData({
 
   const handleCancel = () => {
     setIsMapSelected(false)
+    window.scrollTo(0, 0)
   }
 
   return (

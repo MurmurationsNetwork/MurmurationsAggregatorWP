@@ -37,9 +37,7 @@ export default function App() {
   const [modifiedJson, setModifiedJson] = useState({})
 
   useEffect(() => {
-    getMaps().then(() => {
-      console.log('maps fetched')
-    })
+    getMaps()
   }, [])
 
   const getMaps = async () => {
@@ -154,6 +152,7 @@ export default function App() {
               isLoading={isLoading}
               setCurrentTime={setCurrentTime}
               setProgress={setProgress}
+              progress={progress}
               setDeletedProfiles={setDeletedProfiles}
             />
           </div>
