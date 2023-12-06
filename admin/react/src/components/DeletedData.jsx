@@ -10,7 +10,7 @@ export default function DeletedData({ deletedProfiles }) {
             <thead>
               <tr>
                 <th className="px-4 py-2">id</th>
-                <th className="px-4 py-2">Name</th>
+                <th className="px-4 py-2">Name/Title</th>
                 <th className="px-4 py-2">Description</th>
                 <th className="px-4 py-2">URL</th>
               </tr>
@@ -20,7 +20,9 @@ export default function DeletedData({ deletedProfiles }) {
                 <tr key={index}>
                   <td className="border px-4 py-2">{index + 1}</td>
                   <td className="border px-4 py-2">
-                    {profile.profile_data.name}
+                    {profile.profile_data.name
+                      ? profile.profile_data.name
+                      : profile.profile_data.title}
                   </td>
                   <td className="border px-4 py-2">
                     {profile.profile_data.description}
