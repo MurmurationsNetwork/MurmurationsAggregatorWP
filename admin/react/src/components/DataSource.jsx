@@ -28,7 +28,7 @@ export default function DataSource({
 
   return (
     <div>
-      <h2 className="text-xl mt-4">Data Source</h2>
+      <h3 className="text-lg mt-4">Data Source</h3>
       <div className="border-2 border-dotted border-red-500 p-4 mt-2">
         <div className="mb-4">
           <label

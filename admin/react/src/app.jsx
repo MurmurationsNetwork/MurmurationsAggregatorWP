@@ -91,7 +91,7 @@ export default function App() {
       <h1 className="text-3xl">Murmurations Collaborative Map Builder</h1>
       <div className="flex">
         {isMapSelected && (
-          <div className="mt-4 p-4">
+          <div className="p-4">
             <DeletedData deletedProfiles={deletedProfiles} />
             {profileList.length === 0 ? (
               isEdit ? (

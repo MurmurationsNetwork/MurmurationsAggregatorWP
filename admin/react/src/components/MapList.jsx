@@ -380,6 +380,7 @@ export default function MapList({
       alert(`Edit nodes error: ${error}`)
     } finally {
       setIsLoading(false)
+      setIsRetrieving(false)
     }
   }
 
@@ -440,7 +441,7 @@ export default function MapList({
   return (
     <div>
       <button
-        className={`my-1 mx-2 max-w-fit rounded-full bg-indigo-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-indigo-400 disabled:opacity-75 mt-5 ${
+        className={`mx-2 max-w-fit rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
           isLoading ? 'opacity-50 cursor-not-allowed' : ''
         }`}
         onClick={() => handleCreate()}
@@ -453,7 +454,12 @@ export default function MapList({
             <h2 className="text-xl font-semibold mb-2">{map.name}</h2>
             <p>
               <strong>Query URL:</strong>{' '}
-              <a href={map.index_url + map.query_url}>
+              <a
+                className="text-blue-500 underline"
+                href={map.index_url + map.query_url}
+                target="_blank"
+                rel="noreferrer"
+              >
                 {map.index_url + map.query_url}
               </a>
             </p>
@@ -487,18 +493,18 @@ export default function MapList({
                   )
                 }
               >
-                {isLoading ? 'Loading' : 'Retrieve'}
+                Update Nodes
               </button>
               <button
-                className={`my-1 mx-2 max-w-fit rounded-full bg-amber-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-amber-400 disabled:opacity-75 ${
+                className={`my-1 mx-2 max-w-fit rounded-full bg-yellow-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
                   isLoading ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
                 onClick={() => handleEditNodes(map.id)}
               >
-                {isLoading ? 'Loading' : 'Edit Nodes'}
+                Manage Nodes
               </button>
               <button
-                className="my-1 mx-2 max-w-fit rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75"
+                className="my-1 mx-2 max-w-fit rounded-full bg-yellow-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75"
                 onClick={() => handleEditMap(map.id)}
               >
                 Edit Map
@@ -509,28 +515,33 @@ export default function MapList({
                 }`}
                 onClick={() => handleDelete(map.id)}
               >
-                {isLoading ? 'Loading' : 'Delete'}
+                Delete Map
               </button>
             </div>
           </div>
         ))
       ) : (
-        <p>No maps found.</p>
+        <p className="mt-4 mx-4 text-lg">
+          No maps have been created. Create your first map or directory by
+          clicking the Create Map button above.
+        </p>
       )}
       {isPopupOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded shadow-lg">
-            <p className="text-xl">Are you sure you want to delete?</p>
-            <div className="mt-4">
+          <div className="bg-red-100 p-8 rounded shadow-xl">
+            <p className="text-xl">
+              Are you sure you want to delete this map and all of its data?
+            </p>
+            <div className="mt-4 flex justify-center">
               <button
                 onClick={handleDeleteConfirm}
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-4 text-lg"
+                className="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded mr-4 text-lg"
               >
                 Confirm
               </button>
               <button
                 onClick={handleDeleteCancel}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded text-lg"
+                className="bg-gray-500 hover:bg-gray-400 text-white font-bold py-2 px-4 rounded text-lg"
               >
                 Cancel
               </button>

@@ -204,8 +204,8 @@ export default function CreateData({
   return (
     <div>
       {isLoading && <ProgressBar progress={progress} />}
-      <h2 className="text-xl">Create Data Source</h2>
-      <form onSubmit={handleSubmit} className="p-6">
+      <h2 className="text-xl">Create Map</h2>
+      <form onSubmit={handleSubmit} className="py-6">
         <MapSettings
           formData={formData}
           handleInputChange={handleInputChange}
@@ -227,7 +227,7 @@ export default function CreateData({
           </button>
           <button
             onClick={handleCancel}
-            className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded text-lg"
+            className="my-1 mx-2 max-w-fit rounded-full bg-gray-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-gray-400 disabled:opacity-75"
           >
             Cancel
           </button>

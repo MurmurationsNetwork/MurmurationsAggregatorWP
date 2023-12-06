@@ -44,12 +44,13 @@ export default function EditData({
 
   const handleCancel = () => {
     setIsMapSelected(false)
+    setIsEdit(false)
   }
 
   return (
     <div>
-      <h2 className="text-xl">Edit Data Source</h2>
-      <form onSubmit={handleEditSubmit} className="p-6">
+      <h2 className="text-xl">Edit Map</h2>
+      <form onSubmit={handleEditSubmit} className="py-6">
         <MapSettings
           formData={formData}
           handleInputChange={handleInputChange}

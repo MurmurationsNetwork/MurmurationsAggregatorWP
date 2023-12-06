@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 export default function MapSettings({ formData, handleInputChange }) {
   return (
     <div>
-      <h2 className="text-xl">Map Settings</h2>
+      <h3 className="text-lg">Map Settings</h3>
       <div className="border-2 border-dotted border-red-500 p-4 mt-2">
         <div className="mb-4">
           <label
