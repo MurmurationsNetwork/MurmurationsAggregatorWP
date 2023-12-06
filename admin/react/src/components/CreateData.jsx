@@ -20,6 +20,7 @@ export default function CreateData({
   handleInputChange,
   setIsLoading,
   setIsRetrieving,
+  setIsMapSelected,
   setProfileList,
   progress,
   setProgress,
@@ -184,14 +185,20 @@ export default function CreateData({
         alert(`Error: ${response.status} ${response}`)
       }
     } catch (error) {
+      setIsMapSelected(false)
       alert(
         `Handle Submit error: ${error}, please delete the map and retry again.`
       )
     } finally {
+      setIsMapSelected(false)
       setIsLoading(false)
       setProgress(0)
       await getMaps()
     }
+  }
+
+  const handleCancel = () => {
+    setIsMapSelected(false)
   }
 
   return (
@@ -218,6 +225,12 @@ export default function CreateData({
           >
             {isLoading ? 'Submitting...' : 'Submit'}
           </button>
+          <button
+            onClick={handleCancel}
+            className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded text-lg"
+          >
+            Cancel
+          </button>
         </div>
       </form>
     </div>
@@ -229,6 +242,7 @@ CreateData.propTypes = {
   handleInputChange: PropTypes.func.isRequired,
   setIsLoading: PropTypes.func.isRequired,
   setIsRetrieving: PropTypes.func.isRequired,
+  setIsMapSelected: PropTypes.func.isRequired,
   setProfileList: PropTypes.func.isRequired,
   progress: PropTypes.number.isRequired,
   setProgress: PropTypes.func.isRequired,

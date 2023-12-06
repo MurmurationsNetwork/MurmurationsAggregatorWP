@@ -14,6 +14,9 @@ export default function App() {
   const [isRetrieving, setIsRetrieving] = useState(false)
   const [isEdit, setIsEdit] = useState(false)
 
+  // view states
+  const [isMapSelected, setIsMapSelected] = useState(false)
+
   // MapList states
   const [maps, setMaps] = useState([])
   const [currentTime, setCurrentTime] = useState('')
@@ -84,70 +87,78 @@ export default function App() {
   }
 
   return (
-    <div className="bg-gray-50 px-4 py-2">
+    <div className="bg-gray-50 min-h-screen px-4 py-2">
       <h1 className="text-3xl">Murmurations Collaborative Map Builder</h1>
       <div className="flex">
-        <div className="w-1/2 mt-4 p-4">
-          <DeletedData deletedProfiles={deletedProfiles} />
-          {profileList.length === 0 ? (
-            isEdit ? (
-              <EditData
-                formData={formData}
-                handleInputChange={handleInputChange}
+        {isMapSelected && (
+          <div className="mt-4 p-4">
+            <DeletedData deletedProfiles={deletedProfiles} />
+            {profileList.length === 0 ? (
+              isEdit ? (
+                <EditData
+                  formData={formData}
+                  handleInputChange={handleInputChange}
+                  setIsLoading={setIsLoading}
+                  setIsEdit={setIsEdit}
+                  setIsMapSelected={setIsMapSelected}
+                  setFormData={setFormData}
+                  getMaps={getMaps}
+                  isLoading={isLoading}
+                />
+              ) : (
+                <CreateData
+                  formData={formData}
+                  handleInputChange={handleInputChange}
+                  setIsLoading={setIsLoading}
+                  setIsRetrieving={setIsRetrieving}
+                  setIsMapSelected={setIsMapSelected}
+                  setProfileList={setProfileList}
+                  progress={progress}
+                  setProgress={setProgress}
+                  isLoading={isLoading}
+                  setCurrentTime={setCurrentTime}
+                  getMaps={getMaps}
+                />
+              )
+            ) : (
+              <SelectData
+                profileList={profileList}
+                setProfileList={setProfileList}
+                isLoading={isLoading}
                 setIsLoading={setIsLoading}
-                setIsEdit={setIsEdit}
+                isRetrieving={isRetrieving}
+                setIsMapSelected={setIsMapSelected}
+                setProgress={setProgress}
+                progress={progress}
                 setFormData={setFormData}
                 getMaps={getMaps}
-                isLoading={isLoading}
-              />
-            ) : (
-              <CreateData
-                formData={formData}
-                handleInputChange={handleInputChange}
-                setIsLoading={setIsLoading}
-                setIsRetrieving={setIsRetrieving}
-                setProfileList={setProfileList}
-                progress={progress}
-                setProgress={setProgress}
-                isLoading={isLoading}
+                setIsPopupOpen={setIsPopupOpen}
+                setOriginalJson={setOriginalJson}
+                setModifiedJson={setModifiedJson}
+                currentTime={currentTime}
                 setCurrentTime={setCurrentTime}
-                getMaps={getMaps}
               />
-            )
-          ) : (
-            <SelectData
-              profileList={profileList}
-              setProfileList={setProfileList}
-              isLoading={isLoading}
-              setIsLoading={setIsLoading}
-              isRetrieving={isRetrieving}
-              setProgress={setProgress}
-              progress={progress}
-              setFormData={setFormData}
+            )}
+          </div>
+        )}
+        {!isMapSelected && (
+          <div className="mt-4 p-4">
+            <MapList
+              maps={maps}
               getMaps={getMaps}
-              setIsPopupOpen={setIsPopupOpen}
-              setOriginalJson={setOriginalJson}
-              setModifiedJson={setModifiedJson}
-              currentTime={currentTime}
+              setIsEdit={setIsEdit}
+              setIsMapSelected={setIsMapSelected}
+              setFormData={setFormData}
+              setProfileList={setProfileList}
+              setIsRetrieving={setIsRetrieving}
+              setIsLoading={setIsLoading}
+              isLoading={isLoading}
               setCurrentTime={setCurrentTime}
+              setProgress={setProgress}
+              setDeletedProfiles={setDeletedProfiles}
             />
-          )}
-        </div>
-        <div className="w-1/2 mt-4 p-4">
-          <MapList
-            maps={maps}
-            getMaps={getMaps}
-            setIsEdit={setIsEdit}
-            setFormData={setFormData}
-            setProfileList={setProfileList}
-            setIsRetrieving={setIsRetrieving}
-            setIsLoading={setIsLoading}
-            isLoading={isLoading}
-            setCurrentTime={setCurrentTime}
-            setProgress={setProgress}
-            setDeletedProfiles={setDeletedProfiles}
-          />
-        </div>
+          </div>
+        )}
       </div>
       <PopupBox
         isPopupOpen={isPopupOpen}

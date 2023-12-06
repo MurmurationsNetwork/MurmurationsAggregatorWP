@@ -7,6 +7,7 @@ export default function EditData({
   formData,
   handleInputChange,
   setIsLoading,
+  setIsMapSelected,
   setIsEdit,
   setFormData,
   getMaps,
@@ -30,13 +31,19 @@ export default function EditData({
         alert(`Map Error: ${response.status} ${JSON.stringify(responseData)}`)
       }
     } catch (error) {
+      setIsMapSelected(false)
       alert(`Edit map error: ${error}`)
     } finally {
+      setIsMapSelected(false)
       setIsEdit(false)
       setIsLoading(false)
       setFormData(formDefaults)
       await getMaps()
     }
+  }
+
+  const handleCancel = () => {
+    setIsMapSelected(false)
   }
 
   return (
@@ -57,6 +64,12 @@ export default function EditData({
           >
             {isLoading ? 'Submitting...' : 'Submit'}
           </button>
+          <button
+            onClick={handleCancel}
+            className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded text-lg"
+          >
+            Cancel
+          </button>
         </div>
       </form>
     </div>
@@ -68,6 +81,7 @@ EditData.propTypes = {
   handleInputChange: PropTypes.func.isRequired,
   setIsLoading: PropTypes.func.isRequired,
   setIsEdit: PropTypes.func.isRequired,
+  setIsMapSelected: PropTypes.func.isRequired,
   setFormData: PropTypes.func.isRequired,
   getMaps: PropTypes.func.isRequired,
   isLoading: PropTypes.bool.isRequired

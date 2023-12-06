@@ -24,6 +24,7 @@ export default function SelectData({
   isLoading,
   setIsLoading,
   isRetrieving,
+  setIsMapSelected,
   setProgress,
   progress,
   setFormData,
@@ -194,10 +195,12 @@ export default function SelectData({
 
       await updateProfileAndRefresh(profileList, selectedIds)
     } catch (error) {
+      setIsMapSelected(false)
       alert(
         `Handle Profiles Submit error: ${error}, please delete the map and retry again.`
       )
     } finally {
+      setIsMapSelected(false)
       resetStates()
     }
   }
@@ -246,10 +249,12 @@ export default function SelectData({
 
       await updateProfileAndRefresh(profileList, selectedIds)
     } catch (error) {
+      setIsMapSelected(false)
       alert(
         `Handle Profiles Submit error: ${error}, please delete the map and retry again.`
       )
     } finally {
+      setIsMapSelected(false)
       resetStates()
     }
   }
@@ -303,6 +308,10 @@ export default function SelectData({
     setSelectedStatusOption(selected)
   }
 
+  const handleCancel = () => {
+    setIsMapSelected(false)
+  }
+
   return (
     <div>
       {isLoading && <ProgressBar progress={progress} />}
@@ -343,6 +352,12 @@ export default function SelectData({
             >
               {isLoading ? 'Submitting...' : 'Submit'}
             </button>
+            <button
+              onClick={handleCancel}
+              className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded text-lg"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       </form>
@@ -356,6 +371,7 @@ SelectData.propTypes = {
   isLoading: PropTypes.bool.isRequired,
   setIsLoading: PropTypes.func.isRequired,
   isRetrieving: PropTypes.bool.isRequired,
+  setIsMapSelected: PropTypes.func.isRequired,
   setProgress: PropTypes.func.isRequired,
   progress: PropTypes.number.isRequired,
   setFormData: PropTypes.func.isRequired,

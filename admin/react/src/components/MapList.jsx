@@ -18,6 +18,7 @@ export default function MapList({
   getMaps,
   setFormData,
   setIsEdit,
+  setIsMapSelected,
   isLoading,
   setIsLoading,
   setIsRetrieving,
@@ -32,6 +33,7 @@ export default function MapList({
   const handleCreate = () => {
     setFormData(formDefaults)
     setIsEdit(false)
+    setIsMapSelected(true)
     setIsRetrieving(false)
     setProfileList([])
     setCurrentTime('')
@@ -304,6 +306,7 @@ export default function MapList({
 
       if (deletedProfiles.length === 0 && dataWithIds.length === 0) {
         setProfileList([])
+        setIsMapSelected(false)
         alert(`No update profiles found.`)
         return
       }
@@ -324,6 +327,7 @@ export default function MapList({
 
       setDeletedProfiles(deletedProfiles)
       setProfileList(dataWithIds)
+      setIsMapSelected(true)
     } catch (error) {
       alert(`Retrieve node error: ${error}`)
     } finally {
@@ -335,6 +339,7 @@ export default function MapList({
   const handleEditNodes = async mapId => {
     setIsLoading(true)
     setIsRetrieving(true)
+    setIsMapSelected(true)
     setDeletedProfiles([])
 
     try {
@@ -380,6 +385,7 @@ export default function MapList({
 
   const handleEditMap = async mapId => {
     setIsEdit(true)
+    setIsMapSelected(true)
     setDeletedProfiles([])
     setProfileList([])
     const map = maps.find(map => map.id === mapId)
@@ -433,7 +439,6 @@ export default function MapList({
 
   return (
     <div>
-      <h2 className="text-xl">Map Data</h2>
       <button
         className={`my-1 mx-2 max-w-fit rounded-full bg-indigo-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-indigo-400 disabled:opacity-75 mt-5 ${
           isLoading ? 'opacity-50 cursor-not-allowed' : ''
@@ -542,6 +547,7 @@ MapList.propTypes = {
   getMaps: PropTypes.func.isRequired,
   setFormData: PropTypes.func.isRequired,
   setIsEdit: PropTypes.func.isRequired,
+  setIsMapSelected: PropTypes.func.isRequired,
   isLoading: PropTypes.bool.isRequired,
   setIsLoading: PropTypes.func.isRequired,
   setIsRetrieving: PropTypes.func.isRequired,
