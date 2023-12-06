@@ -446,7 +446,7 @@ export default function MapList({
         }`}
         onClick={() => handleCreate()}
       >
-        {isLoading ? 'Loading' : 'Create Map'}
+        Create Map
       </button>
       {maps.length > 0 ? (
         maps.map((map, index) => (
@@ -504,7 +504,9 @@ export default function MapList({
                 Manage Nodes
               </button>
               <button
-                className="my-1 mx-2 max-w-fit rounded-full bg-yellow-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75"
+                className={`my-1 mx-2 max-w-fit rounded-full bg-yellow-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
+                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
                 onClick={() => handleEditMap(map.id)}
               >
                 Edit Map
@@ -525,6 +527,13 @@ export default function MapList({
           No maps have been created. Create your first map or directory by
           clicking the Create Map button above.
         </p>
+      )}
+      {isLoading && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-yellow-100 p-8 rounded shadow-xl">
+            <p className="text-xl">Loading...</p>
+          </div>
+        </div>
       )}
       {isPopupOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50">

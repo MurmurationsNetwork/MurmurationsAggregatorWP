@@ -315,7 +315,7 @@ export default function SelectData({
   return (
     <div>
       {isLoading && <ProgressBar progress={progress} />}
-      <h2 className="text-xl mt-4">Data Select</h2>
+      <h2 className="text-xl mb-4">Select Nodes</h2>
       <Table
         tableList={profileList}
         selectedIds={selectedIds}
@@ -332,13 +332,13 @@ export default function SelectData({
         className="p-6"
       >
         <div className="mt-6">
-          <div className="flex items-start">
-            <label className="mr-2">Select Action:</label>
+          <div className="inline-block align-middle">
+            <label className="text-lg">Select Action:</label>
             <select
               id="status-option"
               value={selectedStatusOption}
               onChange={() => handleDropdownChange()}
-              className="mr-2"
+              className="mx-4"
             >
               <option value="publish">Publish</option>
               <option value="dismiss">Dismiss</option>
@@ -346,7 +346,7 @@ export default function SelectData({
             </select>
             <button
               type="submit"
-              className={`rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
+              className={`mx-4 rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
                 isLoading ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
@@ -354,7 +354,7 @@ export default function SelectData({
             </button>
             <button
               onClick={handleCancel}
-              className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded text-lg"
+              className="mx-4 rounded-full bg-gray-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-gray-400 disabled:opacity-75"
             >
               Cancel
             </button>

@@ -219,7 +219,7 @@ export default function CreateData({
         <div className="mt-6">
           <button
             type="submit"
-            className={`rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
+            className={`mx-4 rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
               isLoading ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
@@ -227,7 +227,7 @@ export default function CreateData({
           </button>
           <button
             onClick={handleCancel}
-            className="my-1 mx-2 max-w-fit rounded-full bg-gray-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-gray-400 disabled:opacity-75"
+            className="mx-4 rounded-full bg-gray-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-gray-400 disabled:opacity-75"
           >
             Cancel
           </button>
