@@ -473,8 +473,8 @@ export default function MapList({
                 </p>
                 <p>
                   <strong>Shortcode:</strong> [murmurations_map tag_slug=&quot;
-                  {map.tag_slug}&quot; height=&quot;50&quot;
-                  view=&quot;map&quot;]
+                  {map.tag_slug}&quot; height=&quot;60&quot;
+                  width=&quot;100&quot; view=&quot;map&quot;]
                 </p>
                 <p>
                   <strong>Map Center:</strong>{' '}

@@ -13,8 +13,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			}
 
 			$view      = isset( $atts['view'] ) ? esc_attr( $atts['view'] ) : 'map';
-			$height    = isset( $atts['height'] ) ? esc_attr( $atts['height'] ) : '50';
-			$width     = isset( $atts['width'] ) ? esc_attr( $atts['width'] ) : '75';
+			$height    = isset( $atts['height'] ) ? esc_attr( $atts['height'] ) : '60';
+			$width     = isset( $atts['width'] ) ? esc_attr( $atts['width'] ) : '100';
 			$link_type = isset( $atts['link_type'] ) ? esc_attr( $atts['link_type'] ) : 'primary';
 
 			return '<div id="wp-map-plugin-page-root" data-tag-slug="' . esc_attr( $atts['tag_slug'] ) . '" data-view="' . $view . '" data-height="' . $height . '" data-width="' . $width . '" data-link-type="' . $link_type . '"></div>';

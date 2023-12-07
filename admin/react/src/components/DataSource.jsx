@@ -73,8 +73,9 @@ export default function DataSource({
             ))}
           </select>
         </div>
-        <p className="text-lg font-bold mb-2">
-          Filter the map results using the optional fields below:
+        <p className="text-base font-bold mb-2">
+          Filter the number of Profiles which are returned from the Index using
+          the optional fields below:
         </p>
         <div className="mb-4">
           <label className="block text-gray-700 font-bold mb-2" htmlFor="name">

@@ -191,7 +191,7 @@ export default function CreateData({
         `Handle Submit error: ${error}, please delete the map and retry again.`
       )
     } finally {
-      setIsMapSelected(false)
+      setIsMapSelected(true)
       setIsLoading(false)
       setProgress(0)
       await getMaps()
