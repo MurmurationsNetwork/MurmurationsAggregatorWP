@@ -769,6 +769,10 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
 			}
 
+			if ( strlen( $data['index_data']['profile_url'] ) > 2000 ) {
+				return new WP_Error( 'invalid_data', 'profile_url is too long.', array( 'status' => 400 ) );
+			}
+
 			// insert data
 			$result = $this->wpdb->insert( $this->node_table_name, array(
 				'profile_url'         => $data['index_data']['profile_url'],
