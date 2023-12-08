@@ -157,11 +157,13 @@ export default function MapList({
 
             if (!deleteNodeResponse.ok) {
               const deleteNodeResponseData = await deleteNodeResponse.json()
-              alert(
-                `Delete Profile Error: ${
-                  deleteNodeResponse.status
-                } ${JSON.stringify(deleteNodeResponseData)}`
-              )
+              if (deleteNodeResponse.status !== 404) {
+                alert(
+                  `Delete Profile Error: ${
+                    deleteNodeResponse.status
+                  } ${JSON.stringify(deleteNodeResponseData)}`
+                )
+              }
             }
 
             // delete node from nodes table
@@ -467,7 +469,7 @@ export default function MapList({
           </button>
           {maps.length > 0 && (
             <div>
-              <div className="mt-4 text-base">
+              <p className="mt-4 text-base">
                 Add a shortcode into a page or post. More information about the
                 parameters for shortcodes can be found{' '}
                 <a
@@ -479,14 +481,14 @@ export default function MapList({
                   in the docs
                 </a>
                 .
-              </div>
-              <div className="mt-2 text-base">
+              </p>
+              <p className="mt-2 text-base">
                 Click the <em className="font-semibold">Update Nodes</em> button
                 to check for updates to the nodes in that map.{' '}
                 <em className="font-semibold">Manage Nodes</em> enables you to
                 change the published status of nodes without checking for
                 updates.
-              </div>
+              </p>
             </div>
           )}
           {maps.length > 0 ? (

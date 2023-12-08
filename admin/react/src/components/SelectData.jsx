@@ -317,6 +317,18 @@ export default function SelectData({
     <div>
       {isLoading && <ProgressBar progress={progress} />}
       <h2 className="text-2xl mb-8">Select Nodes</h2>
+      <p className="text-base mb-8">
+        Manage the nodes to display in your map or directory. You can learn more{' '}
+        <a
+          href="https://docs.murmurations.network/developers/wp-aggregator.html#managing-nodes"
+          target="_blank"
+          className="text-blue-500 underline"
+          rel="noreferrer"
+        >
+          in the docs
+        </a>
+        .
+      </p>
       <Table
         tableList={profileList}
         selectedIds={selectedIds}

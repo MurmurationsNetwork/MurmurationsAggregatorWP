@@ -29,7 +29,7 @@ function TableRow({
 
   return (
     <tr>
-      <td>
+      <td className="text-center px-2 py-1">
         <input
           type="checkbox"
           checked={isSelected}
@@ -51,6 +51,7 @@ function TableRow({
           href={response.index_data.profile_url}
           target="_blank"
           rel="noreferrer"
+          className="text-blue-500 underline"
         >
           {response.index_data.profile_url}
         </a>
@@ -74,6 +75,7 @@ function TableRow({
                 response.profile_data
               )
             }
+            className="bg-orange-500 text-white font-bold animate-pulse px-2"
           >
             See Updates
           </button>
