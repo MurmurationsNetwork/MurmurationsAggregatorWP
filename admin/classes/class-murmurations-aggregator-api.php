@@ -275,11 +275,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function post_map( $request ): WP_REST_Response|WP_Error {
-			$nonce_error = $this->verify_nonce( $request );
-			if ( is_wp_error( $nonce_error ) ) {
-				return $nonce_error;
-			}
-
 			$data = $request->get_json_params();
 
 			// validate data
@@ -325,11 +320,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function get_map( $request ): WP_REST_Response|WP_Error {
-			$nonce_error = $this->verify_nonce( $request );
-			if ( is_wp_error( $nonce_error ) ) {
-				return $nonce_error;
-			}
-
 			$map_id = $request->get_param( 'map_id' );
 
 			$query    = $this->wpdb->prepare( "SELECT * , UNIX_TIMESTAMP(last_updated) as last_updated FROM $this->table_name WHERE id = %s", $map_id );
@@ -343,11 +333,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function put_map( $request ): WP_REST_Response|WP_Error {
-			$nonce_error = $this->verify_nonce( $request );
-			if ( is_wp_error( $nonce_error ) ) {
-				return $nonce_error;
-			}
-
 			$map_id = $request->get_param( 'map_id' );
 
 			$data = $request->get_json_params();
@@ -369,11 +354,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function delete_map( $request ): WP_REST_Response|WP_Error {
-			$nonce_error = $this->verify_nonce( $request );
-			if ( is_wp_error( $nonce_error ) ) {
-				return $nonce_error;
-			}
-
 			$map_id = $request->get_param( 'map_id' );
 
 			// validate
@@ -418,11 +398,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function put_map_last_updated( $request ): WP_REST_Response|WP_Error {
-			$nonce_error = $this->verify_nonce( $request );
-			if ( is_wp_error( $nonce_error ) ) {
-				return $nonce_error;
-			}
-
 			$map_id = $request->get_param( 'map_id' );
 			$data   = $request->get_json_params();
 
@@ -462,11 +437,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function put_wp_node( $request ): WP_REST_Response|WP_Error {
-			$nonce_error = $this->verify_nonce( $request );
-			if ( is_wp_error( $nonce_error ) ) {
-				return $nonce_error;
-			}
-
 			$post_id    = $request->get_param( 'post_id' );
 			$data       = $request->get_json_params();
 			$post_title = $data['profile_data']['name'] ?? $data['profile_data']['title'];
@@ -487,11 +457,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function delete_wp_node( $request ): WP_REST_Response|WP_Error {
-			$nonce_error = $this->verify_nonce( $request );
-			if ( is_wp_error( $nonce_error ) ) {
-				return $nonce_error;
-			}
-
 			$post_id = $request->get_param( 'post_id' );
 
 			// delete post
@@ -505,11 +470,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function post_wp_node( $request ): WP_REST_Response|WP_Error {
-			$nonce_error = $this->verify_nonce( $request );
-			if ( is_wp_error( $nonce_error ) ) {
-				return $nonce_error;
-			}
-
 			$data     = $request->get_json_params();
 			$tag_slug = sanitize_text_field( $data['data']['tag_slug'] );
 
@@ -564,11 +524,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function restore_wp_node( $request ): WP_REST_Response|WP_Error {
-			$nonce_error = $this->verify_nonce( $request );
-			if ( is_wp_error( $nonce_error ) ) {
-				return $nonce_error;
-			}
-
 			$post_id = $request->get_param( 'post_id' );
 
 			$trashed_post = get_post( $post_id );
@@ -589,11 +544,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function get_nodes( $request ): WP_REST_Response|WP_Error {
-			$nonce_error = $this->verify_nonce( $request );
-			if ( is_wp_error( $nonce_error ) ) {
-				return $nonce_error;
-			}
-
 			$mapId       = $request->get_param( 'map_id' );
 			$profileUrl  = $request->get_param( 'profile_url' );
 			$isAvailable = $request->get_param( 'is_available' );
@@ -654,11 +604,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function put_node( $request ): WP_REST_Response|WP_Error {
-			$nonce_error = $this->verify_nonce( $request );
-			if ( is_wp_error( $nonce_error ) ) {
-				return $nonce_error;
-			}
-
 			$node_id = $request->get_param( 'node_id' );
 			$data    = $request->get_json_params();
 
@@ -692,11 +637,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function delete_node( $request ): WP_REST_Response|WP_Error {
-			$nonce_error = $this->verify_nonce( $request );
-			if ( is_wp_error( $nonce_error ) ) {
-				return $nonce_error;
-			}
-
 			$node_id = $request->get_param( 'node_id' );
 
 			// validate data
@@ -717,11 +657,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function put_node_status( $request ): WP_REST_Response|WP_Error {
-			$nonce_error = $this->verify_nonce( $request );
-			if ( is_wp_error( $nonce_error ) ) {
-				return $nonce_error;
-			}
-
 			$node_id = $request->get_param( 'node_id' );
 			$data    = $request->get_json_params();
 
@@ -757,11 +692,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function post_node( $request ): WP_REST_Response|WP_Error {
-			$nonce_error = $this->verify_nonce( $request );
-			if ( is_wp_error( $nonce_error ) ) {
-				return $nonce_error;
-			}
-
 			$data = $request->get_json_params();
 
 			// validate data
@@ -798,11 +728,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function get_proxy( $request ): WP_REST_Response|WP_Error {
-			$nonce_error = $this->verify_nonce( $request );
-			if ( is_wp_error( $nonce_error ) ) {
-				return $nonce_error;
-			}
-
 			$url = $request->get_param( 'url' );
 
 			if ( ! isset( $url ) ) {
@@ -820,16 +745,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			}
 
 			return rest_ensure_response( json_decode( $response['body'] ) );
-		}
-
-		private function verify_nonce( $request ): WP_Error|bool {
-			$nonce = $request['_wpnonce'] ?? '';
-
-			if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
-				return new WP_Error( 'rest_forbidden', esc_html__( 'Permission denied' ), array( 'status' => 401 ) );
-			}
-
-			return true;
 		}
 	}
 }
