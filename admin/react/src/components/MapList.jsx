@@ -215,6 +215,12 @@ export default function MapList({
 
             if (!profileResponse.ok) {
               const profileResponseData = await profileResponse.json()
+              if (profileResponse.status === 400 && profileResponseData?.code === 'profile_url_length_exceeded') {
+                alert(
+                  `profile_url_length_exceeded: ${profileObject.index_data.profile_url}`
+                )
+                continue
+              }
               alert(
                 `Unable to save profiles to wpdb, errors: ${
                   profileResponse.status

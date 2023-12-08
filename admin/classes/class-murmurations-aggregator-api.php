@@ -467,8 +467,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				return $nonce_error;
 			}
 
-			$post_id = $request->get_param( 'post_id' );
-			$data    = $request->get_json_params();
+			$post_id    = $request->get_param( 'post_id' );
+			$data       = $request->get_json_params();
 			$post_title = $data['profile_data']['name'] ?? $data['profile_data']['title'];
 
 			$result = wp_update_post( array(

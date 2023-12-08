@@ -1,10 +1,10 @@
 import MapSettings from './MapSettings'
 import DataSource from './DataSource'
 import ProgressBar from './ProgressBar'
-import { createId } from '@paralleldrive/cuid2'
-import { getProxyData, saveCustomMap, saveCustomNodes } from '../utils/api'
+import {createId} from '@paralleldrive/cuid2'
+import {getProxyData, saveCustomMap, saveCustomNodes} from '../utils/api'
 import PropTypes from 'prop-types'
-import { useState } from 'react'
+import {useState} from 'react'
 
 const excludedKeys = [
   'data_url',
@@ -16,18 +16,18 @@ const excludedKeys = [
 ]
 
 export default function CreateData({
-  formData,
-  handleInputChange,
-  setIsLoading,
-  setIsRetrieving,
-  setIsMapSelected,
-  setProfileList,
-  progress,
-  setProgress,
-  isLoading,
-  setCurrentTime,
-  getMaps
-}) {
+                                     formData,
+                                     handleInputChange,
+                                     setIsLoading,
+                                     setIsRetrieving,
+                                     setIsMapSelected,
+                                     setProfileList,
+                                     progress,
+                                     setProgress,
+                                     isLoading,
+                                     setCurrentTime,
+                                     getMaps
+                                   }) {
   const [selectedCountry, setSelectedCountry] = useState([])
 
   const handleSubmit = async event => {
@@ -165,8 +165,15 @@ export default function CreateData({
 
           const profileResponseData = await profileResponse.json()
           if (!profileResponse.ok) {
+            if (profileResponse.status === 400 && profileResponseData?.code === 'profile_url_length_exceeded') {
+              alert(
+                `profile_url_length_exceeded: ${profileObject.index_data.profile_url}`
+              )
+              continue
+            }
             alert(
-              `Unable to save profiles to wpdb, errors: ${
+              `
+                }Unable to save profiles to wpdb, errors: ${
                 profileResponse.status
               } ${JSON.stringify(
                 profileResponseData
@@ -205,7 +212,7 @@ export default function CreateData({
 
   return (
     <div>
-      {isLoading && <ProgressBar progress={progress} />}
+      {isLoading && <ProgressBar progress={progress}/>}
       <h2 className="text-xl">Create Map</h2>
       <form onSubmit={handleSubmit} className="py-6">
         <MapSettings
