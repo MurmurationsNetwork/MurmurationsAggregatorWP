@@ -481,8 +481,9 @@ export default function MapList({
                 .
               </div>
               <div className="mt-2 text-base">
-                Click the <em>Update Nodes</em> button to check for updates to
-                the nodes in that map. <em>Manage Nodes</em> enables you to
+                Click the <em className="font-semibold">Update Nodes</em> button
+                to check for updates to the nodes in that map.{' '}
+                <em className="font-semibold">Manage Nodes</em> enables you to
                 change the published status of nodes without checking for
                 updates.
               </div>
@@ -564,7 +565,7 @@ export default function MapList({
               </div>
             ))
           ) : (
-            <p className="mt-4 mx-4 text-lg">
+            <p className="mt-4 text-base">
               Create your first map or directory by clicking the Create Map
               button above.
             </p>

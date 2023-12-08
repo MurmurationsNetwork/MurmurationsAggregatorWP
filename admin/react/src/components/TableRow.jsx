@@ -37,11 +37,11 @@ function TableRow({
           disabled={!response.data.is_available}
         />
       </td>
-      <td className="text-center">{response.id}</td>
-      <td className="text-center">
+      <td className="text-center px-2 py-1">{response.id}</td>
+      <td className="text-center px-2 py-1">
         {response?.profile_data?.geolocation ? '📍' : ''}
       </td>
-      <td className="text-center">
+      <td className="text-center px-2 py-1">
         {response.profile_data.name
           ? response.profile_data.name
           : response.profile_data.title}
@@ -55,8 +55,8 @@ function TableRow({
           {response.index_data.profile_url}
         </a>
       </td>
-      <td className="text-center">{response.data.status}</td>
-      <td className="text-center">
+      <td className="text-center px-2 py-1">{response.data.status}</td>
+      <td className="text-center px-2 py-1">
         {response.data.is_available
           ? 'Available'
           : 'Unavailable-' +
@@ -64,7 +64,7 @@ function TableRow({
               ? response.data.unavailable_message
               : '')}
       </td>
-      <td className="text-center">
+      <td className="text-center px-2 py-1">
         {response.data.extra_notes === 'see updates' ? (
           <button
             onClick={() =>

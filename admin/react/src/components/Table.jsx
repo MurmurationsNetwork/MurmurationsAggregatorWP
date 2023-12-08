@@ -27,13 +27,13 @@ function Table({
               onChange={onSelectAll}
             />
           </th>
-          <th className="text-center">ID</th>
-          <th className="text-center"></th>
-          <th className="text-center">Name/Title</th>
-          <th className="text-center">Profile URL</th>
-          <th className="text-center">Current Status</th>
-          <th className="text-center">Availability</th>
-          <th className="text-center"></th>
+          <th className="text-center px-2">ID</th>
+          <th className="text-center px-2">Geopoint</th>
+          <th className="text-center px-2">Name/Title</th>
+          <th className="text-center px-2">Profile URL</th>
+          <th className="text-center px-2">Current Status</th>
+          <th className="text-center px-2">Availability</th>
+          <th className="text-center px-2"></th>
         </tr>
       </thead>
       <tbody>

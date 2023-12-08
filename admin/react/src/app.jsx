@@ -85,11 +85,11 @@ export default function App() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen px-4 py-2">
+    <div className="bg-gray-50 min-h-screen px-8 py-4">
       <h1 className="text-3xl">Murmurations Collaborative Map Builder</h1>
       <div className="flex">
         {isMapSelected && !isLoading ? (
-          <div className="mt-4 p-4">
+          <div className="mt-4 py-4">
             <DeletedData deletedProfiles={deletedProfiles} />
             {profileList.length === 0 ? (
               isEdit ? (
@@ -139,7 +139,7 @@ export default function App() {
             )}
           </div>
         ) : (
-          <div className="mt-4 p-4">
+          <div className="mt-4 py-4">
             <MapList
               maps={maps}
               getMaps={getMaps}

@@ -316,7 +316,7 @@ export default function SelectData({
   return (
     <div>
       {isLoading && <ProgressBar progress={progress} />}
-      <h2 className="text-xl mb-4">Select Nodes</h2>
+      <h2 className="text-2xl mb-8">Select Nodes</h2>
       <Table
         tableList={profileList}
         selectedIds={selectedIds}
@@ -330,7 +330,7 @@ export default function SelectData({
         onSubmit={
           isRetrieving ? handleRetrieveProfilesSubmit : handleProfilesSubmit
         }
-        className="p-6"
+        className="py-6"
       >
         <div className="mt-6">
           <div className="inline-block align-middle">
@@ -362,6 +362,10 @@ export default function SelectData({
           </div>
         </div>
       </form>
+      <div className="mt-2 text-sm">
+        publish = display node on map <br /> dismiss = hide node until it has
+        updates <br /> ignore = always hide node
+      </div>
     </div>
   )
 }

@@ -23,7 +23,7 @@ export default function MapSettings({ formData, handleInputChange }) {
             className="block text-gray-700 font-bold mb-2"
             htmlFor="map_name"
           >
-            Map Center Latitude (default is Paris, France)
+            Map Center Latitude
           </label>
           <input
             type="number"
@@ -42,7 +42,7 @@ export default function MapSettings({ formData, handleInputChange }) {
             className="block text-gray-700 font-bold mb-2"
             htmlFor="map_name"
           >
-            Map Center Longitude (default is Paris, France)
+            Map Center Longitude
           </label>
           <input
             type="number"
@@ -61,7 +61,7 @@ export default function MapSettings({ formData, handleInputChange }) {
             className="block text-gray-700 font-bold mb-2"
             htmlFor="map_name"
           >
-            Map Scale (default is 5)
+            Map Scale
           </label>
           <input
             type="number"
