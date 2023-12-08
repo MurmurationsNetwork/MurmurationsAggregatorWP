@@ -215,7 +215,10 @@ export default function MapList({
 
             if (!profileResponse.ok) {
               const profileResponseData = await profileResponse.json()
-              if (profileResponse.status === 400 && profileResponseData?.code === 'profile_url_length_exceeded') {
+              if (
+                profileResponse.status === 400 &&
+                profileResponseData?.code === 'profile_url_length_exceeded'
+              ) {
                 alert(
                   `profile_url_length_exceeded: ${profileObject.index_data.profile_url}`
                 )
@@ -455,13 +458,36 @@ export default function MapList({
       {!isLoading && (
         <div>
           <button
-            className={`mx-2 mb-4 max-w-fit rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
+            className={`mb-4 max-w-fit rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
               isLoading ? 'opacity-50 cursor-not-allowed' : ''
             }`}
             onClick={() => handleCreate()}
           >
             Create Map
           </button>
+          {maps.length > 0 && (
+            <div>
+              <div className="mt-4 text-base">
+                Add a shortcode into a page or post. More information about the
+                parameters for shortcodes can be found{' '}
+                <a
+                  href="https://docs.murmurations.network/developers/wp-aggregator.html#shortcodes"
+                  target="_blank"
+                  className="text-blue-500 underline"
+                  rel="noreferrer"
+                >
+                  in the docs
+                </a>
+                .
+              </div>
+              <div className="mt-2 text-base">
+                Click the <em>Update Nodes</em> button to check for updates to
+                the nodes in that map. <em>Manage Nodes</em> enables you to
+                change the published status of nodes without checking for
+                updates.
+              </div>
+            </div>
+          )}
           {maps.length > 0 ? (
             maps.map((map, index) => (
               <div className="bg-white p-4 rounded shadow-md mt-4" key={index}>
@@ -484,7 +510,7 @@ export default function MapList({
                 </p>
                 <p>
                   <strong>Map Center:</strong>{' '}
-                  {map.map_center_lon + ',' + map.map_center_lat}
+                  {map.map_center_lat + ', ' + map.map_center_lon}
                 </p>
                 <p>
                   <strong>Map Scale:</strong> {map.map_scale}
@@ -539,8 +565,8 @@ export default function MapList({
             ))
           ) : (
             <p className="mt-4 mx-4 text-lg">
-              No maps have been created. Create your first map or directory by
-              clicking the Create Map button above.
+              Create your first map or directory by clicking the Create Map
+              button above.
             </p>
           )}
         </div>

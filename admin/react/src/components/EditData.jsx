@@ -50,7 +50,7 @@ export default function EditData({
 
   return (
     <div>
-      <h2 className="text-xl">Edit Map</h2>
+      <h2 className="text-2xl">Edit Map</h2>
       <form onSubmit={handleEditSubmit} className="py-6">
         <MapSettings
           formData={formData}

@@ -1,10 +1,10 @@
 import MapSettings from './MapSettings'
 import DataSource from './DataSource'
 import ProgressBar from './ProgressBar'
-import {createId} from '@paralleldrive/cuid2'
-import {getProxyData, saveCustomMap, saveCustomNodes} from '../utils/api'
+import { createId } from '@paralleldrive/cuid2'
+import { getProxyData, saveCustomMap, saveCustomNodes } from '../utils/api'
 import PropTypes from 'prop-types'
-import {useState} from 'react'
+import { useState } from 'react'
 
 const excludedKeys = [
   'data_url',
@@ -16,18 +16,18 @@ const excludedKeys = [
 ]
 
 export default function CreateData({
-                                     formData,
-                                     handleInputChange,
-                                     setIsLoading,
-                                     setIsRetrieving,
-                                     setIsMapSelected,
-                                     setProfileList,
-                                     progress,
-                                     setProgress,
-                                     isLoading,
-                                     setCurrentTime,
-                                     getMaps
-                                   }) {
+  formData,
+  handleInputChange,
+  setIsLoading,
+  setIsRetrieving,
+  setIsMapSelected,
+  setProfileList,
+  progress,
+  setProgress,
+  isLoading,
+  setCurrentTime,
+  getMaps
+}) {
   const [selectedCountry, setSelectedCountry] = useState([])
 
   const handleSubmit = async event => {
@@ -165,7 +165,10 @@ export default function CreateData({
 
           const profileResponseData = await profileResponse.json()
           if (!profileResponse.ok) {
-            if (profileResponse.status === 400 && profileResponseData?.code === 'profile_url_length_exceeded') {
+            if (
+              profileResponse.status === 400 &&
+              profileResponseData?.code === 'profile_url_length_exceeded'
+            ) {
               alert(
                 `profile_url_length_exceeded: ${profileObject.index_data.profile_url}`
               )
@@ -174,10 +177,10 @@ export default function CreateData({
             alert(
               `
                 }Unable to save profiles to wpdb, errors: ${
-                profileResponse.status
-              } ${JSON.stringify(
-                profileResponseData
-              )}. Please delete the map and try again.`
+                  profileResponse.status
+                } ${JSON.stringify(
+                  profileResponseData
+                )}. Please delete the map and try again.`
             )
             return
           }
@@ -212,9 +215,33 @@ export default function CreateData({
 
   return (
     <div>
-      {isLoading && <ProgressBar progress={progress}/>}
-      <h2 className="text-xl">Create Map</h2>
+      {isLoading && <ProgressBar progress={progress} />}
+      <h2 className="text-2xl">Create a Map or Directory</h2>
+      <p className="text-base my-2">
+        Import nodes from the distributed Murmurations network to create your
+        own custom maps and directories.
+      </p>
       <form onSubmit={handleSubmit} className="py-6">
+        <div className="mb-8">
+          <label
+            className="block text-gray-700 text-base font-bold mb-2"
+            htmlFor="map_name"
+          >
+            Map/Directory Name
+          </label>
+          <input
+            type="text"
+            id="map_name"
+            name="map_name"
+            value={formData.map_name}
+            onChange={handleInputChange}
+            className="w-full border rounded py-2 px-3"
+            required={true}
+          />
+          <div className="mt-1">
+            A familiar name to make it easy for you to identify
+          </div>
+        </div>
         <MapSettings
           formData={formData}
           handleInputChange={handleInputChange}
@@ -232,7 +259,7 @@ export default function CreateData({
               isLoading ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
-            {isLoading ? 'Submitting...' : 'Submit'}
+            {isLoading ? 'Creating...' : 'Create'}
           </button>
           <button
             onClick={handleCancel}

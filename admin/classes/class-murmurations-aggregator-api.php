@@ -310,8 +310,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'index_url'      => $data['index_url'],
 				'query_url'      => $data['query_url'],
 				'tag_slug'       => $data['tag_slug'],
-				'map_center_lon' => ! empty( $data['map_center_lon'] ) ? sanitize_text_field( $data['map_center_lon'] ) : '1.8883340',
-				'map_center_lat' => ! empty( $data['map_center_lat'] ) ? sanitize_text_field( $data['map_center_lat'] ) : '46.6033540',
+				'map_center_lat' => ! empty( $data['map_center_lat'] ) ? sanitize_text_field( $data['map_center_lat'] ) : '48.86',
+				'map_center_lon' => ! empty( $data['map_center_lon'] ) ? sanitize_text_field( $data['map_center_lon'] ) : '2.34',
 				'map_scale'      => ! empty( $data['map_scale'] ) ? sanitize_text_field( $data['map_scale'] ) : '5',
 			) );
 
