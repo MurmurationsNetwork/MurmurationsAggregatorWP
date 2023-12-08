@@ -770,7 +770,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			}
 
 			if ( strlen( $data['index_data']['profile_url'] ) > 2000 ) {
-				return new WP_Error( 'invalid_data', 'profile_url is too long.', array( 'status' => 400 ) );
+				return new WP_Error( 'profile_url_length_exceeded', 'profile_url is too long.', array( 'status' => 400 ) );
 			}
 
 			// insert data
