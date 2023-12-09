@@ -395,7 +395,6 @@ export default function MapList({
       alert(`Edit nodes error: ${error}`)
     } finally {
       setIsLoading(false)
-      setIsRetrieving(false)
     }
   }
 
