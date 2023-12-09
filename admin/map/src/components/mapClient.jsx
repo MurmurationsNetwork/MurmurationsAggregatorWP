@@ -38,21 +38,6 @@ const markerClicked = async (profile, apiUrl, linkType) => {
     )
   }
   let content = ''
-  const title = responseData?.title
-  if (title) {
-    content += `<strong>${title}</strong>`
-  }
-  const description = responseData?.profile_data?.description
-  if (description) {
-    content += `<p>${limitString(description, 100)}</p>`
-  }
-  const postUrl =
-    linkType === 'wp'
-      ? responseData.post_url
-      : responseData?.profile_data?.primary_url
-  if (postUrl) {
-    content += `<p>More: <a target='_blank' rel='noreferrer' href='${postUrl}'>${postUrl}</a></p>`
-  }
   const imageUrl = responseData?.profile_data?.image
   if (imageUrl) {
     content += `<img src='${imageUrl}' alt='profile image' width='100' height='100' id="profile_image" />`
@@ -65,6 +50,24 @@ const markerClicked = async (profile, apiUrl, linkType) => {
         profileImage.style.display = 'none'
       }
     }
+  }
+  const title = responseData?.title
+  if (title) {
+    content += `<p><strong>${title}</strong></p>`
+  }
+  const description = responseData?.profile_data?.description
+  if (description) {
+    content += `<p>${limitString(description, 200)}</p>`
+  }
+  const postUrl =
+    linkType === 'wp'
+      ? responseData.post_url
+      : responseData?.profile_data?.primary_url
+  if (postUrl && linkType === 'primary') {
+    content += `<p>More: <a target='_blank' rel='noreferrer' href='${postUrl}'>${postUrl}</a></p>`
+  }
+  if (postUrl && linkType === 'wp') {
+    content += `<p><a href='${postUrl}'>More...</a></p>`
   }
   return content
 }
