@@ -375,8 +375,8 @@ export default function SelectData({
         </div>
       </form>
       <div className="mt-2 text-sm">
-        publish = display node on map <br /> dismiss = hide node until it has
-        updates <br /> ignore = always hide node
+        Publish = display node on map <br /> Dismiss = hide node until it has
+        updates <br /> Ignore = always hide node
       </div>
     </div>
   )

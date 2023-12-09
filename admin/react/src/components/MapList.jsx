@@ -578,8 +578,22 @@ export default function MapList({
       {isLoading && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="bg-yellow-100 p-8 rounded shadow-xl w-1/2">
-            <p className="text-xl">Loading...</p>
+            <p className="text-2xl text-center mb-4">Loading...</p>
             {<ProgressBar progress={progress} />}
+            <p className="text-xl text-center mt-4">
+              Murmurations is an unfunded volunteer-led project.
+              <br />
+              Please consider{' '}
+              <a
+                href="https://opencollective.com/murmurations"
+                target="_blank"
+                className="text-blue-500 underline"
+                rel="noreferrer"
+              >
+                making a donation
+              </a>{' '}
+              to support development.
+            </p>
           </div>
         </div>
       )}
