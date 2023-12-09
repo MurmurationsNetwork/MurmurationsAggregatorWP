@@ -24,6 +24,7 @@ export default function SelectData({
   isLoading,
   setIsLoading,
   isRetrieving,
+  setIsMapSelected,
   setProgress,
   progress,
   setFormData,
@@ -194,10 +195,12 @@ export default function SelectData({
 
       await updateProfileAndRefresh(profileList, selectedIds)
     } catch (error) {
+      setIsMapSelected(false)
       alert(
         `Handle Profiles Submit error: ${error}, please delete the map and retry again.`
       )
     } finally {
+      setIsMapSelected(false)
       resetStates()
     }
   }
@@ -246,10 +249,12 @@ export default function SelectData({
 
       await updateProfileAndRefresh(profileList, selectedIds)
     } catch (error) {
+      setIsMapSelected(false)
       alert(
         `Handle Profiles Submit error: ${error}, please delete the map and retry again.`
       )
     } finally {
+      setIsMapSelected(false)
       resetStates()
     }
   }
@@ -303,10 +308,27 @@ export default function SelectData({
     setSelectedStatusOption(selected)
   }
 
+  const handleCancel = () => {
+    setIsMapSelected(false)
+    window.scrollTo(0, 0)
+  }
+
   return (
     <div>
       {isLoading && <ProgressBar progress={progress} />}
-      <h2 className="text-xl mt-4">Data Select</h2>
+      <h2 className="text-2xl mb-8">Select Nodes</h2>
+      <p className="text-base mb-8">
+        Manage the nodes to display in your map or directory. You can learn more{' '}
+        <a
+          href="https://docs.murmurations.network/developers/wp-aggregator.html#managing-nodes"
+          target="_blank"
+          className="text-blue-500 underline"
+          rel="noreferrer"
+        >
+          in the docs
+        </a>
+        .
+      </p>
       <Table
         tableList={profileList}
         selectedIds={selectedIds}
@@ -320,16 +342,16 @@ export default function SelectData({
         onSubmit={
           isRetrieving ? handleRetrieveProfilesSubmit : handleProfilesSubmit
         }
-        className="p-6"
+        className="py-6"
       >
         <div className="mt-6">
-          <div className="flex items-start">
-            <label className="mr-2">Select Action:</label>
+          <div className="inline-block align-middle">
+            <label className="text-lg">Select Action:</label>
             <select
               id="status-option"
               value={selectedStatusOption}
               onChange={() => handleDropdownChange()}
-              className="mr-2"
+              className="mx-4"
             >
               <option value="publish">Publish</option>
               <option value="dismiss">Dismiss</option>
@@ -337,15 +359,25 @@ export default function SelectData({
             </select>
             <button
               type="submit"
-              className={`rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
+              className={`mx-4 rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
                 isLoading ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
               {isLoading ? 'Submitting...' : 'Submit'}
             </button>
+            <button
+              onClick={handleCancel}
+              className="mx-4 rounded-full bg-gray-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-gray-400 disabled:opacity-75"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       </form>
+      <div className="mt-2 text-sm">
+        Publish = display node on map <br /> Dismiss = hide node until it has
+        updates <br /> Ignore = always hide node
+      </div>
     </div>
   )
 }
@@ -356,6 +388,7 @@ SelectData.propTypes = {
   isLoading: PropTypes.bool.isRequired,
   setIsLoading: PropTypes.func.isRequired,
   isRetrieving: PropTypes.bool.isRequired,
+  setIsMapSelected: PropTypes.func.isRequired,
   setProgress: PropTypes.func.isRequired,
   progress: PropTypes.number.isRequired,
   setFormData: PropTypes.func.isRequired,

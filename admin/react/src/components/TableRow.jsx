@@ -29,7 +29,7 @@ function TableRow({
 
   return (
     <tr>
-      <td>
+      <td className="text-center px-2 py-1">
         <input
           type="checkbox"
           checked={isSelected}
@@ -37,22 +37,27 @@ function TableRow({
           disabled={!response.data.is_available}
         />
       </td>
-      <td className="text-center">{response.id}</td>
-      <td className="text-center">
+      <td className="text-center px-2 py-1">{response.id}</td>
+      <td className="text-center px-2 py-1">
         {response?.profile_data?.geolocation ? '📍' : ''}
       </td>
-      <td className="text-center">{response.profile_data.name}</td>
+      <td className="text-center px-2 py-1">
+        {response.profile_data.name
+          ? response.profile_data.name
+          : response.profile_data.title}
+      </td>
       <td className="text-center underline">
         <a
           href={response.index_data.profile_url}
           target="_blank"
           rel="noreferrer"
+          className="text-blue-500 underline"
         >
           {response.index_data.profile_url}
         </a>
       </td>
-      <td className="text-center">{response.data.status}</td>
-      <td className="text-center">
+      <td className="text-center px-2 py-1">{response.data.status}</td>
+      <td className="text-center px-2 py-1">
         {response.data.is_available
           ? 'Available'
           : 'Unavailable-' +
@@ -60,7 +65,7 @@ function TableRow({
               ? response.data.unavailable_message
               : '')}
       </td>
-      <td className="text-center">
+      <td className="text-center px-2 py-1">
         {response.data.extra_notes === 'see updates' ? (
           <button
             onClick={() =>
@@ -70,6 +75,7 @@ function TableRow({
                 response.profile_data
               )
             }
+            className="bg-orange-500 text-white font-bold animate-pulse px-2"
           >
             See Updates
           </button>

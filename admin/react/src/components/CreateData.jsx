@@ -20,6 +20,7 @@ export default function CreateData({
   handleInputChange,
   setIsLoading,
   setIsRetrieving,
+  setIsMapSelected,
   setProfileList,
   progress,
   setProgress,
@@ -30,6 +31,7 @@ export default function CreateData({
   const [selectedCountry, setSelectedCountry] = useState([])
 
   const handleSubmit = async event => {
+    window.scrollTo(0, 0)
     event.preventDefault()
     setIsLoading(true)
     setIsRetrieving(false)
@@ -163,12 +165,22 @@ export default function CreateData({
 
           const profileResponseData = await profileResponse.json()
           if (!profileResponse.ok) {
+            if (
+              profileResponse.status === 400 &&
+              profileResponseData?.code === 'profile_url_length_exceeded'
+            ) {
+              alert(
+                `profile_url_length_exceeded: ${profileObject.index_data.profile_url}`
+              )
+              continue
+            }
             alert(
-              `Unable to save profiles to wpdb, errors: ${
-                profileResponse.status
-              } ${JSON.stringify(
-                profileResponseData
-              )}. Please delete the map and try again.`
+              `
+                }Unable to save profiles to wpdb, errors: ${
+                  profileResponse.status
+                } ${JSON.stringify(
+                  profileResponseData
+                )}. Please delete the map and try again.`
             )
             return
           }
@@ -184,21 +196,52 @@ export default function CreateData({
         alert(`Error: ${response.status} ${response}`)
       }
     } catch (error) {
+      setIsMapSelected(false)
       alert(
         `Handle Submit error: ${error}, please delete the map and retry again.`
       )
     } finally {
+      setIsMapSelected(true)
       setIsLoading(false)
       setProgress(0)
       await getMaps()
     }
   }
 
+  const handleCancel = () => {
+    setIsMapSelected(false)
+    window.scrollTo(0, 0)
+  }
+
   return (
     <div>
       {isLoading && <ProgressBar progress={progress} />}
-      <h2 className="text-xl">Create Data Source</h2>
-      <form onSubmit={handleSubmit} className="p-6">
+      <h2 className="text-2xl">Create a Map or Directory</h2>
+      <p className="text-base my-2">
+        Import nodes from the distributed Murmurations network to create your
+        own custom maps and directories.
+      </p>
+      <form onSubmit={handleSubmit} className="py-6">
+        <div className="mb-8">
+          <label
+            className="block text-gray-700 text-base font-bold mb-2"
+            htmlFor="map_name"
+          >
+            Map/Directory Name
+          </label>
+          <input
+            type="text"
+            id="map_name"
+            name="map_name"
+            value={formData.map_name}
+            onChange={handleInputChange}
+            className="w-full border rounded py-2 px-3"
+            required={true}
+          />
+          <div className="mt-1">
+            A familiar name to make it easy for you to identify
+          </div>
+        </div>
         <MapSettings
           formData={formData}
           handleInputChange={handleInputChange}
@@ -212,11 +255,17 @@ export default function CreateData({
         <div className="mt-6">
           <button
             type="submit"
-            className={`rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
+            className={`mx-4 rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
               isLoading ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
-            {isLoading ? 'Submitting...' : 'Submit'}
+            {isLoading ? 'Creating...' : 'Create'}
+          </button>
+          <button
+            onClick={handleCancel}
+            className="mx-4 rounded-full bg-gray-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-gray-400 disabled:opacity-75"
+          >
+            Cancel
           </button>
         </div>
       </form>
@@ -229,6 +278,7 @@ CreateData.propTypes = {
   handleInputChange: PropTypes.func.isRequired,
   setIsLoading: PropTypes.func.isRequired,
   setIsRetrieving: PropTypes.func.isRequired,
+  setIsMapSelected: PropTypes.func.isRequired,
   setProfileList: PropTypes.func.isRequired,
   progress: PropTypes.number.isRequired,
   setProgress: PropTypes.func.isRequired,

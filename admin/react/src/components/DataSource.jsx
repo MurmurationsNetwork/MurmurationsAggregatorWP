@@ -28,14 +28,14 @@ export default function DataSource({
 
   return (
     <div>
-      <h2 className="text-xl mt-4">Data Source</h2>
+      <h3 className="text-lg mt-4">Node Selection</h3>
       <div className="border-2 border-dotted border-red-500 p-4 mt-2">
         <div className="mb-4">
           <label
             className="block text-gray-700 font-bold mb-2"
             htmlFor="data_url"
           >
-            Data URL
+            Source Index
           </label>
           <select
             id="data_url"
@@ -51,6 +51,10 @@ export default function DataSource({
               https://index.murmurations.network/v2/nodes
             </option>
           </select>
+          <div className="mt-1">
+            Select the test or production index to find nodes for your map or
+            directory
+          </div>
         </div>
         <div className="mb-4">
           <label
@@ -72,9 +76,13 @@ export default function DataSource({
               </option>
             ))}
           </select>
+          <div className="mt-1">
+            Select a schema to specify the type of nodes you want to display
+          </div>
         </div>
-        <p className="text-lg font-bold mb-2">
-          Filter the map results using the optional fields below:
+        <p className="text-base font-bold mt-8 mb-4">
+          Filter the number of nodes returned from the index using the optional
+          fields below
         </p>
         <div className="mb-4">
           <label className="block text-gray-700 font-bold mb-2" htmlFor="name">
@@ -88,9 +96,7 @@ export default function DataSource({
             onChange={handleInputChange}
             className="w-full border rounded py-2 px-3"
           />
-          <p className="text-gray-500 text-xs mt-1">
-            Search for entities with a specific name
-          </p>
+          <p className="mt-1">Search for nodes with a specific name</p>
         </div>
         <div className="mb-4">
           <label className="block text-gray-700 font-bold mb-2" htmlFor="lat">
@@ -107,9 +113,7 @@ export default function DataSource({
             onChange={handleInputChange}
             className="w-full border rounded py-2 px-3"
           />
-          <p className="text-gray-500 text-xs mt-1">
-            Search for entities near a specific latitude
-          </p>
+          <p className="mt-1">Search for nodes near a specific latitude</p>
         </div>
         <div className="mb-4">
           <label className="block text-gray-700 font-bold mb-2" htmlFor="lon">
@@ -126,9 +130,7 @@ export default function DataSource({
             onChange={handleInputChange}
             className="w-full border rounded py-2 px-3"
           />
-          <p className="text-gray-500 text-xs mt-1">
-            Search for entities near a specific longitude
-          </p>
+          <p className="mt-1">Search for nodes near a specific longitude</p>
         </div>
         <div className="mb-4">
           <label className="block text-gray-700 font-bold mb-2" htmlFor="range">
@@ -142,8 +144,8 @@ export default function DataSource({
             onChange={handleInputChange}
             className="w-full border rounded py-2 px-3"
           />
-          <p className="text-gray-500 text-xs mt-1">
-            Search for entities within a specific distance of the latitude and
+          <p className="mt-1">
+            Search for nodes within a specific distance from the latitude and
             longitude specified above
           </p>
         </div>
@@ -162,8 +164,9 @@ export default function DataSource({
             onChange={handleInputChange}
             className="w-full border rounded py-2 px-3"
           />
-          <p className="text-gray-500 text-xs mt-1">
-            Search for entities which list a specific locality
+          <p className="mt-1">
+            Search for nodes which list a specific locality (e.g., Paris,
+            London, San Francisco, etc.)
           </p>
         </div>
         <div className="mb-4">
@@ -181,8 +184,9 @@ export default function DataSource({
             onChange={handleInputChange}
             className="w-full border rounded py-2 px-3"
           />
-          <p className="text-gray-500 text-xs mt-1">
-            Search for entities which list a specific region
+          <p className="mt-1">
+            Search for nodes which list a specific region (e.g., Île-de-France,
+            Greater London, California, etc.)
           </p>
         </div>
         <div className="mb-4">
@@ -206,8 +210,8 @@ export default function DataSource({
               </option>
             ))}
           </select>
-          <p className="text-gray-500 text-xs mt-1">
-            Search for entities which list a specific country code
+          <p className="mt-1">
+            Search for nodes which list a specific country code
           </p>
         </div>
         <div className="mb-4">
@@ -222,9 +226,9 @@ export default function DataSource({
             onChange={handleInputChange}
             className="w-full border rounded py-2 px-3"
           />
-          <p className="text-gray-500 text-xs mt-1">
-            Search for entities which list specific tags (use commas to search
-            for multiple tags)
+          <p className="mt-1">
+            Search for nodes which list specific tags (use commas to search for
+            multiple tags)
           </p>
         </div>
         <div className="mb-4">
@@ -242,8 +246,8 @@ export default function DataSource({
             onChange={handleInputChange}
             className="mr-2"
           />
-          <p className="text-gray-500 text-xs mt-1">
-            Only return entities with all of the tags specified above
+          <p className="mt-1">
+            Only return nodes with all of the tags specified above
           </p>
         </div>
         <div className="mb-4">
@@ -261,8 +265,8 @@ export default function DataSource({
             onChange={handleInputChange}
             className="mr-2"
           />
-          <p className="text-gray-500 text-xs mt-1">
-            Only return entities with exact matches (turns off fuzzy matching)
+          <p className="mt-1">
+            Only return nodes with exact matches (turns off fuzzy matching)
           </p>
         </div>
         <div className="mb-4">
@@ -280,9 +284,9 @@ export default function DataSource({
             onChange={handleInputChange}
             className="w-full border rounded py-2 px-3"
           />
-          <p className="text-gray-500 text-xs mt-1">
-            Search for entities with a specific primary URL (don’t include http
-            or www, e.g., example.com)
+          <p className="mt-1">
+            Search for nodes with a specific primary URL (don’t include http or
+            www, e.g., <code>my.org</code> or <code>some-host.net/my-org</code>)
           </p>
         </div>
       </div>

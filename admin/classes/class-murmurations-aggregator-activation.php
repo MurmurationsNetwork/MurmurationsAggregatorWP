@@ -95,7 +95,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 		        id INT NOT NULL AUTO_INCREMENT,
 			    map_id INT NOT NULL,
 			    post_id INT,
-			    profile_url VARCHAR(100) NOT NULL,
+			    profile_url VARCHAR(2000) NOT NULL,
 			    data TEXT NOT NULL,
 			    last_updated VARCHAR(100) NOT NULL,
 			    status VARCHAR(100) NOT NULL DEFAULT 'ignored',

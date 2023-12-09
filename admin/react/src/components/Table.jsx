@@ -17,26 +17,26 @@ function Table({
       tableList.filter(response => response.data.is_available).length
 
   return (
-    <table>
+    <table className="shadow-md">
       <thead>
-        <tr>
-          <th>
+        <tr className="bg-gray-500 text-white">
+          <th className="text-center p-2">
             <input
               type="checkbox"
               checked={isAllSelected}
               onChange={onSelectAll}
             />
           </th>
-          <th className="text-center">ID</th>
-          <th className="text-center"></th>
-          <th className="text-center">Name</th>
-          <th className="text-center">Profile URL</th>
-          <th className="text-center">Current Status</th>
-          <th className="text-center">Availability</th>
-          <th className="text-center"></th>
+          <th className="text-center p-2">ID</th>
+          <th className="text-center p-2">Geopoint</th>
+          <th className="text-center p-2">Name/Title</th>
+          <th className="text-center p-2">Profile URL</th>
+          <th className="text-center p-2">Status</th>
+          <th className="text-center p-2">Availability</th>
+          <th className="text-center p-2"></th>
         </tr>
       </thead>
-      <tbody>
+      <tbody className="striped">
         {tableList.map(response => (
           <TableRow
             key={response.id}

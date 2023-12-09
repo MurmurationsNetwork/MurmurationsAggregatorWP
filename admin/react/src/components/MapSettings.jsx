@@ -3,31 +3,27 @@ import PropTypes from 'prop-types'
 export default function MapSettings({ formData, handleInputChange }) {
   return (
     <div>
-      <h2 className="text-xl">Map Settings</h2>
+      <h3 className="text-lg">Map Settings</h3>
       <div className="border-2 border-dotted border-red-500 p-4 mt-2">
         <div className="mb-4">
-          <label
-            className="block text-gray-700 font-bold mb-2"
-            htmlFor="map_name"
+          Use{' '}
+          <a
+            className="text-blue-500 underline"
+            href="https://latlong.net"
+            target="_blank"
+            rel="noreferrer"
           >
-            Map Name
-          </label>
-          <input
-            type="text"
-            id="map_name"
-            name="map_name"
-            value={formData.map_name}
-            onChange={handleInputChange}
-            className="w-full border rounded py-2 px-3"
-            required={true}
-          />
+            LatLong.net
+          </a>{' '}
+          to pick a location, enter coordinates with decimals (e.g., 48.86124)
         </div>
+
         <div className="mb-4">
           <label
             className="block text-gray-700 font-bold mb-2"
             htmlFor="map_name"
           >
-            Map Center Latitude (Default is Paris)
+            Map Center Latitude
           </label>
           <input
             type="number"
@@ -46,7 +42,7 @@ export default function MapSettings({ formData, handleInputChange }) {
             className="block text-gray-700 font-bold mb-2"
             htmlFor="map_name"
           >
-            Map Center Longitude (Default is Paris)
+            Map Center Longitude
           </label>
           <input
             type="number"
@@ -65,7 +61,7 @@ export default function MapSettings({ formData, handleInputChange }) {
             className="block text-gray-700 font-bold mb-2"
             htmlFor="map_name"
           >
-            Map Center Scale (Default is 5)
+            Map Scale
           </label>
           <input
             type="number"
@@ -78,6 +74,7 @@ export default function MapSettings({ formData, handleInputChange }) {
             max={20}
             step="any"
           />
+          <div className="mt-1">1 = the entire globe, 18 = maximum zoom in</div>
         </div>
       </div>
     </div>

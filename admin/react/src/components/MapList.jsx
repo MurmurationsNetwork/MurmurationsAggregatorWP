@@ -11,6 +11,7 @@ import {
 } from '../utils/api'
 import PropTypes from 'prop-types'
 import { formDefaults } from '../data/formDefaults'
+import ProgressBar from './ProgressBar'
 import { useState } from 'react'
 
 export default function MapList({
@@ -18,12 +19,14 @@ export default function MapList({
   getMaps,
   setFormData,
   setIsEdit,
+  setIsMapSelected,
   isLoading,
   setIsLoading,
   setIsRetrieving,
   setProfileList,
   setCurrentTime,
   setProgress,
+  progress,
   setDeletedProfiles
 }) {
   const [isPopupOpen, setIsPopupOpen] = useState(false)
@@ -32,6 +35,7 @@ export default function MapList({
   const handleCreate = () => {
     setFormData(formDefaults)
     setIsEdit(false)
+    setIsMapSelected(true)
     setIsRetrieving(false)
     setProfileList([])
     setCurrentTime('')
@@ -153,11 +157,13 @@ export default function MapList({
 
             if (!deleteNodeResponse.ok) {
               const deleteNodeResponseData = await deleteNodeResponse.json()
-              alert(
-                `Delete Profile Error: ${
-                  deleteNodeResponse.status
-                } ${JSON.stringify(deleteNodeResponseData)}`
-              )
+              if (deleteNodeResponse.status !== 404) {
+                alert(
+                  `Delete Profile Error: ${
+                    deleteNodeResponse.status
+                  } ${JSON.stringify(deleteNodeResponseData)}`
+                )
+              }
             }
 
             // delete node from nodes table
@@ -211,6 +217,15 @@ export default function MapList({
 
             if (!profileResponse.ok) {
               const profileResponseData = await profileResponse.json()
+              if (
+                profileResponse.status === 400 &&
+                profileResponseData?.code === 'profile_url_length_exceeded'
+              ) {
+                alert(
+                  `profile_url_length_exceeded: ${profileObject.index_data.profile_url}`
+                )
+                continue
+              }
               alert(
                 `Unable to save profiles to wpdb, errors: ${
                   profileResponse.status
@@ -304,7 +319,10 @@ export default function MapList({
 
       if (deletedProfiles.length === 0 && dataWithIds.length === 0) {
         setProfileList([])
-        alert(`No update profiles found.`)
+        setIsMapSelected(false)
+        setIsRetrieving(false)
+        setIsLoading(false)
+        alert(`No updated profiles found.`)
         return
       }
 
@@ -324,6 +342,7 @@ export default function MapList({
 
       setDeletedProfiles(deletedProfiles)
       setProfileList(dataWithIds)
+      setIsMapSelected(true)
     } catch (error) {
       alert(`Retrieve node error: ${error}`)
     } finally {
@@ -335,6 +354,7 @@ export default function MapList({
   const handleEditNodes = async mapId => {
     setIsLoading(true)
     setIsRetrieving(true)
+    setIsMapSelected(true)
     setDeletedProfiles([])
 
     try {
@@ -380,6 +400,7 @@ export default function MapList({
 
   const handleEditMap = async mapId => {
     setIsEdit(true)
+    setIsMapSelected(true)
     setDeletedProfiles([])
     setProfileList([])
     const map = maps.find(map => map.id === mapId)
@@ -418,114 +439,179 @@ export default function MapList({
     } catch (error) {
       alert(`Delete map error: ${error}`)
     } finally {
-      setProfileList([])
-      setFormData(formDefaults)
-      setIsLoading(false)
-      setMapIdToDelete(null)
-      await getMaps()
+      await getMaps().then(() => {
+        setProfileList([])
+        setFormData(formDefaults)
+        setIsLoading(false)
+        setMapIdToDelete(null)
+      })
     }
   }
 
   const handleDeleteCancel = () => {
     setIsPopupOpen(false)
     setMapIdToDelete(null)
+    window.scrollTo(0, 0)
   }
 
   return (
     <div>
-      <h2 className="text-xl">Map Data</h2>
-      <button
-        className={`my-1 mx-2 max-w-fit rounded-full bg-indigo-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-indigo-400 disabled:opacity-75 mt-5 ${
-          isLoading ? 'opacity-50 cursor-not-allowed' : ''
-        }`}
-        onClick={() => handleCreate()}
-      >
-        {isLoading ? 'Loading' : 'Create Map'}
-      </button>
-      {maps.length > 0 ? (
-        maps.map((map, index) => (
-          <div className="bg-white p-4 rounded shadow-md mt-4" key={index}>
-            <h2 className="text-xl font-semibold mb-2">{map.name}</h2>
-            <p>
-              <strong>Query URL:</strong>{' '}
-              <a href={map.index_url + map.query_url}>
-                {map.index_url + map.query_url}
-              </a>
-            </p>
-            <p>
-              <strong>Shortcode:</strong> [murmurations_map tag_slug=&quot;
-              {map.tag_slug}&quot; height=&quot;50&quot; view=&quot;map&quot;]
-            </p>
-            <p>
-              <strong>Map Center:</strong>{' '}
-              {map.map_center_lon + ',' + map.map_center_lat}
-            </p>
-            <p>
-              <strong>Map Scale:</strong> {map.map_scale}
-            </p>
-            <p>
-              <strong>Created At:</strong> {map.created_at}
-            </p>
-            <p>
-              <strong>Updated At:</strong> {map.updated_at}
-            </p>
-            <div className="box-border flex flex-wrap xl:min-w-max flex-row mt-4 justify-between">
-              <button
-                className={`my-1 mx-2 max-w-fit rounded-full bg-yellow-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
-                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-                onClick={() =>
-                  handleRetrieve(
-                    map.id,
-                    map.index_url + map.query_url,
-                    map.tag_slug
-                  )
-                }
-              >
-                {isLoading ? 'Loading' : 'Retrieve'}
-              </button>
-              <button
-                className={`my-1 mx-2 max-w-fit rounded-full bg-amber-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-amber-400 disabled:opacity-75 ${
-                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-                onClick={() => handleEditNodes(map.id)}
-              >
-                {isLoading ? 'Loading' : 'Edit Nodes'}
-              </button>
-              <button
-                className="my-1 mx-2 max-w-fit rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75"
-                onClick={() => handleEditMap(map.id)}
-              >
-                Edit Map
-              </button>
-              <button
-                className={`my-1 mx-2 max-w-fit rounded-full bg-red-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-red-400 disabled:opacity-75 ${
-                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-                onClick={() => handleDelete(map.id)}
-              >
-                {isLoading ? 'Loading' : 'Delete'}
-              </button>
+      {!isLoading && (
+        <div>
+          <button
+            className={`mb-4 max-w-fit rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
+              isLoading ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+            onClick={() => handleCreate()}
+          >
+            Create Map
+          </button>
+          {maps.length > 0 && (
+            <div>
+              <p className="mt-4 text-base">
+                Add a shortcode into a page or post. More information about the
+                parameters for shortcodes can be found{' '}
+                <a
+                  href="https://docs.murmurations.network/developers/wp-aggregator.html#shortcodes"
+                  target="_blank"
+                  className="text-blue-500 underline"
+                  rel="noreferrer"
+                >
+                  in the docs
+                </a>
+                .
+              </p>
+              <p className="mt-2 text-base">
+                Click the <em className="font-semibold">Update Nodes</em> button
+                to check for updates to the nodes in that map.{' '}
+                <em className="font-semibold">Manage Nodes</em> enables you to
+                change the published status of nodes without checking for
+                updates.
+              </p>
             </div>
+          )}
+          {maps.length > 0 ? (
+            maps.map((map, index) => (
+              <div className="bg-white p-4 rounded shadow-md mt-4" key={index}>
+                <h2 className="text-xl font-semibold mb-2">{map.name}</h2>
+                <p>
+                  <strong>Query URL:</strong>{' '}
+                  <a
+                    className="text-blue-500 underline"
+                    href={map.index_url + map.query_url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {map.index_url + map.query_url}
+                  </a>
+                </p>
+                <p>
+                  <strong>Shortcode:</strong> [murmurations_map tag_slug=&quot;
+                  {map.tag_slug}&quot; height=&quot;60&quot;
+                  width=&quot;100&quot; view=&quot;map&quot;]
+                </p>
+                <p>
+                  <strong>Map Center:</strong>{' '}
+                  {map.map_center_lat + ', ' + map.map_center_lon}
+                </p>
+                <p>
+                  <strong>Map Scale:</strong> {map.map_scale}
+                </p>
+                <p>
+                  <strong>Created At:</strong> {map.created_at}
+                </p>
+                <p>
+                  <strong>Updated At:</strong> {map.updated_at}
+                </p>
+                <div className="box-border flex flex-wrap xl:min-w-max flex-row mt-4 justify-between">
+                  <button
+                    className={`my-1 mx-2 max-w-fit rounded-full bg-yellow-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
+                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    onClick={() =>
+                      handleRetrieve(
+                        map.id,
+                        map.index_url + map.query_url,
+                        map.tag_slug
+                      )
+                    }
+                  >
+                    Update Nodes
+                  </button>
+                  <button
+                    className={`my-1 mx-2 max-w-fit rounded-full bg-yellow-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
+                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    onClick={() => handleEditNodes(map.id)}
+                  >
+                    Manage Nodes
+                  </button>
+                  <button
+                    className={`my-1 mx-2 max-w-fit rounded-full bg-yellow-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
+                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    onClick={() => handleEditMap(map.id)}
+                  >
+                    Edit Map
+                  </button>
+                  <button
+                    className={`my-1 mx-2 max-w-fit rounded-full bg-red-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-red-400 disabled:opacity-75 ${
+                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    onClick={() => handleDelete(map.id)}
+                  >
+                    Delete Map
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="mt-4 text-base">
+              Create your first map or directory by clicking the Create Map
+              button above.
+            </p>
+          )}
+        </div>
+      )}
+
+      {isLoading && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-yellow-100 p-8 rounded shadow-xl w-1/2">
+            <p className="text-2xl text-center mb-4">Loading...</p>
+            {<ProgressBar progress={progress} />}
+            <p className="text-xl text-center mt-4">
+              Murmurations is an unfunded volunteer-led project.
+              <br />
+              Please consider{' '}
+              <a
+                href="https://opencollective.com/murmurations"
+                target="_blank"
+                className="text-blue-500 underline"
+                rel="noreferrer"
+              >
+                making a donation
+              </a>{' '}
+              to support development.
+            </p>
           </div>
-        ))
-      ) : (
-        <p>No maps found.</p>
+        </div>
       )}
       {isPopupOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded shadow-lg">
-            <p className="text-xl">Are you sure you want to delete?</p>
-            <div className="mt-4">
+          <div className="bg-red-100 p-8 rounded shadow-xl">
+            <p className="text-xl">
+              Are you sure you want to delete this map and all of its data?
+            </p>
+            <div className="mt-4 flex justify-center">
               <button
                 onClick={handleDeleteConfirm}
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-4 text-lg"
+                className="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded mr-4 text-lg"
               >
                 Confirm
               </button>
               <button
                 onClick={handleDeleteCancel}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded text-lg"
+                className="bg-gray-500 hover:bg-gray-400 text-white font-bold py-2 px-4 rounded text-lg"
               >
                 Cancel
               </button>
@@ -542,11 +628,13 @@ MapList.propTypes = {
   getMaps: PropTypes.func.isRequired,
   setFormData: PropTypes.func.isRequired,
   setIsEdit: PropTypes.func.isRequired,
+  setIsMapSelected: PropTypes.func.isRequired,
   isLoading: PropTypes.bool.isRequired,
   setIsLoading: PropTypes.func.isRequired,
   setIsRetrieving: PropTypes.func.isRequired,
   setProfileList: PropTypes.func.isRequired,
   setCurrentTime: PropTypes.func.isRequired,
   setProgress: PropTypes.func.isRequired,
+  progress: PropTypes.number.isRequired,
   setDeletedProfiles: PropTypes.func.isRequired
 }

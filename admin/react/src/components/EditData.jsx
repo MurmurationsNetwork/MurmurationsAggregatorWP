@@ -7,6 +7,7 @@ export default function EditData({
   formData,
   handleInputChange,
   setIsLoading,
+  setIsMapSelected,
   setIsEdit,
   setFormData,
   getMaps,
@@ -30,8 +31,10 @@ export default function EditData({
         alert(`Map Error: ${response.status} ${JSON.stringify(responseData)}`)
       }
     } catch (error) {
+      setIsMapSelected(false)
       alert(`Edit map error: ${error}`)
     } finally {
+      setIsMapSelected(false)
       setIsEdit(false)
       setIsLoading(false)
       setFormData(formDefaults)
@@ -39,10 +42,16 @@ export default function EditData({
     }
   }
 
+  const handleCancel = () => {
+    setIsMapSelected(false)
+    setIsEdit(false)
+    window.scrollTo(0, 0)
+  }
+
   return (
     <div>
-      <h2 className="text-xl">Edit Data Source</h2>
-      <form onSubmit={handleEditSubmit} className="p-6">
+      <h2 className="text-2xl">Edit Map</h2>
+      <form onSubmit={handleEditSubmit} className="py-6">
         <MapSettings
           formData={formData}
           handleInputChange={handleInputChange}
@@ -51,11 +60,17 @@ export default function EditData({
         <div className="mt-6">
           <button
             type="submit"
-            className={`rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
+            className={`mx-4 rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
               isLoading ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
             {isLoading ? 'Submitting...' : 'Submit'}
+          </button>
+          <button
+            onClick={handleCancel}
+            className="mx-4 rounded-full bg-gray-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-gray-400 disabled:opacity-75"
+          >
+            Cancel
           </button>
         </div>
       </form>
@@ -68,6 +83,7 @@ EditData.propTypes = {
   handleInputChange: PropTypes.func.isRequired,
   setIsLoading: PropTypes.func.isRequired,
   setIsEdit: PropTypes.func.isRequired,
+  setIsMapSelected: PropTypes.func.isRequired,
   setFormData: PropTypes.func.isRequired,
   getMaps: PropTypes.func.isRequired,
   isLoading: PropTypes.bool.isRequired

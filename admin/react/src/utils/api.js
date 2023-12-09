@@ -30,11 +30,9 @@ export const saveCustomMap = async (
     map_center_lat:
       mapCenterLat !== null && mapCenterLat !== undefined
         ? mapCenterLat
-        : 46.603354,
+        : 48.86,
     map_center_lon:
-      mapCenterLon !== null && mapCenterLon !== undefined
-        ? mapCenterLon
-        : 1.888334,
+      mapCenterLon !== null && mapCenterLon !== undefined ? mapCenterLon : 2.34,
     map_scale: mapScale !== null && mapScale !== undefined ? mapScale : 5
   }
 
