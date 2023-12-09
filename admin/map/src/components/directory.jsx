@@ -5,8 +5,8 @@ export default function Directory({ profiles, linkType }) {
   return (
     <div className="max-w-screen-md mx-auto">
       <ul className="divide-y divide-gray-300">
-        {profiles.map(profile => (
-          <div>
+        {profiles.map((profile, index) => (
+          <div key={index}>
             <li key={profile.id} className="py-4 dir-item">
               {profile.profile_data.image && (
                 <img

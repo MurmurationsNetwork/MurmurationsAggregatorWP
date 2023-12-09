@@ -90,8 +90,8 @@ export default function MapClient({
   linkType
 }) {
   let defaultCenter = []
-  defaultCenter[0] = parseFloat(map.map_center_lat) || 48.864716
-  defaultCenter[1] = parseFloat(map.map_center_lon) || 2.349014
+  defaultCenter[0] = parseFloat(map.map_center_lat) || 48.86
+  defaultCenter[1] = parseFloat(map.map_center_lon) || 2.34
   let zoom = parseInt(map.map_scale) || 5
 
   return (
