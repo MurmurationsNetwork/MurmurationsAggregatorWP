@@ -346,17 +346,19 @@ export default function SelectData({
       >
         <div className="mt-6">
           <div className="inline-block align-middle">
-            <label className="text-lg">Select Action:</label>
-            <select
-              id="status-option"
-              value={selectedStatusOption}
-              onChange={() => handleDropdownChange()}
-              className="mx-4"
-            >
-              <option value="publish">Publish</option>
-              <option value="dismiss">Dismiss</option>
-              <option value="ignore">Ignore</option>
-            </select>
+            <label className="text-lg">
+              Select Action:
+              <select
+                id="status-option"
+                value={selectedStatusOption}
+                onChange={() => handleDropdownChange()}
+                className="mx-4"
+              >
+                <option value="publish">Publish</option>
+                <option value="dismiss">Dismiss</option>
+                <option value="ignore">Ignore</option>
+              </select>
+            </label>
             <button
               type="submit"
               className={`mx-4 rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${

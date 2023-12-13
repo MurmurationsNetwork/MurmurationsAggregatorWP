@@ -11,7 +11,7 @@ export default function Directory({ profiles, linkType }) {
               {profile.profile_data.image && (
                 <img
                   src={profile.profile_data.image}
-                  alt="Profile Image"
+                  alt="Profile Logo"
                   className="mb-4 max-h-16"
                   onError={e => {
                     e.target.style.display = 'none'
