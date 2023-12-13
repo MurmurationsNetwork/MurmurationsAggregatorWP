@@ -25,7 +25,6 @@ export default function Directory({ profiles, linkType }) {
                     <a href={profile.post_url}>More...</a>
                   ) : (
                     <span>
-                      More:&nbsp;
                       <a
                         href={profile.profile_data.primary_url}
                         target="_blank"
