@@ -45,6 +45,7 @@
     "esbuild-plugin-eslint": "^0.3.6",
     "eslint": "^8.52.0",
     "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-react": "^7.33.2",
     "grunt": "^1.6.1",
     "grunt-wp-readme-to-markdown": "^2.1.0",

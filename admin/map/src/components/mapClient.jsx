@@ -40,7 +40,7 @@ const markerClicked = async (profile, apiUrl, linkType) => {
   let content = ''
   const imageUrl = responseData?.profile_data?.image
   if (imageUrl) {
-    content += `<img src='${imageUrl}' alt='profile image' width='100' height='100' id="profile_image" />`
+    content += `<img src='${imageUrl}' style='height: 50px; width: auto' id='profile_image' />`
 
     const img = new Image()
     img.src = imageUrl
@@ -64,7 +64,7 @@ const markerClicked = async (profile, apiUrl, linkType) => {
       ? responseData.post_url
       : responseData?.profile_data?.primary_url
   if (postUrl && linkType === 'primary') {
-    content += `<p>More: <a target='_blank' rel='noreferrer' href='${postUrl}'>${postUrl}</a></p>`
+    content += `<p><a target='_blank' rel='noreferrer' href='${postUrl}'>${postUrl}</a></p>`
   }
   if (postUrl && linkType === 'wp') {
     content += `<p><a href='${postUrl}'>More...</a></p>`
