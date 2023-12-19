@@ -1,26 +1,32 @@
 import ReactDOM from 'react-dom/client'
 import App from './app'
 
-const tagSlug = getAttribute('data-tag-slug', '')
-const view = getAttribute('data-view', 'map')
-const height = getAttribute('data-height', 50, 'number')
-const width = getAttribute('data-width', 75, 'number')
-const linkType = getAttribute('data-link-type', 'primary')
+function getRootElements() {
+  return document.querySelectorAll('#wp-map-plugin-page-root')
+}
 
-ReactDOM.createRoot(document.querySelector('#wp-map-plugin-page-root')).render(
-  <App
-    tagSlug={tagSlug}
-    view={view}
-    height={height}
-    width={width}
-    linkType={linkType}
-  />
-)
+const rootElements = getRootElements()
 
-function getAttribute(name, defaultValue, type = 'string') {
-  const value = document
-    .querySelector('#wp-map-plugin-page-root')
-    .getAttribute(name)
+rootElements.forEach(rootElement => {
+  const tagSlug = getAttribute(rootElement, 'data-tag-slug', '')
+  const view = getAttribute(rootElement, 'data-view', 'map')
+  const height = getAttribute(rootElement, 'data-height', 50, 'number')
+  const width = getAttribute(rootElement, 'data-width', 75, 'number')
+  const linkType = getAttribute(rootElement, 'data-link-type', 'primary')
+
+  ReactDOM.createRoot(rootElement).render(
+    <App
+      tagSlug={tagSlug}
+      view={view}
+      height={height}
+      width={width}
+      linkType={linkType}
+    />
+  )
+})
+
+function getAttribute(element, name, defaultValue, type = 'string') {
+  const value = element.getAttribute(name)
 
   if (type === 'number') {
     const number = parseInt(value)
