@@ -11,12 +11,35 @@ export default function Directory({ profiles, linkType, pageSize }) {
     currentPage * pageSize
   )
   const [pageNumbers, setPageNumbers] = useState([])
+  const [inputPage, setInputPage] = useState('')
 
   useEffect(() => {
     if (totalPages) {
       setPageNumbers(calculatePageNumbers(currentPage, totalPages))
     }
   }, [currentPage, totalPages])
+
+  const handlePageInput = e => {
+    setInputPage(e.target.value)
+  }
+
+  const jumpToPage = () => {
+    const pageNumber = Number(inputPage)
+    if (
+      pageNumber >= 1 &&
+      pageNumber <= totalPages &&
+      pageNumber !== currentPage
+    ) {
+      setCurrentPage(pageNumber)
+    }
+    setInputPage('')
+  }
+
+  const handleKeyDown = e => {
+    if (e.key === 'Enter') {
+      jumpToPage()
+    }
+  }
 
   function calculatePageNumbers(currentPage, totalPages) {
     const pagesToShow = 5
@@ -131,6 +154,22 @@ export default function Directory({ profiles, linkType, pageSize }) {
         >
           &gt;&gt;
         </button>
+      </div>
+      <div className="flex flex-row flex-wrap items-center justify-center my-4">
+        <input
+          type="text"
+          placeholder="Go to page..."
+          value={inputPage}
+          onChange={handlePageInput}
+          onKeyDown={handleKeyDown}
+          className="px-2 py-1 m-1 rounded border-2 border-gray-300"
+        />
+        <button className="px-2 py-1 m-1 rounded bg-white" onClick={jumpToPage}>
+          Go
+        </button>
+        <span className="px-4 py-2">
+          Page {currentPage} of {totalPages}
+        </span>
       </div>
     </div>
   )
