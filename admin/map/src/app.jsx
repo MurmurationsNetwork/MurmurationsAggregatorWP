@@ -62,7 +62,11 @@ export default function App(props) {
   return (
     <div>
       {view === 'dir' ? (
-        <Directory profiles={profiles} linkType={linkType} />
+        <Directory
+          profiles={profiles}
+          linkType={linkType}
+          pageSize={pageSize}
+        />
       ) : (
         <MapClient
           profiles={profiles}

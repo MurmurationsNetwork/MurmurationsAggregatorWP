@@ -1,16 +1,51 @@
 import { iterateObject } from '../utils/iterateObject'
 import PropTypes from 'prop-types'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-export default function Directory({ profiles, linkType, pageSize = 1 }) {
+export default function Directory({ profiles, linkType, pageSize }) {
+  const pagesToShow = 5
   const [currentPage, setCurrentPage] = useState(1)
   const totalPages = Math.ceil(profiles.length / pageSize)
   const currentProfiles = profiles.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   )
+  const [pageNumbers, setPageNumbers] = useState([])
 
-  const paginate = pageNumber => setCurrentPage(pageNumber)
+  useEffect(() => {
+    if (totalPages) {
+      setPageNumbers(calculatePageNumbers(currentPage, totalPages))
+    }
+  }, [currentPage, totalPages])
+
+  function calculatePageNumbers(currentPage, totalPages) {
+    const pagesToShow = 5
+    let pages = []
+    let startPage, endPage
+
+    if (totalPages <= pagesToShow) {
+      startPage = 1
+      endPage = totalPages
+    } else {
+      const halfPagesToShow = Math.floor(pagesToShow / 2)
+      if (currentPage <= pagesToShow - halfPagesToShow) {
+        startPage = 1
+        endPage = pagesToShow
+      } else if (currentPage + halfPagesToShow >= totalPages) {
+        startPage = totalPages - pagesToShow + 1
+        endPage = totalPages
+      } else {
+        startPage = currentPage - halfPagesToShow
+        endPage = currentPage + halfPagesToShow
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i)
+    }
+
+    return pages
+  }
 
   return (
     <div className="max-w-screen-md mx-auto">
@@ -59,17 +94,43 @@ export default function Directory({ profiles, linkType, pageSize = 1 }) {
         ))}
       </div>
       <div className="flex flex-row flex-wrap items-center justify-center my-4">
-        {Array.from({ length: totalPages }, (_, i) => (
+        <button
+          className="px-4 py-2 m-1 rounded bg-white"
+          onClick={() => setCurrentPage(1)}
+        >
+          &lt;&lt;
+        </button>
+        <button
+          className="px-4 py-2 m-1 rounded bg-white"
+          onClick={() => setCurrentPage(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          &lt;
+        </button>
+        {pageNumbers.map(page => (
           <button
-            key={i + 1}
-            onClick={() => paginate(i + 1)}
+            key={page}
+            onClick={() => setCurrentPage(page)}
             className={`px-4 py-2 m-1 rounded ${
-              currentPage === i + 1 ? 'bg-blue-500 text-white' : 'bg-white'
+              currentPage === page ? 'bg-blue-500 text-white' : 'bg-white'
             }`}
           >
-            {i + 1}
+            {page}
           </button>
         ))}
+        <button
+          className="px-4 py-2 m-1 rounded bg-white"
+          onClick={() => setCurrentPage(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          &gt;
+        </button>
+        <button
+          className="px-4 py-2 m-1 rounded bg-white"
+          onClick={() => setCurrentPage(totalPages)}
+        >
+          &gt;&gt;
+        </button>
       </div>
     </div>
   )
