@@ -13,6 +13,7 @@ rootElements.forEach(rootElement => {
   const height = getAttribute(rootElement, 'data-height', 50, 'number')
   const width = getAttribute(rootElement, 'data-width', 75, 'number')
   const linkType = getAttribute(rootElement, 'data-link-type', 'primary')
+  const pageSize = getAttribute(rootElement, 'data-page-size', 10, 'number')
 
   ReactDOM.createRoot(rootElement).render(
     <App
@@ -21,6 +22,7 @@ rootElements.forEach(rootElement => {
       height={height}
       width={width}
       linkType={linkType}
+      pageSize={pageSize}
     />
   )
 })
