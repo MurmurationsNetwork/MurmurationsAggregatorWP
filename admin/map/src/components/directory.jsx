@@ -17,16 +17,17 @@ export default function Directory({ profiles, linkType, pageSize }) {
     if (totalPages) {
       setPageNumbers(calculatePageNumbers(currentPage, totalPages))
     }
+    if (directoryComponent.current) {
+      const position = directoryComponent.current.offsetTop
+      window.scrollTo({
+        top: position,
+        behavior: 'smooth'
+      })
+    }
   }, [currentPage, totalPages])
 
-  // set current page and scroll to top of page
   const handlePageChange = page => {
-    const position = directoryComponent.current.offsetTop
     setCurrentPage(page)
-    window.scrollTo({
-      top: position,
-      behavior: 'smooth'
-    })
   }
 
   const handlePageInput = e => {
@@ -145,7 +146,9 @@ export default function Directory({ profiles, linkType, pageSize }) {
             key={page}
             onClick={() => handlePageChange(page)}
             className={`px-4 py-2 m-1 rounded ${
-              currentPage === page ? 'bg-blue-500 text-white' : 'bg-gray-500 text-white'
+              currentPage === page
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-500 text-white'
             }`}
           >
             {page}
