@@ -3,7 +3,6 @@ import PropTypes from 'prop-types'
 import { useEffect, useRef, useState } from 'react'
 
 export default function Directory({ profiles, linkType, pageSize }) {
-  const pagesToShow = 5
   const [currentPage, setCurrentPage] = useState(1)
   const totalPages = Math.ceil(profiles.length / pageSize)
   const currentProfiles = profiles.slice(
