@@ -1,6 +1,6 @@
 import { iterateObject } from '../utils/iterateObject'
 import PropTypes from 'prop-types'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export default function Directory({ profiles, linkType, pageSize }) {
   const pagesToShow = 5
@@ -12,12 +12,23 @@ export default function Directory({ profiles, linkType, pageSize }) {
   )
   const [pageNumbers, setPageNumbers] = useState([])
   const [inputPage, setInputPage] = useState('')
+  const directoryComponent = useRef(null)
 
   useEffect(() => {
     if (totalPages) {
       setPageNumbers(calculatePageNumbers(currentPage, totalPages))
     }
   }, [currentPage, totalPages])
+
+  // set current page and scroll to top of page
+  const handlePageChange = page => {
+    const position = directoryComponent.current.offsetTop
+    setCurrentPage(page)
+    window.scrollTo({
+      top: position,
+      behavior: 'smooth'
+    })
+  }
 
   const handlePageInput = e => {
     setInputPage(e.target.value)
@@ -30,7 +41,7 @@ export default function Directory({ profiles, linkType, pageSize }) {
       pageNumber <= totalPages &&
       pageNumber !== currentPage
     ) {
-      setCurrentPage(pageNumber)
+      handlePageChange(pageNumber)
     }
     setInputPage('')
   }
@@ -71,7 +82,7 @@ export default function Directory({ profiles, linkType, pageSize }) {
   }
 
   return (
-    <div className="max-w-screen-md mx-auto">
+    <div className="max-w-screen-md mx-auto" ref={directoryComponent}>
       <div className="divide-y divide-gray-300">
         {currentProfiles.map((profile, index) => (
           <div key={index}>
@@ -119,13 +130,13 @@ export default function Directory({ profiles, linkType, pageSize }) {
       <div className="flex flex-row flex-wrap items-center justify-center my-4">
         <button
           className="px-4 py-2 m-1 rounded bg-gray-500"
-          onClick={() => setCurrentPage(1)}
+          onClick={() => handlePageChange(1)}
         >
           &lt;&lt;
         </button>
         <button
           className="px-4 py-2 m-1 rounded bg-gray-500"
-          onClick={() => setCurrentPage(currentPage - 1)}
+          onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
         >
           &lt;
@@ -133,7 +144,7 @@ export default function Directory({ profiles, linkType, pageSize }) {
         {pageNumbers.map(page => (
           <button
             key={page}
-            onClick={() => setCurrentPage(page)}
+            onClick={() => handlePageChange(page)}
             className={`px-4 py-2 m-1 rounded ${
               currentPage === page ? 'bg-blue-500 text-white' : 'bg-gray-500'
             }`}
@@ -143,14 +154,14 @@ export default function Directory({ profiles, linkType, pageSize }) {
         ))}
         <button
           className="px-4 py-2 m-1 rounded bg-gray-500"
-          onClick={() => setCurrentPage(currentPage + 1)}
+          onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
         >
           &gt;
         </button>
         <button
           className="px-4 py-2 m-1 rounded bg-gray-500"
-          onClick={() => setCurrentPage(totalPages)}
+          onClick={() => handlePageChange(totalPages)}
         >
           &gt;&gt;
         </button>
