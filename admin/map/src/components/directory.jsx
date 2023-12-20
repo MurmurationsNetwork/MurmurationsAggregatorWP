@@ -128,13 +128,13 @@ export default function Directory({ profiles, linkType, pageSize }) {
       </div>
       <div className="flex flex-row flex-wrap items-center justify-center my-4">
         <button
-          className="px-4 py-2 m-1 rounded bg-gray-500"
+          className="px-4 py-2 m-1 rounded bg-gray-500 text-white"
           onClick={() => handlePageChange(1)}
         >
           &lt;&lt;
         </button>
         <button
-          className="px-4 py-2 m-1 rounded bg-gray-500"
+          className="px-4 py-2 m-1 rounded bg-gray-500 text-white"
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
         >
@@ -145,21 +145,21 @@ export default function Directory({ profiles, linkType, pageSize }) {
             key={page}
             onClick={() => handlePageChange(page)}
             className={`px-4 py-2 m-1 rounded ${
-              currentPage === page ? 'bg-blue-500 text-white' : 'bg-gray-500'
+              currentPage === page ? 'bg-blue-500 text-white' : 'bg-gray-500 text-white'
             }`}
           >
             {page}
           </button>
         ))}
         <button
-          className="px-4 py-2 m-1 rounded bg-gray-500"
+          className="px-4 py-2 m-1 rounded bg-gray-500 text-white"
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
         >
           &gt;
         </button>
         <button
-          className="px-4 py-2 m-1 rounded bg-gray-500"
+          className="px-4 py-2 m-1 rounded bg-gray-500 text-white"
           onClick={() => handlePageChange(totalPages)}
         >
           &gt;&gt;
@@ -175,7 +175,7 @@ export default function Directory({ profiles, linkType, pageSize }) {
           className="px-2 py-1 m-1 rounded border-2 border-gray-300"
         />
         <button
-          className="px-2 py-1 m-1 rounded bg-gray-500"
+          className="px-2 py-1 m-1 rounded bg-gray-500 text-white"
           onClick={jumpToPage}
         >
           Go
