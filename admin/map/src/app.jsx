@@ -8,7 +8,7 @@ export default function App(props) {
   const wordpressUrl = murmurations_aggregator.wordpress_url
   const apiUrl = `${wordpressUrl}/wp-json/murmurations-aggregator/v1`
 
-  const { tagSlug, view, height, width, linkType } = props
+  const { tagSlug, view, height, width, linkType, pageSize } = props
 
   const [profiles, setProfiles] = useState([])
   const [map, setMap] = useState({})
@@ -62,7 +62,11 @@ export default function App(props) {
   return (
     <div>
       {view === 'dir' ? (
-        <Directory profiles={profiles} linkType={linkType} />
+        <Directory
+          profiles={profiles}
+          linkType={linkType}
+          pageSize={pageSize}
+        />
       ) : (
         <MapClient
           profiles={profiles}
@@ -83,5 +87,6 @@ App.propTypes = {
   view: PropTypes.string.isRequired,
   height: PropTypes.number.isRequired,
   width: PropTypes.number.isRequired,
-  linkType: PropTypes.string.isRequired
+  linkType: PropTypes.string.isRequired,
+  pageSize: PropTypes.number.isRequired
 }

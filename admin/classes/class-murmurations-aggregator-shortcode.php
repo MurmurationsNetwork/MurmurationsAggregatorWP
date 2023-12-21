@@ -16,8 +16,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			$height    = isset( $atts['height'] ) ? esc_attr( $atts['height'] ) : '60';
 			$width     = isset( $atts['width'] ) ? esc_attr( $atts['width'] ) : '100';
 			$link_type = isset( $atts['link_type'] ) ? esc_attr( $atts['link_type'] ) : 'primary';
+			$page_size = isset( $atts['page_size'] ) ? esc_attr( $atts['page_size'] ) : '10';
 
-			return '<div id="wp-map-plugin-page-root" data-tag-slug="' . esc_attr( $atts['tag_slug'] ) . '" data-view="' . $view . '" data-height="' . $height . '" data-width="' . $width . '" data-link-type="' . $link_type . '"></div>';
+			return '<div id="wp-map-plugin-page-root" data-tag-slug="' . esc_attr( $atts['tag_slug'] ) . '" data-view="' . $view . '" data-height="' . $height . '" data-width="' . $width . '" data-link-type="' . $link_type . '" data-page-size="' . $page_size . '"></div>';
 		}
 
 		public function enqueue_assets(): void {
