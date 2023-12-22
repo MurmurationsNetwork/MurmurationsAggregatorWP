@@ -5,6 +5,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 		public function __construct() {
 			add_shortcode( 'murmurations_map', array( $this, 'murmurations_map' ) );
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
+			add_shortcode( 'murms_data', array( $this, 'murms_data' ) );
 		}
 
 		public function murmurations_map( $atts ): string {
@@ -39,6 +40,46 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			wp_localize_script( 'murmurations-aggregator', 'murmurations_aggregator', array(
 				'wordpress_url' => get_site_url(),
 			) );
+		}
+
+		public function murms_data( $atts ): string {
+			global $wpdb, $post;
+			$post_id = $post->ID;
+
+			$attributes = shortcode_atts( array(
+				'path' => 'default_path'
+			), $atts );
+
+			$json_path = $attributes['path'];
+
+			$table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_NODE_TABLE;
+
+			$results = $wpdb->get_results( $wpdb->prepare( "SELECT data FROM {$table_name} WHERE post_id = %d", $post_id ) );
+
+			if ( ! empty( $results ) ) {
+				$json_data = $results[0]->data;
+				$data      = json_decode( $json_data, true );
+
+				$output = $this->get_json_value_by_path( $json_path, $data );
+
+				return ! is_null( $output ) ? esc_html( $output ) : 'Data not found for the specified path.';
+			}
+
+			return 'Post is not found.';
+		}
+
+		private function get_json_value_by_path( $path, $data ) {
+			$path_parts = preg_split( '/\./', $path, - 1, PREG_SPLIT_NO_EMPTY );
+
+			foreach ( $path_parts as $part ) {
+				if ( isset( $data[ $part ] ) ) {
+					$data = $data[ $part ];
+				} else {
+					return null;
+				}
+			}
+
+			return $data;
 		}
 	}
 }
