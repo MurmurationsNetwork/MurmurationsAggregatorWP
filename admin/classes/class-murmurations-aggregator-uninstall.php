@@ -33,10 +33,10 @@ if ( ! class_exists( 'Murmurations_Aggregator_Uninstall' ) ) {
 				);
 
 				foreach ( $terms as $term ) {
-					if (isset($term->term_id)) {
+					if ( isset( $term->term_id ) ) {
 						wp_delete_term( $term->term_id, $taxonomy );
 					} else {
-						error_log('Term ID not found in term: ' . print_r($term, true));
+						error_log( 'Term ID not found in term: ' . print_r( $term, true ) );
 					}
 				}
 			}
