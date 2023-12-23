@@ -29,7 +29,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Uninstall' ) ) {
 				);
 
 				foreach ( $terms as $term ) {
-					wp_delete_term( $term->term_id, $taxonomy );
+					wp_delete_term( $term['term_id'], $taxonomy );
 				}
 			}
 
