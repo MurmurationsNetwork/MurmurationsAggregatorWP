@@ -4,6 +4,10 @@ if ( ! class_exists( 'Murmurations_Aggregator_Uninstall' ) ) {
 	class Murmurations_Aggregator_Uninstall {
 		public static function uninstall(): void {
 			// clean CPT and taxonomies
+			// It's necessary to register the CPT and taxonomies here, because we unregister them in deactivate and they need to be registered to be deleted
+			create_murmurations_node_post_type();
+			create_murmurations_node_taxonomy();
+
 			$posts = get_posts(
 				array(
 					'post_type'   => MURMURATIONS_AGGREGATOR_POST_TYPE,
@@ -12,6 +16,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Uninstall' ) ) {
 			);
 
 			foreach ( $posts as $post ) {
+				error_log('Post ID found in post: ' . print_r($post, true));
 				wp_delete_post( $post->ID, true );
 			}
 
@@ -30,6 +35,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Uninstall' ) ) {
 
 				foreach ( $terms as $term ) {
 					if (isset($term->term_id)) {
+						error_log('Term ID found in term: ' . print_r($term, true));
 						wp_delete_term( $term->term_id, $taxonomy );
 					} else {
 						error_log('Term ID not found in term: ' . print_r($term, true));

@@ -7,24 +7,23 @@ if ( ! class_exists( 'Murmurations_Aggregator_Admin_Page' ) ) {
 		    add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 	    }
 
-	    public function add_menus() {
+	    public function add_menus(): void {
 		    add_menu_page(
 			    'Murmurations Collaborative Map Builder',
 			    'Murm-Maps',
 			    'edit_posts', // capability
 			    'murmurations-aggregator',
 			    array( $this, 'admin_page' ),
-			    'dashicons-networking', // icon URL
-			    null // position
+			    'dashicons-networking'
 		    );
 	    }
 
-	    public function admin_page() {
+	    public function admin_page(): void {
 		    echo '<div id="wp-admin-plugin-page-root"></div>';
 		    echo '<style>#wpcontent {padding-left: 0;}</style>';
 	    }
 
-	    public function enqueue_assets( $hook ) {
+	    public function enqueue_assets( $hook ): void {
 		    if ( 'toplevel_page_murmurations-aggregator' !== $hook ) {
 			    return;
 		    }

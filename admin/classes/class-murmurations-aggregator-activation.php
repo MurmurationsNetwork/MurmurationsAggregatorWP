@@ -101,13 +101,19 @@ if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 			    status VARCHAR(100) NOT NULL DEFAULT 'ignored',
 			    is_available BOOLEAN NOT NULL DEFAULT 0,
 			    unavailable_message VARCHAR(100) DEFAULT NULL,
-			    PRIMARY KEY (id),
-			    FOREIGN KEY (map_id) REFERENCES $table_name(id) ON DELETE CASCADE
+			    PRIMARY KEY (id)
 		    ) $charset_collate;";
 
 			require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 			dbDelta( $sql );
 			dbDelta( $node_sql );
+
+			// Add the foreign key constraint
+			$foreign_key_sql = "ALTER TABLE $node_table_name 
+                        ADD FOREIGN KEY (map_id) 
+                        REFERENCES $table_name(id) 
+                        ON DELETE CASCADE;";
+			$wpdb->query( $foreign_key_sql );
 		}
 	}
 }

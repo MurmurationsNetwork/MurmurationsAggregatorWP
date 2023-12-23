@@ -384,7 +384,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				// delete tags
 				$tag_slug = $map->tag_slug;
 				$tag      = get_term_by( 'slug', $tag_slug, 'murmurations_node_tags' );
-				wp_delete_term( $tag->term_id, 'murmurations_node_tags' );
+				if ( isset( $tag->term_id ) ) {
+					wp_delete_term( $tag->term_id, 'murmurations_node_tags' );
+				} else {
+					error_log( 'Term ID not found in term: ' . print_r( $tag, true ) );
+				}
 			}
 
 			// delete map
