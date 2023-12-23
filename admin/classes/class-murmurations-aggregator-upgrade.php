@@ -11,12 +11,12 @@ if ( ! class_exists( 'Murmurations_Aggregator_Upgrade' ) ) {
 			$table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_NODE_TABLE;
 
 			// check the table is existed or not
-			$table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name;
+			$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) == $table_name;
 
 			$current_version = get_option( 'murmurations_aggregator_version' );
 
 			if ( version_compare( $current_version, '1.0.0-beta.1', '<' ) ) {
-				if ($table_exists) {
+				if ( $table_exists ) {
 					$sql = "ALTER TABLE $table_name
                         ADD COLUMN is_available BOOLEAN NOT NULL DEFAULT 0,
                         ADD COLUMN unavailable_message VARCHAR(255) DEFAULT NULL";
@@ -31,7 +31,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Upgrade' ) ) {
 			$current_version = get_option( 'murmurations_aggregator_version' );
 
 			if ( version_compare( $current_version, '1.0.0-beta.3', '<' ) ) {
-				if ($table_exists) {
+				if ( $table_exists ) {
 					$sql = "ALTER TABLE $table_name
                         MODIFY profile_url VARCHAR(2000) NOT NULL";
 
