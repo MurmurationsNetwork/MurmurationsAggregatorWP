@@ -16,7 +16,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_Uninstall' ) ) {
 			);
 
 			foreach ( $posts as $post ) {
-				error_log('Post ID found in post: ' . print_r($post, true));
 				wp_delete_post( $post->ID, true );
 			}
 
@@ -35,7 +34,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_Uninstall' ) ) {
 
 				foreach ( $terms as $term ) {
 					if (isset($term->term_id)) {
-						error_log('Term ID found in term: ' . print_r($term, true));
 						wp_delete_term( $term->term_id, $taxonomy );
 					} else {
 						error_log('Term ID not found in term: ' . print_r($term, true));
