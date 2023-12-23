@@ -7,19 +7,22 @@ if ( ! class_exists( 'Murmurations_Aggregator_Upgrade' ) ) {
 		}
 
 		public static function upgrade_db_check(): void {
-			// uncomment the following line to upgrade the db
+			global $wpdb;
+			$table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_NODE_TABLE;
+
+			// check the table is existed or not
+			$table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name;
+
 			$current_version = get_option( 'murmurations_aggregator_version' );
 
 			if ( version_compare( $current_version, '1.0.0-beta.1', '<' ) ) {
-				// update db
-				global $wpdb;
-				$table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_NODE_TABLE;
-
-				$sql = "ALTER TABLE $table_name
+				if ($table_exists) {
+					$sql = "ALTER TABLE $table_name
                         ADD COLUMN is_available BOOLEAN NOT NULL DEFAULT 0,
                         ADD COLUMN unavailable_message VARCHAR(255) DEFAULT NULL";
 
-				$wpdb->query( $sql );
+					$wpdb->query( $sql );
+				}
 			}
 
 			// update the plugin version in the database
@@ -28,14 +31,12 @@ if ( ! class_exists( 'Murmurations_Aggregator_Upgrade' ) ) {
 			$current_version = get_option( 'murmurations_aggregator_version' );
 
 			if ( version_compare( $current_version, '1.0.0-beta.3', '<' ) ) {
-				// update db
-				global $wpdb;
-				$table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_NODE_TABLE;
-
-				$sql = "ALTER TABLE $table_name
+				if ($table_exists) {
+					$sql = "ALTER TABLE $table_name
                         MODIFY profile_url VARCHAR(2000) NOT NULL";
 
-				$wpdb->query( $sql );
+					$wpdb->query( $sql );
+				}
 			}
 
 			// update the plugin version in the database
