@@ -5,7 +5,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 		public function __construct() {
 			add_shortcode( 'murmurations_map', array( $this, 'murmurations_map' ) );
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
-			add_shortcode( 'murms_data', array( $this, 'murms_data' ) );
+			add_shortcode( 'murmurations_data', array( $this, 'murmurations_data' ) );
 		}
 
 		public function murmurations_map( $atts ): string {
@@ -42,7 +42,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			) );
 		}
 
-		public function murms_data( $atts ): string {
+		public function murmurations_data( $atts ): string {
 			global $wpdb, $post;
 			$post_id = $post->ID;
 
