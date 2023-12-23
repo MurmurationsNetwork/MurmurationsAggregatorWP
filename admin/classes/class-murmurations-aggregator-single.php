@@ -19,9 +19,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_Single' ) ) {
 					$data      = json_decode( $json_data, true );
 
 					$keyValueMap = [];
-					$this->iterateObject($data, '', $keyValueMap);
+					$this->iterateObject( $data, '', $keyValueMap );
 
-					foreach ($keyValueMap as $key => $value) {
+					foreach ( $keyValueMap as $key => $value ) {
 						$content .= '<div>' . $key . ': ' . $value . '</div>';
 					}
 				}
@@ -30,12 +30,12 @@ if ( ! class_exists( 'Murmurations_Aggregator_Single' ) ) {
 			return $content;
 		}
 
-		private function iterateObject($obj, $currentKey = '', &$keyValueMap = []): void{
-			foreach ($obj as $key => $value) {
-				if (is_array($value) || is_object($value)) {
-					$this->iterateObject($value, $currentKey . $key . '.', $keyValueMap);
+		private function iterateObject( $obj, $currentKey = '', &$keyValueMap = [] ): void {
+			foreach ( $obj as $key => $value ) {
+				if ( is_array( $value ) || is_object( $value ) ) {
+					$this->iterateObject( $value, $currentKey . $key . '.', $keyValueMap );
 				} else {
-					$keyValueMap[$currentKey . $key] = $value;
+					$keyValueMap[ $currentKey . $key ] = $value;
 				}
 			}
 		}
