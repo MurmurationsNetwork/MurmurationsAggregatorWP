@@ -105,9 +105,13 @@ if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 			    FOREIGN KEY (map_id) REFERENCES $table_name(id) ON DELETE CASCADE
 		    ) $charset_collate;";
 
+			// move foreign key creation to separate query
+			$foreign_key_sql = "ALTER TABLE $node_table_name ADD FOREIGN KEY (map_id) REFERENCES $table_name(id) ON DELETE CASCADE;";
+
 			require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 			dbDelta( $sql );
 			dbDelta( $node_sql );
+			dbDelta( $foreign_key_sql );
 		}
 	}
 }
