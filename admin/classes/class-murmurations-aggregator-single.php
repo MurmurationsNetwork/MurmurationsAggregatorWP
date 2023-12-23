@@ -22,13 +22,13 @@ if ( ! class_exists( 'Murmurations_Aggregator_Single' ) ) {
 
 					switch ( $schema ) {
 						case 'organizations_schema-v1.0.0':
-							$content = $this->organization_schema( $content );
+							$content = $this->organization_schema( $content, $data );
 							break;
 						case 'people_schema-v0.1.0':
-							$content = $this->person_schema( $content );
+							$content = $this->person_schema( $content, $data );
 							break;
 						case 'offers_wants_prototype-v0.0.2':
-							$content = $this->offer_want_schema( $content );
+							$content = $this->offer_want_schema( $content, $data );
 							break;
 					}
 				}
@@ -37,26 +37,77 @@ if ( ! class_exists( 'Murmurations_Aggregator_Single' ) ) {
 			return $content;
 		}
 
-		private function organization_schema( $content ): string {
-			$content          .= '<div>' . do_shortcode( '[murmurations_data path="name"]' ) . '</div>';
-			$content          .= '<div>' . do_shortcode( '[murmurations_data path="nickname"]' ) . '</div>';
-			$content          .= '<div>' . do_shortcode( '[murmurations_data path="primary_url"]' ) . '</div>';
-			$content          .= '<div>' . do_shortcode( '[murmurations_data path="tags.0"]' ) . '</div>';
-			$content          .= '<div>' . do_shortcode( '[murmurations_data path="description"]' ) . '</div>';
+		private function organization_schema( $content, $data ): string {
+			$name = Murmurations_Aggregator_Utils::get_json_value_by_path( 'name', $data );
+			if ( ! is_null( $name ) ) {
+				$content .= '<div>Name: ' . $name . '</div>';
+			}
+
+			$nickname = Murmurations_Aggregator_Utils::get_json_value_by_path( 'nickname', $data );
+			if ( ! is_null( $nickname ) ) {
+				$content .= '<div>NickName: ' . $nickname . '</div>';
+			}
+
+			$primary_url = Murmurations_Aggregator_Utils::get_json_value_by_path( 'primary_url', $data );
+			if ( ! is_null( $primary_url ) ) {
+				$content .= '<div>Primary URL: <a href="' . $primary_url . '">' . $primary_url . '</a></div>';
+			}
+
+			$tags = Murmurations_Aggregator_Utils::get_json_value_by_path( 'tags', $data );
+			if ( ! is_null( $tags ) ) {
+				$tags_size = sizeof( $tags );
+				$content   .= '<div>Tags: ';
+				for ( $i = 0; $i < $tags_size; $i ++ ) {
+					if ( $i == $tags_size - 1 ) {
+						$content .= '<span>' . $tags[ $i ] . '</span>';
+					} else {
+						$content .= '<span>' . $tags[ $i ] . '</span>, ';
+					}
+				}
+				$content .= '</div>';
+			}
+
+			$urls = Murmurations_Aggregator_Utils::get_json_value_by_path( 'urls', $data );
+			if ( ! is_null( $urls ) ) {
+				$urls_size = sizeof( $urls );
+				$content   .= '<div>URLs: ';
+				for ( $i = 0; $i < $urls_size; $i ++ ) {
+					$url       = $urls[ $i ];
+					$url_name  = $url['name'];
+					$url_value = $url['url'];
+					if ( ! is_null( $url_name ) && ! is_null( $url_value ) ) {
+						if ( $i == $urls_size - 1 ) {
+							$content .= '<span>' . $url_name . ': <a href="' . $url_value . '">' . $url_value . '</a></span>';
+						} else {
+							$content .= '<span>' . $url_name . ': <a href="' . $url_value . '">' . $url_value . '</a></span>, ';
+						}
+					}
+				}
+				$content .= '</div>';
+			}
+
+			$description = Murmurations_Aggregator_Utils::get_json_value_by_path( 'description', $data );
+			if ( ! is_null( $description ) ) {
+				$content .= '<div>Description: ' . $description . '</div>';
+			}
 
 			return $content;
 		}
 
-		private function person_schema( $content ): string {
-			$shortcode_output = do_shortcode( '[murmurations_data path="description"]' );
-			$content          .= '<div>' . $shortcode_output . '</div>';
+		private function person_schema( $content, $data ): string {
+			$name = Murmurations_Aggregator_Utils::get_json_value_by_path( 'name', $data );
+			if ( ! is_null( $name ) ) {
+				$content .= '<div>Name: ' . $name . '</div>';
+			}
 
 			return $content;
 		}
 
-		private function offer_want_schema( $content ): string {
-			$shortcode_output = do_shortcode( '[murmurations_data path="description"]' );
-			$content          .= '<div>' . $shortcode_output . '</div>';
+		private function offer_want_schema( $content, $data ): string {
+			$name = Murmurations_Aggregator_Utils::get_json_value_by_path( 'name', $data );
+			if ( ! is_null( $name ) ) {
+				$content .= '<div>Name: ' . $name . '</div>';
+			}
 
 			return $content;
 		}
