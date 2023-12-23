@@ -54,7 +54,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 
 			$table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_NODE_TABLE;
 
-			$results = $wpdb->get_results( $wpdb->prepare( "SELECT data FROM {$table_name} WHERE post_id = %d", $post_id ) );
+			$results = $wpdb->get_results( $wpdb->prepare( "SELECT data FROM $table_name WHERE post_id = %d", $post_id ) );
 
 			if ( ! empty( $results ) ) {
 				$json_data = $results[0]->data;
