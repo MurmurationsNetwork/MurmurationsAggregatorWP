@@ -50,6 +50,7 @@ if ( ! class_exists( 'MurmurationsAggregator' ) ) {
 			$this->register_custom_post();
 			$this->register_api();
 			$this->register_shortcode();
+			$this->register_single();
 		}
 
 		private function register_autoloads(): void {
@@ -83,6 +84,10 @@ if ( ! class_exists( 'MurmurationsAggregator' ) ) {
 
 		public function register_shortcode(): void {
 			new Murmurations_Aggregator_Shortcode();
+		}
+
+		public function register_single(): void {
+			new Murmurations_Aggregator_Single();
 		}
 	}
 
