@@ -2,11 +2,19 @@
 
 if ( ! class_exists( 'Murmurations_Aggregator_Single' ) ) {
 	class Murmurations_Aggregator_Single {
+		private array $custom_templates;
+
 		public function __construct() {
-			add_filter( 'the_content', array( $this, 'murmurations_aggregator_template_include' ) );
+			$this->custom_templates = [
+				'organizations_schema-v1.0.0'   => 'single-organization_schema.php',
+				'people_schema-v0.1.0'          => 'single-people_schema.php',
+				'offers_wants_prototype-v0.0.2' => 'single-offers_wants_prototype.php'
+			];
+
+			add_filter( 'template_include', array( $this, 'murmurations_aggregator_template_include' ) );
 		}
 
-		public function murmurations_aggregator_template_include( $content ) {
+		public function murmurations_aggregator_template_include( $template ) {
 			if ( is_single() && get_post_type() == 'murmurations_node' ) {
 				global $wpdb;
 				$post_id    = get_the_ID();
@@ -18,26 +26,15 @@ if ( ! class_exists( 'Murmurations_Aggregator_Single' ) ) {
 					$json_data = $results[0]->data;
 					$data      = json_decode( $json_data, true );
 
-					$keyValueMap = [];
-					$this->iterateObject( $data, '', $keyValueMap );
+					$schema = Murmurations_Aggregator_Utils::get_json_value_by_path( 'linked_schemas.0', $data );
 
-					foreach ( $keyValueMap as $key => $value ) {
-						$content .= '<div>' . $key . ': ' . $value . '</div>';
+					if ( array_key_exists( $schema, $this->custom_templates ) ) {
+						$template = locate_template( $this->custom_templates[ $schema ] );
 					}
 				}
 			}
 
-			return $content;
-		}
-
-		private function iterateObject( $obj, $currentKey = '', &$keyValueMap = [] ): void {
-			foreach ( $obj as $key => $value ) {
-				if ( is_array( $value ) || is_object( $value ) ) {
-					$this->iterateObject( $value, $currentKey . $key . '.', $keyValueMap );
-				} else {
-					$keyValueMap[ $currentKey . $key ] = $value;
-				}
-			}
+			return $template;
 		}
 	}
 }
