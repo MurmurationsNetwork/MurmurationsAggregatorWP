@@ -10,8 +10,14 @@ if ( ! class_exists( 'Murmurations_Aggregator_Single' ) ) {
 				'people_schema-v0.1.0'          => 'single-people_schema.php',
 				'offers_wants_prototype-v0.0.2' => 'single-offers_wants_prototype.php'
 			];
-
 			add_filter( 'template_include', array( $this, 'murmurations_aggregator_template_include' ) );
+			add_action( 'init', array( $this, 'check_and_disable_filter' ) );
+		}
+
+		public function check_and_disable_filter(): void {
+			if (current_theme_supports('block-templates')) {
+				remove_filter('template_include', array($this, 'murmurations_aggregator_template_include'));
+			}
 		}
 
 		public function murmurations_aggregator_template_include( $template ) {
