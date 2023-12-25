@@ -3,7 +3,7 @@
 get_header();
 ?>
 
-	<main id="site-content">
+    <main id="site-content">
 
 		<?php
 
@@ -16,20 +16,20 @@ get_header();
 
 				?>
 
-				<div class="entry-content">
-					<p>
+                <div class="entry-content">
+                    <p>
 						<?php
 						echo 'This is from Offer Schema: ' . do_shortcode( '[murmurations_data path="description"]' );
 						?>
-					</p>
-				</div>
+                    </p>
+                </div>
 				<?php
 			}
 		}
 
 		?>
 
-	</main><!-- #site-content -->
+    </main><!-- #site-content -->
 
 <?php get_template_part( 'template-parts/footer-menus-widgets' ); ?>
 

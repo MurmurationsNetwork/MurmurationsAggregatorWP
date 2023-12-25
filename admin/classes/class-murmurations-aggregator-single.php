@@ -15,8 +15,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_Single' ) ) {
 		}
 
 		public function check_and_disable_filter(): void {
-			if (current_theme_supports('block-templates')) {
-				remove_filter('template_include', array($this, 'murmurations_aggregator_template_include'));
+			if ( current_theme_supports( 'block-templates' ) ) {
+				remove_filter( 'template_include', array( $this, 'murmurations_aggregator_template_include' ) );
 			}
 		}
 
