@@ -6,9 +6,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_Single' ) ) {
 
 		public function __construct() {
 			$this->custom_templates = [
-				'organizations_schema-v1.0.0'   => 'single-organization_schema.php',
-				'people_schema-v0.1.0'          => 'single-people_schema.php',
-				'offers_wants_prototype-v0.0.2' => 'single-offers_wants_prototype.php'
+				'organizations_schema-v1.0.0'   => 'single-organization-schema.php',
+				'people_schema-v0.1.0'          => 'single-people-schema.php',
+				'offers_wants_prototype-v0.0.2' => 'single-offers-wants-prototype-schema.php'
 			];
 			add_filter( 'template_include', array( $this, 'murmurations_aggregator_template_include' ) );
 			add_action( 'init', array( $this, 'check_and_disable_filter' ) );
