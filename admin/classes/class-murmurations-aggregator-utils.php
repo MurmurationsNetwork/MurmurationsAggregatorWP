@@ -15,5 +15,19 @@ if ( ! class_exists( 'Murmurations_Aggregator_Utils' ) ) {
 
 			return $data;
 		}
+
+		public static function get_custom_template( $key ): ?string {
+			$custom_templates = [
+				'organizations_schema-v1.0.0'   => 'single-organization-schema',
+				'people_schema-v0.1.0'          => 'single-people-schema',
+				'offers_wants_prototype-v0.0.2' => 'single-offers-wants-prototype-schema'
+			];
+
+			if ( array_key_exists( $key, $custom_templates ) ) {
+				return $custom_templates[ $key ];
+			}
+
+			return null;
+		}
 	}
 }

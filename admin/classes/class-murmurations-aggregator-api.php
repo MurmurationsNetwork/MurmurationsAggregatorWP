@@ -505,6 +505,12 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			// set custom fields
 			if ( ! is_wp_error( $post_id ) ) {
 				update_post_meta( $post_id, 'murmurations_profile_data', $data['profile_data'] );
+
+				// modify the template
+				$custom_template = Murmurations_Aggregator_Utils::get_custom_template( $data['index_data']['linked_schemas'][0] );
+				if ( ! is_null( $custom_template ) ) {
+					update_post_meta( $post_id, '_wp_page_template', $custom_template );
+				}
 			}
 
 			if ( is_wp_error( $post_id ) ) {

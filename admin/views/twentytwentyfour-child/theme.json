@@ -9,8 +9,8 @@
 			]
 		},
 		{
-			"name": "single-person-schema",
-			"title": "Murm: Person Schema",
+			"name": "single-people-schema",
+			"title": "Murm: People Schema",
 			"postTypes": [
 				"murmurations_node"
 			]

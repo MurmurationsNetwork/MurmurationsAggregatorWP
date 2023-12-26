@@ -2,14 +2,7 @@
 
 if ( ! class_exists( 'Murmurations_Aggregator_Single' ) ) {
 	class Murmurations_Aggregator_Single {
-		private array $custom_templates;
-
 		public function __construct() {
-			$this->custom_templates = [
-				'organizations_schema-v1.0.0'   => 'single-organization-schema.php',
-				'people_schema-v0.1.0'          => 'single-people-schema.php',
-				'offers_wants_prototype-v0.0.2' => 'single-offers-wants-prototype-schema.php'
-			];
 			add_filter( 'template_include', array( $this, 'murmurations_aggregator_template_include' ) );
 			add_action( 'init', array( $this, 'check_and_disable_filter' ) );
 		}
@@ -34,8 +27,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_Single' ) ) {
 
 					$schema = Murmurations_Aggregator_Utils::get_json_value_by_path( 'linked_schemas.0', $data );
 
-					if ( array_key_exists( $schema, $this->custom_templates ) ) {
-						$template = locate_template( $this->custom_templates[ $schema ] );
+					$custom_template = Murmurations_Aggregator_Utils::get_custom_template( $schema );
+					if ( ! is_null( $custom_template ) ) {
+						$template = locate_template( $custom_template . '.php' );
 					}
 				}
 			}
