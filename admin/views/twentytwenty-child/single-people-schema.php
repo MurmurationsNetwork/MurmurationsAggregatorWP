@@ -19,7 +19,18 @@ get_header();
                 <div class="entry-content">
                     <p>
 						<?php
-						echo 'This is from Person Schema: ' . do_shortcode( '[murmurations_data path="primary_url"]' );
+						echo 'Name: ' . do_shortcode( '[murmurations_data path="name"]' ) . '<br>';
+						echo 'Nickname: ' . do_shortcode( '[murmurations_data path="nickname"]' ) . '<br>';
+						echo 'Primary URL: ' . do_shortcode( '[murmurations_data path="primary_url"]' ) . '<br>';
+						echo 'Tags: ' . do_shortcode( '[murmurations_data_array path="tags"]' ) . '<br>';
+						echo 'Image: ' . do_shortcode( '[murmurations_data path="image"]' ) . '<br>';
+						echo 'Knows Language: ' . do_shortcode( '[murmurations_data_array path="knows_language"]' ) . '<br>';
+						echo 'Contact Details: ' . do_shortcode( '[murmurations_data path="contact_details"]' ) . '<br>';
+						echo 'Telephone: ' . do_shortcode( '[murmurations_data path="telephone"]' ) . '<br>';
+						echo 'Country Name: ' . do_shortcode( '[murmurations_data path="country_name"]' ) . '<br>';
+						echo 'Country ISO 3166: ' . do_shortcode( '[murmurations_data path="country_iso_3166"]' ) . '<br>';
+						echo 'Lat: ' . do_shortcode( '[murmurations_data path="geolocation.lat"]' ) . '<br>';
+						echo 'Lon: ' . do_shortcode( '[murmurations_data path="geolocation.lon"]' ) . '<br>';
 						?>
                     </p>
                 </div>
