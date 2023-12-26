@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schemas.wp.org/wp/6.4/theme.json",
+	"customTemplates": [
+		{
+			"name": "single-organization-schema",
+			"title": "Murm: Organization Schema"
+		},
+		{
+			"name": "single-person-schema",
+			"title": "Murm: Person Schema"
+		},
+		{
+			"name": "single-offers-wants-prototype-schema",
+			"title": "Murm: Offer Or Want Schema"
+		}
+	],
+	"version": 2
+}
