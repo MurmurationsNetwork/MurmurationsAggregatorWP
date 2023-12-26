@@ -6,6 +6,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			add_shortcode( 'murmurations_map', array( $this, 'murmurations_map' ) );
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 			add_shortcode( 'murmurations_data', array( $this, 'murmurations_data' ) );
+			add_shortcode( 'murmurations_data_array', array( $this, 'murmurations_data_array' ) );
 		}
 
 		public function murmurations_map( $atts ): string {
@@ -43,28 +44,69 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 		}
 
 		public function murmurations_data( $atts ): string {
-			global $wpdb, $post;
-			$post_id = $post->ID;
-
 			$attributes = shortcode_atts( array(
 				'path' => 'default_path'
 			), $atts );
+			$json_path  = $attributes['path'];
+			$data       = $this->get_murmurations_data();
 
-			$json_path = $attributes['path'];
+			if ( is_null( $data ) ) {
+				return 'Post is not found.';
+			}
+
+			$output = Murmurations_Aggregator_Utils::get_json_value_by_path( $json_path, $data );
+
+			if ( ! is_null( $output ) ) {
+				return esc_html( $output );
+			}
+
+			return 'Data not found for the specified path.';
+		}
+
+		public function murmurations_data_array( $atts ): string {
+			$attributes = shortcode_atts( array(
+				'path' => 'default_path'
+			), $atts );
+			$json_path  = $attributes['path'];
+			$data       = $this->get_murmurations_data();
+
+			if ( is_null( $data ) ) {
+				return 'Post is not found.';
+			}
+
+			$output = Murmurations_Aggregator_Utils::get_json_value_by_path( $json_path, $data );
+
+			if ( ! is_null( $output ) ) {
+				if ( is_array( $output ) ) {
+					$html_output = '';
+					foreach ( $output as $item ) {
+						$html_output .= '<span>' . esc_html( $item ) . '</span> ';
+					}
+
+					return rtrim( $html_output );
+				} else {
+					return esc_html( $output );
+				}
+			}
+
+			return 'Data not found for the specified path.';
+		}
+
+		private function get_murmurations_data() {
+			global $wpdb, $post;
+			$post_id = $post->ID;
 
 			$table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_NODE_TABLE;
 
 			$results = $wpdb->get_results( $wpdb->prepare( "SELECT data FROM $table_name WHERE post_id = %d", $post_id ) );
 
-			if ( ! empty( $results ) ) {
-				$json_data = $results[0]->data;
-				$data      = json_decode( $json_data, true );
-				$output    = Murmurations_Aggregator_Utils::get_json_value_by_path( $json_path, $data );
-
-				return ! is_null( $output ) ? esc_html( $output ) : 'Data not found for the specified path.';
+			if ( empty( $results ) ) {
+				return null;
 			}
 
-			return 'Post is not found.';
+			$json_data = $results[0]->data;
+
+			return json_decode( $json_data, true );
 		}
 	}
 }

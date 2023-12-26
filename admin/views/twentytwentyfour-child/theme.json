@@ -3,15 +3,24 @@
 	"customTemplates": [
 		{
 			"name": "single-organization-schema",
-			"title": "Murm: Organization Schema"
+			"title": "Murm: Organization Schema",
+			"postTypes": [
+				"murmurations_node"
+			]
 		},
 		{
 			"name": "single-person-schema",
-			"title": "Murm: Person Schema"
+			"title": "Murm: Person Schema",
+			"postTypes": [
+				"murmurations_node"
+			]
 		},
 		{
 			"name": "single-offers-wants-prototype-schema",
-			"title": "Murm: Offer Or Want Schema"
+			"title": "Murm: Offer Or Want Schema",
+			"postTypes": [
+				"murmurations_node"
+			]
 		}
 	],
 	"version": 2
