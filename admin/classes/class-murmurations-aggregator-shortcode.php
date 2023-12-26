@@ -6,7 +6,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			add_shortcode( 'murmurations_map', array( $this, 'murmurations_map' ) );
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 			add_shortcode( 'murmurations_data', array( $this, 'murmurations_data' ) );
-			add_shortcode( 'murmurations_data_array', array( $this, 'murmurations_data_array' ) );
 		}
 
 		public function murmurations_map( $atts ): string {
@@ -57,33 +56,22 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			$output = Murmurations_Aggregator_Utils::get_json_value_by_path( $json_path, $data );
 
 			if ( ! is_null( $output ) ) {
-				return esc_html( $output );
-			}
-
-			return 'Data not found for the specified path.';
-		}
-
-		public function murmurations_data_array( $atts ): string {
-			$attributes = shortcode_atts( array(
-				'path' => 'default_path'
-			), $atts );
-			$json_path  = $attributes['path'];
-			$data       = $this->get_murmurations_data();
-
-			if ( is_null( $data ) ) {
-				return 'Post is not found.';
-			}
-
-			$output = Murmurations_Aggregator_Utils::get_json_value_by_path( $json_path, $data );
-
-			if ( ! is_null( $output ) ) {
 				if ( is_array( $output ) ) {
-					$html_output = '';
+					$html_output = '<ul>';
 					foreach ( $output as $item ) {
-						$html_output .= '<span>' . esc_html( $item ) . '</span> ';
+						if ( is_array( $item ) ) {
+							$html_output .= '<li>';
+							foreach ( $item as $key => $value ) {
+								$html_output .= '<strong>' . esc_html( $key ) . ':</strong> ' . esc_html( $value ) . '<br>';
+							}
+							$html_output .= '</li>';
+						} else {
+							$html_output .= '<li>' . esc_html( $item ) . '</li>';
+						}
 					}
+					$html_output .= '</ul>';
 
-					return rtrim( $html_output );
+					return $html_output;
 				} else {
 					return esc_html( $output );
 				}

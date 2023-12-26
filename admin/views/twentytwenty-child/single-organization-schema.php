@@ -23,9 +23,9 @@ get_header();
 						echo 'Nickname: ' . do_shortcode( '[murmurations_data path="nickname"]' ) . '<br>';
 						echo 'Description: ' . do_shortcode( '[murmurations_data path="description"]' ) . '<br>';
 						echo 'Primary URL: ' . do_shortcode( '[murmurations_data path="primary_url"]' ) . '<br>';
-						echo 'Tags: ' . do_shortcode( '[murmurations_data_array path="tags"]' ) . '<br>';
-						echo 'URLs: ' . do_shortcode( '[murmurations_data_array path="urls.0"]' ) . '<br>';
-						echo 'URLs: ' . do_shortcode( '[murmurations_data_array path="urls.1"]' ) . '<br>';
+						echo 'Tags: ' . do_shortcode( '[murmurations_data path="tags"]' ) . '<br>';
+						echo 'URLs: ' . do_shortcode( '[murmurations_data path="urls"]' ) . '<br>';
+						echo 'Relationships: ' . do_shortcode( '[murmurations_data path="relationships"]' ) . '<br>';
 						?>
                     </p>
                 </div>

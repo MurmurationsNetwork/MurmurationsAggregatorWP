@@ -18,18 +18,17 @@ get_header();
 
                 <div class="entry-content">
                     <p>
-						<?php
-						echo 'Exchange Type: ' . do_shortcode( '[murmurations_data path="exchange_type"]' ) . '<br>';
-						echo 'Item Type: ' . do_shortcode( '[murmurations_data path="item_type"]' ) . '<br>';
-						echo 'Tags: ' . do_shortcode( '[murmurations_data_array path="tags"]' ) . '<br>';
-						echo 'Title: ' . do_shortcode( '[murmurations_data path="title"]' ) . '<br>';
-						echo 'Description: ' . do_shortcode( '[murmurations_data path="description"]' ) . '<br>';
-						echo 'Lat: ' . do_shortcode( '[murmurations_data path="geolocation.lat"]' ) . '<br>';
-						echo 'Lon: ' . do_shortcode( '[murmurations_data path="geolocation.lon"]' ) . '<br>';
-						echo 'Geographic Scope: ' . do_shortcode( '[murmurations_data path="geographic_scope"]' ) . '<br>';
-						echo 'Contact Details: ' . do_shortcode( '[murmurations_data path="contact_details.contact_form"]' ) . '<br>';
-						echo 'Transaction Type: ' . do_shortcode( '[murmurations_data_array path="transaction_type"]' ) . '<br>';
-						?>
+	                    <?php
+	                    echo 'Exchange Type: ' . do_shortcode( '[murmurations_data path="exchange_type"]' ) . '<br>';
+	                    echo 'Item Type: ' . do_shortcode( '[murmurations_data path="item_type"]' ) . '<br>';
+	                    echo 'Tags: ' . do_shortcode( '[murmurations_data path="tags"]' ) . '<br>';
+	                    echo 'Title: ' . do_shortcode( '[murmurations_data path="title"]' ) . '<br>';
+	                    echo 'Description: ' . do_shortcode( '[murmurations_data path="description"]' ) . '<br>';
+	                    echo 'Geolocation: ' . do_shortcode( '[murmurations_data path="geolocation"]' ) . '<br>';
+	                    echo 'Geographic Scope: ' . do_shortcode( '[murmurations_data path="geographic_scope"]' ) . '<br>';
+	                    echo 'Contact Details: ' . do_shortcode( '[murmurations_data path="contact_details.contact_form"]' ) . '<br>';
+	                    echo 'Transaction Type: ' . do_shortcode( '[murmurations_data path="transaction_type"]' ) . '<br>';
+	                    ?>
                     </p>
                 </div>
 				<?php
