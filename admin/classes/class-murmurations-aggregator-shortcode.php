@@ -55,29 +55,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 
 			$output = Murmurations_Aggregator_Utils::get_json_value_by_path( $json_path, $data );
 
-			if ( ! is_null( $output ) ) {
-				if ( is_array( $output ) ) {
-					$html_output = '<ul>';
-					foreach ( $output as $item ) {
-						if ( is_array( $item ) ) {
-							$html_output .= '<li>';
-							foreach ( $item as $key => $value ) {
-								$html_output .= '<strong>' . esc_html( $key ) . ':</strong> ' . esc_html( $value ) . '<br>';
-							}
-							$html_output .= '</li>';
-						} else {
-							$html_output .= '<li>' . esc_html( $item ) . '</li>';
-						}
-					}
-					$html_output .= '</ul>';
-
-					return $html_output;
-				} else {
-					return esc_html( $output );
-				}
-			}
-
-			return 'Data not found for the specified path.';
+			return ! is_null( $output ) ? $this->format_output( $output ) : 'Data not found for the specified path.';
 		}
 
 		private function get_murmurations_data() {
@@ -95,6 +73,61 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			$json_data = $results[0]->data;
 
 			return json_decode( $json_data, true );
+		}
+
+		private function format_output( $output ): string {
+			if ( is_array( $output ) ) {
+				return $this->format_array_output( $output );
+			} else {
+				return $this->format_string_output( $output );
+			}
+		}
+
+		private function format_array_output( array $array ): string {
+			$html_output = '<ul>';
+			foreach ( $array as $item ) {
+				if ( is_array( $item ) ) {
+					// check if associative array (object)
+					if ( $this->is_assoc( $item ) ) {
+						$html_output .= '<li>';
+						foreach ( $item as $key => $value ) {
+							$html_output .= $this->format_key_value( $key, $value ) . '<br>';
+						}
+						$html_output .= '</li>';
+					} else {
+						$html_output .= '<li>' . $this->format_string_output( $item ) . '</li>';
+					}
+				} else {
+					$html_output .= '<li>' . $this->format_string_output( $item ) . '</li>';
+				}
+			}
+			$html_output .= '</ul>';
+
+			return $html_output;
+		}
+
+		private function format_string_output( $string ): string {
+			return $this->is_url( $string ) ?
+				'<a target="_blank" href="' . esc_url( $string ) . '">' . esc_html( $string ) . '</a>' :
+				esc_html( $string );
+		}
+
+		private function format_key_value( $key, $value ): string {
+			$formatted_value = is_array( $value ) ? $this->format_array_output( $value ) : $this->format_string_output( $value );
+
+			return '<strong>' . esc_html( $key ) . ':</strong> ' . $formatted_value;
+		}
+
+		private function is_assoc( array $arr ): bool {
+			if ( array() === $arr ) {
+				return false;
+			}
+
+			return array_keys( $arr ) !== range( 0, count( $arr ) - 1 );
+		}
+
+		private function is_url( $string ): bool {
+			return is_string( $string ) && ( str_contains( $string, 'http' ) || str_contains( $string, 'https' ) );
 		}
 	}
 }
