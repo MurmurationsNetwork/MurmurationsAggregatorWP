@@ -19,13 +19,13 @@ get_header();
                 <div class="entry-content">
                     <p>
 						<?php
-						echo 'Name: ' . do_shortcode( '[murmurations_data path="name"]' ) . '<br>';
-						echo 'Nickname: ' . do_shortcode( '[murmurations_data path="nickname"]' ) . '<br>';
-						echo 'Description: ' . do_shortcode( '[murmurations_data path="description"]' ) . '<br>';
-						echo 'Primary URL: ' . do_shortcode( '[murmurations_data path="primary_url"]' ) . '<br>';
-						echo 'Tags: ' . do_shortcode( '[murmurations_data path="tags"]' ) . '<br>';
-						echo 'URLs: ' . do_shortcode( '[murmurations_data path="urls"]' ) . '<br>';
-						echo 'Relationships: ' . do_shortcode( '[murmurations_data path="relationships"]' ) . '<br>';
+						echo do_shortcode( '[murmurations_data title="Name" path="name"]' );
+						echo do_shortcode( '[murmurations_data title="Nickname" path="nickname"]' );
+						echo do_shortcode( '[murmurations_data title="Description" path="description"]' );
+						echo do_shortcode( '[murmurations_data title="Primary URL" path="primary_url"]' );
+						echo do_shortcode( '[murmurations_data title="Tags" path="tags"]' );
+						echo do_shortcode( '[murmurations_data title="URLs" path="urls"]' );
+						echo do_shortcode( '[murmurations_data title="Relationships" path="relationships"]' );
 						?>
                     </p>
                 </div>

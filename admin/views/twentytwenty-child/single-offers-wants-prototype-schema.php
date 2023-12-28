@@ -18,17 +18,17 @@ get_header();
 
                 <div class="entry-content">
                     <p>
-	                    <?php
-	                    echo 'Exchange Type: ' . do_shortcode( '[murmurations_data path="exchange_type"]' ) . '<br>';
-	                    echo 'Item Type: ' . do_shortcode( '[murmurations_data path="item_type"]' ) . '<br>';
-	                    echo 'Tags: ' . do_shortcode( '[murmurations_data path="tags"]' ) . '<br>';
-	                    echo 'Title: ' . do_shortcode( '[murmurations_data path="title"]' ) . '<br>';
-	                    echo 'Description: ' . do_shortcode( '[murmurations_data path="description"]' ) . '<br>';
-	                    echo 'Geolocation: ' . do_shortcode( '[murmurations_data path="geolocation"]' ) . '<br>';
-	                    echo 'Geographic Scope: ' . do_shortcode( '[murmurations_data path="geographic_scope"]' ) . '<br>';
-	                    echo 'Contact Details: ' . do_shortcode( '[murmurations_data path="contact_details.contact_form"]' ) . '<br>';
-	                    echo 'Transaction Type: ' . do_shortcode( '[murmurations_data path="transaction_type"]' ) . '<br>';
-	                    ?>
+						<?php
+						echo do_shortcode( '[murmurations_data title="Exchange Type" path="exchange_type"]' );
+						echo do_shortcode( '[murmurations_data title="Item Type" path="item_type"]' );
+						echo do_shortcode( '[murmurations_data title="Tags" path="tags"]' );
+						echo do_shortcode( '[murmurations_data title="Title" path="title"]' );
+						echo do_shortcode( '[murmurations_data title="Description" path="description"]' );
+						echo do_shortcode( '[murmurations_data title="Geolocation Scope" path="geolocation"]' );
+						echo do_shortcode( '[murmurations_data title="Geographic Scope" path="geographic_scope"]' );
+						echo do_shortcode( '[murmurations_data title="Contact Details" path="contact_details.contact_form"]' );
+						echo do_shortcode( '[murmurations_data title="Transaction Type" path="transaction_type"]' );
+						?>
                     </p>
                 </div>
 				<?php

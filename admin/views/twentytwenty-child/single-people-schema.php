@@ -19,17 +19,17 @@ get_header();
                 <div class="entry-content">
                     <p>
 						<?php
-						echo 'Name: ' . do_shortcode( '[murmurations_data path="name"]' ) . '<br>';
-						echo 'Nickname: ' . do_shortcode( '[murmurations_data path="nickname"]' ) . '<br>';
-						echo 'Primary URL: ' . do_shortcode( '[murmurations_data path="primary_url"]' ) . '<br>';
-						echo 'Tags: ' . do_shortcode( '[murmurations_data path="tags"]' ) . '<br>';
-						echo 'Image: ' . do_shortcode( '[murmurations_data path="image"]' ) . '<br>';
-						echo 'Knows Language: ' . do_shortcode( '[murmurations_data path="knows_language"]' ) . '<br>';
-						echo 'Contact Details: ' . do_shortcode( '[murmurations_data path="contact_details"]' ) . '<br>';
-						echo 'Telephone: ' . do_shortcode( '[murmurations_data path="telephone"]' ) . '<br>';
-						echo 'Country Name: ' . do_shortcode( '[murmurations_data path="country_name"]' ) . '<br>';
-						echo 'Country ISO 3166: ' . do_shortcode( '[murmurations_data path="country_iso_3166"]' ) . '<br>';
-						echo 'Geolocation: ' . do_shortcode( '[murmurations_data path="geolocation"]' ) . '<br>';
+						echo do_shortcode( '[murmurations_data title="Name" path="name"]' );
+						echo do_shortcode( '[murmurations_data title="Nickname" path="nickname"]' );
+						echo do_shortcode( '[murmurations_data title="Primary URL" path="primary_url"]' );
+						echo do_shortcode( '[murmurations_data title="Tags" path="tags"]' );
+						echo do_shortcode( '[murmurations_data title="Image" path="image"]' );
+						echo do_shortcode( '[murmurations_data title="Knows Language" path="knows_language"]' );
+						echo do_shortcode( '[murmurations_data title="Contact Details" path="contact_details"]' );
+						echo do_shortcode( '[murmurations_data title="Telephone" path="telephone"]' );
+						echo do_shortcode( '[murmurations_data title="Country Name" path="country_name"]' );
+						echo do_shortcode( '[murmurations_data title="Country ISO 3166" path="country_iso_3166"]' );
+						echo do_shortcode( '[murmurations_data title="Geolocation" path="geolocation"]' );
 						?>
                     </p>
                 </div>

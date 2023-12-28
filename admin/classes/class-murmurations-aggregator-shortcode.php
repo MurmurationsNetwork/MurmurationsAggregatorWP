@@ -44,18 +44,25 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 
 		public function murmurations_data( $atts ): string {
 			$attributes = shortcode_atts( array(
-				'path' => 'default_path'
+				'path' => 'default_path',
+				'title' => 'default_title',
 			), $atts );
+
 			$json_path  = $attributes['path'];
+			$title = $attributes['title'];
 			$data       = $this->get_murmurations_data();
 
 			if ( is_null( $data ) ) {
-				return 'Post is not found.';
+				return '';
 			}
 
 			$output = Murmurations_Aggregator_Utils::get_json_value_by_path( $json_path, $data );
 
-			return ! is_null( $output ) ? $this->format_output( $output ) : 'Data not found for the specified path.';
+			if (!is_null($output)) {
+				return "<p>" . (!empty($title) ? $title . ": " : "") . $this->format_output( $output ) . "</p>";
+			} else {
+				return '';
+			}
 		}
 
 		private function get_murmurations_data() {
