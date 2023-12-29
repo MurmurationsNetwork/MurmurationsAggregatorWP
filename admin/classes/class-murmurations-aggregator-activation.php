@@ -17,6 +17,7 @@ function create_murmurations_node_post_type(): void {
 			'create_posts' => false,
 		),
 		'map_meta_cap'    => true,
+		'show_in_rest'    => true,
 	);
 
 	register_post_type( MURMURATIONS_AGGREGATOR_POST_TYPE, $args );
