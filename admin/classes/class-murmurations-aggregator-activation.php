@@ -35,6 +35,7 @@ function create_murmurations_node_taxonomy(): void {
 			'show_admin_column' => true,
 			'query_var'         => true,
 			'rewrite'           => array( 'slug' => 'murmurations-node-tags' ),
+			'show_in_rest'    => true,
 		)
 	);
 
@@ -49,6 +50,7 @@ function create_murmurations_node_taxonomy(): void {
 			'show_admin_column' => true,
 			'query_var'         => true,
 			'rewrite'           => array( 'slug' => 'murmurations-node-categories' ),
+			'show_in_rest'    => true,
 		)
 	);
 }
