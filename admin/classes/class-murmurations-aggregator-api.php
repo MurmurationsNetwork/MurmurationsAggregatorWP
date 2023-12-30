@@ -142,17 +142,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				),
 			);
 
-			// Search Custom WP Nodes Routes
-			register_rest_route(
-				$frontend_namespace,
-				'/wp-nodes/search',
-				array(
-					'methods'             => 'GET',
-					'callback'            => array( $this, 'search_wp_nodes' ),
-					'permission_callback' => '__return_true',
-				),
-			);
-
 			// Custom Nodes Routes
 			register_rest_route(
 				$backend_namespace,
@@ -562,54 +551,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			wp_publish_post( $post_id );
 
 			return rest_ensure_response( 'Node restored successfully.' );
-		}
-
-		public function search_wp_nodes( $request ): WP_REST_Response|WP_Error {
-			$tags             = $request->get_param( 'tags' );
-			$tags             = explode( ',', $tags );
-			$matched_post_ids = array();
-
-			$nodes = $this->wpdb->get_results( "SELECT * FROM $this->node_table_name WHERE post_id IS NOT NULL" );
-
-			foreach ( $nodes as $node ) {
-				$profile_data = json_decode( $node->data );
-				if ( isset( $profile_data->tags ) ) {
-					foreach ( $profile_data->tags as $tag ) {
-						if ( in_array( $tag, $tags ) ) {
-							$matched_post_ids[] = $node->post_id;
-						}
-					}
-				}
-			}
-
-			// removing duplicates
-			$matched_post_ids = array_unique( $matched_post_ids );
-
-			// get all posts that matches the tags
-			$args = array(
-				'post__in'       => $matched_post_ids,
-				'posts_per_page' => - 1,
-				'post_type'      => MURMURATIONS_AGGREGATOR_POST_TYPE,
-				'post_status'    => 'publish',
-			);
-
-			$query      = new WP_Query( $args );
-			$posts_data = array();
-
-			if ( $query->have_posts() ) {
-				while ( $query->have_posts() ) {
-					$query->the_post();
-
-					$posts_data[] = array(
-						'ID'         => get_the_ID(),
-						'post_title' => get_the_title(),
-						'permalink'  => get_permalink(),
-					);
-				}
-				wp_reset_postdata();
-			}
-
-			return new WP_REST_Response( $posts_data, 200 );
 		}
 
 		public function get_nodes( $request ): WP_REST_Response|WP_Error {
