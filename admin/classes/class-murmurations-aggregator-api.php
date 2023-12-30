@@ -585,6 +585,10 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			// removing duplicates
 			$matched_post_ids = array_unique( $matched_post_ids );
 
+			if ( empty( $matched_post_ids ) ) {
+				return new WP_REST_Response( array(), 200 );
+			}
+
 			// get all posts that matches the tags
 			$args = array(
 				'post__in'       => $matched_post_ids,
