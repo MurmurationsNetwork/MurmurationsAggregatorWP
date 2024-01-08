@@ -67,6 +67,10 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 
 		private function get_murmurations_data() {
 			global $wpdb, $post;
+			if ( !is_a($post, 'WP_Post') ) {
+				return null;
+			}
+
 			$post_id = $post->ID;
 
 			$table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_NODE_TABLE;
