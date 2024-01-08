@@ -316,8 +316,8 @@ export default function SelectData({
   return (
     <div>
       {isLoading && <ProgressBar progress={progress} />}
-      <h2 className="text-2xl mb-8">Select Nodes</h2>
-      <p className="text-base mb-8">
+      <h2 className="mb-8 text-2xl">Select Nodes</h2>
+      <p className="mb-8 text-base">
         Manage the nodes to display in your map or directory. You can learn more{' '}
         <a
           href="https://docs.murmurations.network/developers/wp-aggregator.html#managing-nodes"
@@ -361,15 +361,15 @@ export default function SelectData({
             </label>
             <button
               type="submit"
-              className={`mx-4 rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
-                isLoading ? 'opacity-50 cursor-not-allowed' : ''
+              className={`mx-4 rounded-full bg-orange-500 px-4 py-2 text-lg font-bold text-white hover:scale-110 hover:bg-orange-400 active:scale-90 disabled:opacity-75 ${
+                isLoading ? 'cursor-not-allowed opacity-50' : ''
               }`}
             >
               {isLoading ? 'Submitting...' : 'Submit'}
             </button>
             <button
               onClick={handleCancel}
-              className="mx-4 rounded-full bg-gray-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-gray-400 disabled:opacity-75"
+              className="mx-4 rounded-full bg-gray-500 px-4 py-2 text-base font-bold text-white hover:scale-110 hover:bg-gray-400 active:scale-90 disabled:opacity-75"
             >
               Cancel
             </button>

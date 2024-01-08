@@ -459,8 +459,8 @@ export default function MapList({
       {!isLoading && (
         <div>
           <button
-            className={`mb-4 max-w-fit rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
-              isLoading ? 'opacity-50 cursor-not-allowed' : ''
+            className={`mb-4 max-w-fit rounded-full bg-orange-500 px-4 py-2 text-base font-bold text-white hover:scale-110 hover:bg-orange-400 active:scale-90 disabled:opacity-75 ${
+              isLoading ? 'cursor-not-allowed opacity-50' : ''
             }`}
             onClick={() => handleCreate()}
           >
@@ -492,8 +492,8 @@ export default function MapList({
           )}
           {maps.length > 0 ? (
             maps.map((map, index) => (
-              <div className="bg-white p-4 rounded shadow-md mt-4" key={index}>
-                <h2 className="text-xl font-semibold mb-2">{map.name}</h2>
+              <div className="mt-4 rounded bg-white p-4 shadow-md" key={index}>
+                <h2 className="mb-2 text-xl font-semibold">{map.name}</h2>
                 <p>
                   <strong>Query URL:</strong>{' '}
                   <a
@@ -523,10 +523,10 @@ export default function MapList({
                 <p>
                   <strong>Updated At:</strong> {map.updated_at}
                 </p>
-                <div className="box-border flex flex-wrap xl:min-w-max flex-row mt-4 justify-between">
+                <div className="mt-4 box-border flex flex-row flex-wrap justify-between xl:min-w-max">
                   <button
-                    className={`my-1 mx-2 max-w-fit rounded-full bg-yellow-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
-                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    className={`mx-2 my-1 max-w-fit rounded-full bg-yellow-500 px-4 py-2 text-base font-bold text-white hover:scale-110 hover:bg-yellow-400 active:scale-90 disabled:opacity-75 ${
+                      isLoading ? 'cursor-not-allowed opacity-50' : ''
                     }`}
                     onClick={() =>
                       handleRetrieve(
@@ -539,24 +539,24 @@ export default function MapList({
                     Update Nodes
                   </button>
                   <button
-                    className={`my-1 mx-2 max-w-fit rounded-full bg-yellow-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
-                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    className={`mx-2 my-1 max-w-fit rounded-full bg-yellow-500 px-4 py-2 text-base font-bold text-white hover:scale-110 hover:bg-yellow-400 active:scale-90 disabled:opacity-75 ${
+                      isLoading ? 'cursor-not-allowed opacity-50' : ''
                     }`}
                     onClick={() => handleEditNodes(map.id)}
                   >
                     Manage Nodes
                   </button>
                   <button
-                    className={`my-1 mx-2 max-w-fit rounded-full bg-yellow-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-yellow-400 disabled:opacity-75 ${
-                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    className={`mx-2 my-1 max-w-fit rounded-full bg-yellow-500 px-4 py-2 text-base font-bold text-white hover:scale-110 hover:bg-yellow-400 active:scale-90 disabled:opacity-75 ${
+                      isLoading ? 'cursor-not-allowed opacity-50' : ''
                     }`}
                     onClick={() => handleEditMap(map.id)}
                   >
                     Edit Map
                   </button>
                   <button
-                    className={`my-1 mx-2 max-w-fit rounded-full bg-red-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-red-400 disabled:opacity-75 ${
-                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    className={`mx-2 my-1 max-w-fit rounded-full bg-red-500 px-4 py-2 text-base font-bold text-white hover:scale-110 hover:bg-red-400 active:scale-90 disabled:opacity-75 ${
+                      isLoading ? 'cursor-not-allowed opacity-50' : ''
                     }`}
                     onClick={() => handleDelete(map.id)}
                   >
@@ -575,11 +575,11 @@ export default function MapList({
       )}
 
       {isLoading && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-yellow-100 p-8 rounded shadow-xl w-1/2">
-            <p className="text-2xl text-center mb-4">Loading...</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="w-1/2 rounded bg-yellow-100 p-8 shadow-xl">
+            <p className="mb-4 text-center text-2xl">Loading...</p>
             {<ProgressBar progress={progress} />}
-            <p className="text-xl text-center mt-4">
+            <p className="mt-4 text-center text-xl">
               Murmurations is an unfunded volunteer-led project.
               <br />
               Please consider{' '}
@@ -597,21 +597,21 @@ export default function MapList({
         </div>
       )}
       {isPopupOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-red-100 p-8 rounded shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="rounded bg-red-100 p-8 shadow-xl">
             <p className="text-xl">
               Are you sure you want to delete this map and all of its data?
             </p>
             <div className="mt-4 flex justify-center">
               <button
                 onClick={handleDeleteConfirm}
-                className="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded mr-4 text-lg"
+                className="mr-4 rounded bg-red-500 px-4 py-2 text-lg font-bold text-white hover:bg-red-400"
               >
                 Confirm
               </button>
               <button
                 onClick={handleDeleteCancel}
-                className="bg-gray-500 hover:bg-gray-400 text-white font-bold py-2 px-4 rounded text-lg"
+                className="rounded bg-gray-500 px-4 py-2 text-lg font-bold text-white hover:bg-gray-400"
               >
                 Cancel
               </button>

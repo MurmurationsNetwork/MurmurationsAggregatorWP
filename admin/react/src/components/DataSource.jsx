@@ -28,11 +28,11 @@ export default function DataSource({
 
   return (
     <div>
-      <h3 className="text-lg mt-4">Node Selection</h3>
-      <div className="border-2 border-dotted border-red-500 p-4 mt-2">
+      <h3 className="mt-4 text-lg">Node Selection</h3>
+      <div className="mt-2 border-2 border-dotted border-red-500 p-4">
         <div className="mb-4">
           <label
-            className="block text-gray-700 font-bold mb-2"
+            className="mb-2 block font-bold text-gray-700"
             htmlFor="data_url"
           >
             Source Index
@@ -42,7 +42,7 @@ export default function DataSource({
             name="data_url"
             value={formData.data_url}
             onChange={handleInputChange}
-            className="w-full border rounded py-2 px-3"
+            className="w-full rounded border px-3 py-2"
           >
             <option value="https://test-index.murmurations.network/v2/nodes">
               https://test-index.murmurations.network/v2/nodes
@@ -58,7 +58,7 @@ export default function DataSource({
         </div>
         <div className="mb-4">
           <label
-            className="block text-gray-700 font-bold mb-2"
+            className="mb-2 block font-bold text-gray-700"
             htmlFor="schema"
           >
             Schema
@@ -68,7 +68,7 @@ export default function DataSource({
             name="schema"
             value={formData.schema}
             onChange={handleInputChange}
-            className="w-full border rounded py-2 px-3"
+            className="w-full rounded border px-3 py-2"
           >
             {schemas.map(schema => (
               <option key={schema.name} value={schema.name}>
@@ -80,12 +80,12 @@ export default function DataSource({
             Select a schema to specify the type of nodes you want to display
           </div>
         </div>
-        <p className="text-base font-bold mt-8 mb-4">
+        <p className="mb-4 mt-8 text-base font-bold">
           Filter the number of nodes returned from the index using the optional
           fields below
         </p>
         <div className="mb-4">
-          <label className="block text-gray-700 font-bold mb-2" htmlFor="name">
+          <label className="mb-2 block font-bold text-gray-700" htmlFor="name">
             Name
           </label>
           <input
@@ -94,12 +94,12 @@ export default function DataSource({
             name="name"
             value={formData.name}
             onChange={handleInputChange}
-            className="w-full border rounded py-2 px-3"
+            className="w-full rounded border px-3 py-2"
           />
           <p className="mt-1">Search for nodes with a specific name</p>
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700 font-bold mb-2" htmlFor="lat">
+          <label className="mb-2 block font-bold text-gray-700" htmlFor="lat">
             Latitude
           </label>
           <input
@@ -111,12 +111,12 @@ export default function DataSource({
             step="any"
             value={formData.lat}
             onChange={handleInputChange}
-            className="w-full border rounded py-2 px-3"
+            className="w-full rounded border px-3 py-2"
           />
           <p className="mt-1">Search for nodes near a specific latitude</p>
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700 font-bold mb-2" htmlFor="lon">
+          <label className="mb-2 block font-bold text-gray-700" htmlFor="lon">
             Longitude
           </label>
           <input
@@ -128,12 +128,12 @@ export default function DataSource({
             step="any"
             value={formData.lon}
             onChange={handleInputChange}
-            className="w-full border rounded py-2 px-3"
+            className="w-full rounded border px-3 py-2"
           />
           <p className="mt-1">Search for nodes near a specific longitude</p>
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700 font-bold mb-2" htmlFor="range">
+          <label className="mb-2 block font-bold text-gray-700" htmlFor="range">
             Range (i.e. 25km, 15mi)
           </label>
           <input
@@ -142,7 +142,7 @@ export default function DataSource({
             name="range"
             value={formData.range}
             onChange={handleInputChange}
-            className="w-full border rounded py-2 px-3"
+            className="w-full rounded border px-3 py-2"
           />
           <p className="mt-1">
             Search for nodes within a specific distance from the latitude and
@@ -151,7 +151,7 @@ export default function DataSource({
         </div>
         <div className="mb-4">
           <label
-            className="block text-gray-700 font-bold mb-2"
+            className="mb-2 block font-bold text-gray-700"
             htmlFor="locality"
           >
             Locality
@@ -162,7 +162,7 @@ export default function DataSource({
             name="locality"
             value={formData.locality}
             onChange={handleInputChange}
-            className="w-full border rounded py-2 px-3"
+            className="w-full rounded border px-3 py-2"
           />
           <p className="mt-1">
             Search for nodes which list a specific locality (e.g., Paris,
@@ -171,7 +171,7 @@ export default function DataSource({
         </div>
         <div className="mb-4">
           <label
-            className="block text-gray-700 font-bold mb-2"
+            className="mb-2 block font-bold text-gray-700"
             htmlFor="region"
           >
             Region
@@ -182,7 +182,7 @@ export default function DataSource({
             name="region"
             value={formData.region}
             onChange={handleInputChange}
-            className="w-full border rounded py-2 px-3"
+            className="w-full rounded border px-3 py-2"
           />
           <p className="mt-1">
             Search for nodes which list a specific region (e.g., Île-de-France,
@@ -191,7 +191,7 @@ export default function DataSource({
         </div>
         <div className="mb-4">
           <label
-            className="block text-gray-700 font-bold mb-2"
+            className="mb-2 block font-bold text-gray-700"
             htmlFor="country"
           >
             Country
@@ -202,7 +202,7 @@ export default function DataSource({
             name="country"
             value={selectedCountry}
             onChange={handleCountryChange}
-            className="w-full border rounded py-2 px-3"
+            className="w-full rounded border px-3 py-2"
           >
             {countries.map(country => (
               <option key={country} value={country}>
@@ -215,7 +215,7 @@ export default function DataSource({
           </p>
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700 font-bold mb-2" htmlFor="tags">
+          <label className="mb-2 block font-bold text-gray-700" htmlFor="tags">
             Tags
           </label>
           <input
@@ -224,7 +224,7 @@ export default function DataSource({
             name="tags"
             value={formData.tags}
             onChange={handleInputChange}
-            className="w-full border rounded py-2 px-3"
+            className="w-full rounded border px-3 py-2"
           />
           <p className="mt-1">
             Search for nodes which list specific tags (use commas to search for
@@ -233,7 +233,7 @@ export default function DataSource({
         </div>
         <div className="mb-4">
           <label
-            className="block text-gray-700 font-bold mb-2"
+            className="mb-2 block font-bold text-gray-700"
             htmlFor="tags_filter"
           >
             All Tags
@@ -252,7 +252,7 @@ export default function DataSource({
         </div>
         <div className="mb-4">
           <label
-            className="block text-gray-700 font-bold mb-2"
+            className="mb-2 block font-bold text-gray-700"
             htmlFor="tags_exact"
           >
             Tags Exact
@@ -271,7 +271,7 @@ export default function DataSource({
         </div>
         <div className="mb-4">
           <label
-            className="block text-gray-700 font-bold mb-2"
+            className="mb-2 block font-bold text-gray-700"
             htmlFor="primary_url"
           >
             Primary URL
@@ -282,7 +282,7 @@ export default function DataSource({
             name="primary_url"
             value={formData.primary_url}
             onChange={handleInputChange}
-            className="w-full border rounded py-2 px-3"
+            className="w-full rounded border px-3 py-2"
           />
           <p className="mt-1">
             Search for nodes with a specific primary URL (don’t include http or

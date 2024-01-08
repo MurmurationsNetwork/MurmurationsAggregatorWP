@@ -82,11 +82,11 @@ export default function Directory({ profiles, linkType, pageSize }) {
   }
 
   return (
-    <div className="max-w-screen-md mx-auto" ref={directoryComponent}>
+    <div className="mx-auto max-w-screen-md" ref={directoryComponent}>
       <div className="divide-y divide-gray-300">
         {currentProfiles.map((profile, index) => (
           <div key={index}>
-            <li key={profile.id} className="py-4 dir-item">
+            <li key={profile.id} className="dir-item py-4">
               {profile.profile_data.image && (
                 <img
                   src={profile.profile_data.image}
@@ -97,9 +97,9 @@ export default function Directory({ profiles, linkType, pageSize }) {
                   }}
                 />
               )}
-              <p className="text-lg font-bold mb-2">{profile.name}</p>
+              <p className="mb-2 text-lg font-bold">{profile.name}</p>
               <div className="space-y-2">
-                <p className="text-sm truncate">
+                <p className="truncate text-sm">
                   {linkType === 'wp' ? (
                     <a href={profile.post_url}>More...</a>
                   ) : (
@@ -116,7 +116,7 @@ export default function Directory({ profiles, linkType, pageSize }) {
                 </p>
                 {Object.entries(iterateObject(profile.profile_data)).map(
                   ([key, value]) => (
-                    <p key={key} className="text-sm truncate">
+                    <p key={key} className="truncate text-sm">
                       {key}: {value}
                     </p>
                   )
@@ -129,15 +129,15 @@ export default function Directory({ profiles, linkType, pageSize }) {
       </div>
       {currentProfiles.length > 0 ? (
         <div>
-          <div className="flex flex-row flex-wrap items-center justify-center my-4">
+          <div className="my-4 flex flex-row flex-wrap items-center justify-center">
             <button
-              className="px-4 py-2 m-1 rounded bg-gray-500 text-white"
+              className="m-1 rounded bg-gray-500 px-4 py-2 text-white"
               onClick={() => handlePageChange(1)}
             >
               &lt;&lt;
             </button>
             <button
-              className="px-4 py-2 m-1 rounded bg-gray-500 text-white"
+              className="m-1 rounded bg-gray-500 px-4 py-2 text-white"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
             >
@@ -147,7 +147,7 @@ export default function Directory({ profiles, linkType, pageSize }) {
               <button
                 key={page}
                 onClick={() => handlePageChange(page)}
-                className={`px-4 py-2 m-1 rounded ${
+                className={`m-1 rounded px-4 py-2 ${
                   currentPage === page
                     ? 'bg-blue-500 text-white'
                     : 'bg-gray-500 text-white'
@@ -157,30 +157,30 @@ export default function Directory({ profiles, linkType, pageSize }) {
               </button>
             ))}
             <button
-              className="px-4 py-2 m-1 rounded bg-gray-500 text-white"
+              className="m-1 rounded bg-gray-500 px-4 py-2 text-white"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
             >
               &gt;
             </button>
             <button
-              className="px-4 py-2 m-1 rounded bg-gray-500 text-white"
+              className="m-1 rounded bg-gray-500 px-4 py-2 text-white"
               onClick={() => handlePageChange(totalPages)}
             >
               &gt;&gt;
             </button>
           </div>
-          <div className="flex flex-row flex-wrap items-center justify-center my-4">
+          <div className="my-4 flex flex-row flex-wrap items-center justify-center">
             <input
               type="text"
               placeholder="Go to page..."
               value={inputPage}
               onChange={handlePageInput}
               onKeyDown={handleKeyDown}
-              className="px-2 py-1 m-1 rounded border-2 border-gray-300"
+              className="m-1 rounded border-2 border-gray-300 px-2 py-1"
             />
             <button
-              className="px-2 py-1 m-1 rounded bg-gray-500 text-white"
+              className="m-1 rounded bg-gray-500 px-2 py-1 text-white"
               onClick={jumpToPage}
             >
               Go

@@ -217,14 +217,14 @@ export default function CreateData({
     <div>
       {isLoading && <ProgressBar progress={progress} />}
       <h2 className="text-2xl">Create a Map or Directory</h2>
-      <p className="text-base my-2">
+      <p className="my-2 text-base">
         Import nodes from the distributed Murmurations network to create your
         own custom maps and directories.
       </p>
       <form onSubmit={handleSubmit} className="py-6">
         <div className="mb-8">
           <label
-            className="block text-gray-700 text-base font-bold mb-2"
+            className="mb-2 block text-base font-bold text-gray-700"
             htmlFor="map_name"
           >
             Map/Directory Name
@@ -235,7 +235,7 @@ export default function CreateData({
             name="map_name"
             value={formData.map_name}
             onChange={handleInputChange}
-            className="w-full border rounded py-2 px-3"
+            className="w-full rounded border px-3 py-2"
             required={true}
           />
           <div className="mt-1">
@@ -255,15 +255,15 @@ export default function CreateData({
         <div className="mt-6">
           <button
             type="submit"
-            className={`mx-4 rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
-              isLoading ? 'opacity-50 cursor-not-allowed' : ''
+            className={`mx-4 rounded-full bg-orange-500 px-4 py-2 text-lg font-bold text-white hover:scale-110 hover:bg-orange-400 active:scale-90 disabled:opacity-75 ${
+              isLoading ? 'cursor-not-allowed opacity-50' : ''
             }`}
           >
             {isLoading ? 'Creating...' : 'Create'}
           </button>
           <button
             onClick={handleCancel}
-            className="mx-4 rounded-full bg-gray-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-gray-400 disabled:opacity-75"
+            className="mx-4 rounded-full bg-gray-500 px-4 py-2 text-base font-bold text-white hover:scale-110 hover:bg-gray-400 active:scale-90 disabled:opacity-75"
           >
             Cancel
           </button>
