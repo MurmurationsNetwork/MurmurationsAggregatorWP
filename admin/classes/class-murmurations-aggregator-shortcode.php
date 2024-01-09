@@ -6,6 +6,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			add_shortcode( 'murmurations_map', array( $this, 'murmurations_map' ) );
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 			add_shortcode( 'murmurations_data', array( $this, 'murmurations_data' ) );
+			add_shortcode( 'murmurations_excerpt', array( $this, 'murmurations_excerpt' ) );
 		}
 
 		public function murmurations_map( $atts ): string {
@@ -44,13 +45,13 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 
 		public function murmurations_data( $atts ): string {
 			$attributes = shortcode_atts( array(
-				'path' => 'default_path',
+				'path'  => 'default_path',
 				'title' => 'default_title',
 			), $atts );
 
-			$json_path  = $attributes['path'];
-			$title = $attributes['title'];
-			$data       = $this->get_murmurations_data();
+			$json_path = $attributes['path'];
+			$title     = $attributes['title'];
+			$data      = $this->get_murmurations_data();
 
 			if ( is_null( $data ) ) {
 				return '';
@@ -58,16 +59,52 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 
 			$output = Murmurations_Aggregator_Utils::get_json_value_by_path( $json_path, $data );
 
-			if (!is_null($output)) {
-				return "<p>" . (!empty($title) ? $title . ": " : "") . $this->format_output( $output ) . "</p>";
+			if ( ! is_null( $output ) ) {
+				return "<p>" . ( ! empty( $title ) ? $title . ": " : "" ) . $this->format_output( $output ) . "</p>";
 			} else {
 				return '';
 			}
 		}
 
+		public function murmurations_excerpt(): string {
+			$data = $this->get_murmurations_data();
+
+			if ( is_null( $data ) ) {
+				return '';
+			}
+
+			$content = '';
+			$schema  = Murmurations_Aggregator_Utils::get_json_value_by_path( 'linked_schemas.0', $data );
+
+			switch ( $schema ) {
+				case 'organizations_schema-v1.0.0':
+					$content .= do_shortcode( '[murmurations_data path="image" title="Image"]' );
+					$content .= do_shortcode( '[murmurations_data path="name" title="Name"]' );
+					$content .= do_shortcode( '[murmurations_data path="description" title="Description"]' );
+					$content .= do_shortcode( '[murmurations_data path="primary_url" title="Primary URL"]' );
+					break;
+				case 'people_schema-v0.1.0':
+					$content .= do_shortcode( '[murmurations_data path="image" title="Image"]' );
+					$content .= do_shortcode( '[murmurations_data path="full_name" title="Full Name"]' );
+					$content .= do_shortcode( '[murmurations_data path="description" title="Description"]' );
+					$content .= do_shortcode( '[murmurations_data path="primary_url" title="Primary URL"]' );
+					break;
+				case 'offers_wants_schema-v0.1.0':
+				case 'offers_wants_prototype-v0.0.2':
+					$content .= do_shortcode( '[murmurations_data path="image" title="Image"]' );
+					$content .= do_shortcode( '[murmurations_data path="title" title="Title"]' );
+					$content .= do_shortcode( '[murmurations_data path="exchange_type" title="Exchange Type"]' );
+					$content .= do_shortcode( '[murmurations_data path="transaction_type" title="Transaction Type"]' );
+					$content .= do_shortcode( '[murmurations_data path="details_url" title="Details URL"]' );
+					break;
+			}
+
+			return $content;
+		}
+
 		private function get_murmurations_data() {
 			global $wpdb, $post;
-			if ( !is_a($post, 'WP_Post') ) {
+			if ( ! is_a( $post, 'WP_Post' ) ) {
 				return null;
 			}
 
