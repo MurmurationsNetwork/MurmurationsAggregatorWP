@@ -11,6 +11,7 @@ function create_murmurations_node_post_type(): void {
 		'labels'          => $labels,
 		'public'          => true,
 		'has_archive'     => true,
+		'rewrite'         => array( 'slug' => 'murmurations-node' ),
 		'supports'        => array( 'title', 'editor', 'thumbnail', 'custom-fields', 'revisions', 'excerpt' ),
 		'capability_type' => 'post',
 		'capabilities'    => array(
