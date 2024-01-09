@@ -38,9 +38,67 @@ const markerClicked = async (profile, apiUrl, linkType) => {
     )
   }
   let content = ''
+  const schema = responseData?.profile_data?.linked_schemas[0]
   const imageUrl = responseData?.profile_data?.image
+  switch (schema) {
+    case 'organizations_schema-v1.0.0':
+      content = addImageToContent(content, imageUrl)
+      content = addTitleToContent(content, responseData?.profile_data?.name)
+      content = addDescriptionToContent(
+        content,
+        responseData?.profile_data?.description
+      )
+      content = addUrlToContent(
+        content,
+        responseData?.profile_data?.primary_url,
+        linkType
+      )
+      break
+    case 'people_schema-v0.1.0':
+      content = addImageToContent(content, imageUrl)
+      content = addTitleToContent(
+        content,
+        responseData?.profile_data?.full_name
+      )
+      content = addDescriptionToContent(
+        content,
+        responseData?.profile_data?.description
+      )
+      content = addUrlToContent(
+        content,
+        responseData?.profile_data?.primary_url,
+        linkType
+      )
+      break
+    case 'offers_wants_schema-v0.1.0':
+      content = addImageToContent(content, imageUrl)
+      content = addTitleToContent(content, responseData?.profile_data?.title)
+      content = addTextToContent(
+        content,
+        responseData?.profile_data?.exchange_type
+      )
+      content = addTextToContent(
+        content,
+        responseData?.profile_data?.transaction_type
+      )
+      content = addDescriptionToContent(
+        content,
+        responseData?.profile_data?.description
+      )
+      content = addUrlToContent(
+        content,
+        responseData?.profile_data?.details_url,
+        linkType
+      )
+      break
+  }
+
+  return content
+}
+
+function addImageToContent(content, imageUrl) {
   if (imageUrl) {
-    content += `<img src='${imageUrl}' style='height: 50px; width: auto' id='profile_image' />`
+    content += `<img src='${imageUrl}' style='height: 50px; width: auto' id='profile_image' alt="" />`
 
     const img = new Image()
     img.src = imageUrl
@@ -51,18 +109,31 @@ const markerClicked = async (profile, apiUrl, linkType) => {
       }
     }
   }
-  const title = responseData?.title
+  return content
+}
+
+function addTitleToContent(content, title) {
   if (title) {
     content += `<p><strong>${title}</strong></p>`
   }
-  const description = responseData?.profile_data?.description
+  return content
+}
+
+function addTextToContent(content, text) {
+  if (text) {
+    content += `<p>${text}</p>`
+  }
+  return content
+}
+
+function addDescriptionToContent(content, description) {
   if (description) {
     content += `<p>${limitString(description, 200)}</p>`
   }
-  const postUrl =
-    linkType === 'wp'
-      ? responseData.post_url
-      : responseData?.profile_data?.primary_url
+  return content
+}
+
+function addUrlToContent(content, postUrl, linkType) {
   if (postUrl && linkType === 'primary') {
     content += `<p><a target='_blank' rel='noreferrer' href='${postUrl}'>${postUrl}</a></p>`
   }
