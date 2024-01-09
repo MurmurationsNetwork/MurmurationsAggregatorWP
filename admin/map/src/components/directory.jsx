@@ -1,6 +1,6 @@
-import { iterateObject } from '../utils/iterateObject'
 import PropTypes from 'prop-types'
 import { useEffect, useRef, useState } from 'react'
+import { schemaContent } from '../utils/schemaContent'
 
 export default function Directory({ profiles, linkType, pageSize }) {
   const [currentPage, setCurrentPage] = useState(1)
@@ -86,43 +86,11 @@ export default function Directory({ profiles, linkType, pageSize }) {
       <div className="divide-y divide-gray-300">
         {currentProfiles.map((profile, index) => (
           <div key={index}>
-            <li key={profile.id} className="dir-item py-4">
-              {profile.profile_data.image && (
-                <img
-                  src={profile.profile_data.image}
-                  alt="Profile Logo"
-                  className="mb-4 max-h-16"
-                  onError={e => {
-                    e.target.style.display = 'none'
-                  }}
-                />
-              )}
-              <p className="mb-2 text-lg font-bold">{profile.name}</p>
-              <div className="space-y-2">
-                <p className="truncate text-sm">
-                  {linkType === 'wp' ? (
-                    <a href={profile.post_url}>More...</a>
-                  ) : (
-                    <span>
-                      <a
-                        href={profile.profile_data.primary_url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {profile.profile_data.primary_url}
-                      </a>
-                    </span>
-                  )}
-                </p>
-                {Object.entries(iterateObject(profile.profile_data)).map(
-                  ([key, value]) => (
-                    <p key={key} className="truncate text-sm">
-                      {key}: {value}
-                    </p>
-                  )
-                )}
-              </div>
-            </li>
+            <div
+              dangerouslySetInnerHTML={{
+                __html: schemaContent(profile, linkType)
+              }}
+            />
             <hr className="my-4" />
           </div>
         ))}
