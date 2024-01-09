@@ -489,6 +489,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'post_title'  => $post_title,
 				'post_type'   => 'murmurations_node',
 				'post_status' => 'publish',
+				'post_excerpt' => '[murmurations_excerpt]'
 			) );
 
 			// set tags
