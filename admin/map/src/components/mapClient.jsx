@@ -51,6 +51,7 @@ const markerClicked = async (profile, apiUrl, linkType) => {
       content = addUrlToContent(
         content,
         responseData?.profile_data?.primary_url,
+        responseData.post_url,
         linkType
       )
       break
@@ -67,6 +68,7 @@ const markerClicked = async (profile, apiUrl, linkType) => {
       content = addUrlToContent(
         content,
         responseData?.profile_data?.primary_url,
+        responseData.post_url,
         linkType
       )
       break
@@ -88,6 +90,7 @@ const markerClicked = async (profile, apiUrl, linkType) => {
       content = addUrlToContent(
         content,
         responseData?.profile_data?.details_url,
+        responseData.post_url,
         linkType
       )
       break
@@ -133,9 +136,9 @@ function addDescriptionToContent(content, description) {
   return content
 }
 
-function addUrlToContent(content, postUrl, linkType) {
-  if (postUrl && linkType === 'primary') {
-    content += `<p><a target='_blank' rel='noreferrer' href='${postUrl}'>${postUrl}</a></p>`
+function addUrlToContent(content, primaryUrl, postUrl, linkType) {
+  if (primaryUrl && linkType === 'primary') {
+    content += `<p><a target='_blank' rel='noreferrer' href='${primaryUrl}'>${primaryUrl}</a></p>`
   }
   if (postUrl && linkType === 'wp') {
     content += `<p><a href='${postUrl}'>More...</a></p>`
