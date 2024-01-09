@@ -46,7 +46,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 		public function murmurations_data( $atts ): string {
 			$attributes = shortcode_atts( array(
 				'path'  => 'default_path',
-				'title' => 'default_title',
+				'title' => '',
 			), $atts );
 
 			$json_path = $attributes['path'];
@@ -78,24 +78,20 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 
 			switch ( $schema ) {
 				case 'organizations_schema-v1.0.0':
-					$content .= do_shortcode( '[murmurations_data path="image" title="Image"]' );
-					$content .= do_shortcode( '[murmurations_data path="name" title="Name"]' );
-					$content .= do_shortcode( '[murmurations_data path="description" title="Description"]' );
-					$content .= do_shortcode( '[murmurations_data path="primary_url" title="Primary URL"]' );
+					$content .= do_shortcode( '[murmurations_data path="description"]' ) ? do_shortcode( '[murmurations_data path="description"]' ) . ', ' : '';
+					$content = substr( $content, 0, - 2 );
 					break;
 				case 'people_schema-v0.1.0':
-					$content .= do_shortcode( '[murmurations_data path="image" title="Image"]' );
-					$content .= do_shortcode( '[murmurations_data path="full_name" title="Full Name"]' );
-					$content .= do_shortcode( '[murmurations_data path="description" title="Description"]' );
-					$content .= do_shortcode( '[murmurations_data path="primary_url" title="Primary URL"]' );
+					$content .= do_shortcode( '[murmurations_data path="full_name"]' ) ? do_shortcode( '[murmurations_data path="full_name"]' ) . ', ' : '';
+					$content .= do_shortcode( '[murmurations_data path="description"]' ) ? do_shortcode( '[murmurations_data path="description"]' ) . ', ' : '';
+					$content = substr( $content, 0, - 2 );
 					break;
 				case 'offers_wants_schema-v0.1.0':
-				case 'offers_wants_prototype-v0.0.2':
-					$content .= do_shortcode( '[murmurations_data path="image" title="Image"]' );
-					$content .= do_shortcode( '[murmurations_data path="title" title="Title"]' );
-					$content .= do_shortcode( '[murmurations_data path="exchange_type" title="Exchange Type"]' );
-					$content .= do_shortcode( '[murmurations_data path="transaction_type" title="Transaction Type"]' );
-					$content .= do_shortcode( '[murmurations_data path="details_url" title="Details URL"]' );
+					$content .= do_shortcode( '[murmurations_data path="title"]' ) ? do_shortcode( '[murmurations_data path="title"]' ) . ', ' : '';
+					$content .= do_shortcode( '[murmurations_data path="exchange_type"]' ) ? do_shortcode( '[murmurations_data path="exchange_type"]' ) . ', ' : '';
+					$content .= do_shortcode( '[murmurations_data path="transaction_type"]' ) ? do_shortcode( '[murmurations_data path="transaction_type"]' ) . ', ' : '';
+					$content .= do_shortcode( '[murmurations_data path="details_url"]' ) ? do_shortcode( '[murmurations_data path="details_url"]' ) . ', ' : '';
+					$content = substr( $content, 0, - 2 );
 					break;
 			}
 
