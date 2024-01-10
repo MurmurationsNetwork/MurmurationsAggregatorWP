@@ -44,6 +44,21 @@ export default function App(props) {
       const data = await response.json()
 
       if (searchProfiles === null) {
+        if (view === 'dir') {
+          // sort by name
+          data.sort((a, b) => {
+            const nameA = a.name.toLowerCase()
+            const nameB = b.name.toLowerCase()
+
+            if (nameA < nameB) {
+              return -1
+            }
+            if (nameA > nameB) {
+              return 1
+            }
+            return 0
+          })
+        }
         setProfiles(data)
       } else {
         // loop searchProfiles and find the match
@@ -63,6 +78,22 @@ export default function App(props) {
             filteredProfiles.push(profile)
           }
         })
+        console.log(filteredProfiles)
+        if (view === 'dir') {
+          filteredProfiles.sort((a, b) => {
+            const nameA = a.name.toLowerCase()
+            const nameB = b.name.toLowerCase()
+
+            if (nameA < nameB) {
+              return -1
+            }
+            if (nameA > nameB) {
+              return 1
+            }
+            return 0
+          })
+        }
+        console.log('after sort', filteredProfiles)
         setProfiles(filteredProfiles)
       }
     } catch (error) {
