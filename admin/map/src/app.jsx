@@ -14,6 +14,10 @@ export default function App(props) {
   const [map, setMap] = useState({})
   const [isMapLoaded, setIsMapLoaded] = useState(false)
 
+  // search parameters
+  const [name, setName] = useState('')
+  const [tags, setTags] = useState('')
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -29,7 +33,7 @@ export default function App(props) {
     fetchData()
   }, [])
 
-  const getProfiles = async () => {
+  const getProfiles = async (searchProfiles = null) => {
     try {
       let response
       if (view === 'dir') {
@@ -38,7 +42,29 @@ export default function App(props) {
         response = await fetch(`${apiUrl}/maps/${tagSlug}`)
       }
       const data = await response.json()
-      setProfiles(data)
+
+      if (searchProfiles === null) {
+        setProfiles(data)
+      } else {
+        // loop searchProfiles and find the match
+        let filteredProfiles = []
+        searchProfiles.forEach(searchProfile => {
+          let profile
+          if (view === 'dir') {
+            profile = data.find(
+              profile => profile?.profile_url === searchProfile.profile_url
+            )
+          } else {
+            profile = data.find(
+              profile => profile[3] === searchProfile.profile_url
+            )
+          }
+          if (profile !== undefined) {
+            filteredProfiles.push(profile)
+          }
+        })
+        setProfiles(filteredProfiles)
+      }
     } catch (error) {
       alert(
         `Error getting profiles, please contact the administrator, error: ${error}`
@@ -59,8 +85,77 @@ export default function App(props) {
     }
   }
 
+  const submitSearch = async event => {
+    event.preventDefault()
+    try {
+      // if map is {} then don't do anything
+      if (Object.keys(map).length === 0) {
+        return
+      }
+
+      if (name !== '' || tags !== '') {
+        // use index_url + query string to get profiles
+        let params = { tags_filter: 'or' }
+
+        if (name !== '') {
+          params['name'] = name
+        }
+        if (tags !== '') {
+          params['tags'] = tags
+        }
+
+        const query = updateQueryString(map.query_url, params)
+        const response = await fetch(`${map.index_url}?${query}`)
+        const data = await response.json()
+        await getProfiles(data?.data)
+      } else {
+        await getProfiles()
+      }
+    } catch (error) {
+      alert(
+        `Error getting profiles, please contact the administrator, error: ${error}`
+      )
+    }
+  }
+
+  const updateQueryString = (queryString, params) => {
+    let urlParams = new URLSearchParams(queryString)
+
+    Object.keys(params).forEach(key => {
+      if (urlParams.has(key)) {
+        urlParams.set(key, params[key])
+      } else {
+        urlParams.append(key, params[key])
+      }
+    })
+
+    return urlParams.toString()
+  }
+
   return (
     <div>
+      <form
+        className="mb-4 flex items-center space-x-2"
+        onSubmit={submitSearch}
+      >
+        <input
+          type="text"
+          placeholder="Name"
+          className="rounded border border-gray-300 p-2"
+          value={name}
+          onChange={e => setName(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Tags"
+          className="rounded border border-gray-300 p-2"
+          value={tags}
+          onChange={e => setTags(e.target.value)}
+        />
+        <button type="submit" className="rounded bg-blue-500 p-2 text-white">
+          Search
+        </button>
+      </form>
       {view === 'dir' ? (
         <Directory
           profiles={profiles}

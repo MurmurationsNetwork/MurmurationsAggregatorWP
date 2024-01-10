@@ -240,7 +240,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			while ( $query->have_posts() ) {
 				$query->the_post();
-				$profile_data = get_post_meta( get_the_ID(), 'murmurations_profile_data', true );
+				$profile_data  = get_post_meta( get_the_ID(), 'murmurations_profile_data', true );
+				$profile_query = $this->wpdb->prepare( "SELECT profile_url FROM $this->node_table_name WHERE post_id = %d", get_the_ID() );
+				$node          = $this->wpdb->get_row( $profile_query );
 
 				if ( $view === 'dir' ) {
 					$map[] = [
@@ -248,12 +250,14 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 						'name'         => get_the_title(),
 						'post_url'     => get_permalink(),
 						'profile_data' => $profile_data,
+						'profile_url'  => $node->profile_url ?? "",
 					];
 				} else {
 					$map[] = [
 						$profile_data['geolocation']['lon'] ?? "",
 						$profile_data['geolocation']['lat'] ?? "",
 						get_the_ID(),
+						$node->profile_url ?? "",
 					];
 				}
 			}
@@ -486,9 +490,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$post_title = $data['profile_data']['name'] ?? $data['profile_data']['title'];
 
 			$post_id = wp_insert_post( array(
-				'post_title'  => $post_title,
-				'post_type'   => 'murmurations_node',
-				'post_status' => 'publish',
+				'post_title'   => $post_title,
+				'post_type'    => 'murmurations_node',
+				'post_status'  => 'publish',
 				'post_excerpt' => '[murmurations_excerpt]'
 			) );
 

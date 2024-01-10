@@ -17,6 +17,9 @@ export default function Directory({ profiles, linkType, pageSize }) {
     if (totalPages) {
       setPageNumbers(calculatePageNumbers(currentPage, totalPages))
     }
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
     if (directoryComponent.current) {
       const position = directoryComponent.current.offsetTop
       window.scrollTo({
