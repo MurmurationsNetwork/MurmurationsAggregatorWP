@@ -35,65 +35,35 @@ export default function App(props) {
 
   const getProfiles = async (searchProfiles = null) => {
     try {
-      let response
-      if (view === 'dir') {
-        response = await fetch(`${apiUrl}/maps/${tagSlug}?view=dir`)
-      } else {
-        response = await fetch(`${apiUrl}/maps/${tagSlug}`)
-      }
+      const response = await fetch(
+        `${apiUrl}/maps/${tagSlug}${view === 'dir' ? '?view=dir' : ''}`
+      )
       const data = await response.json()
+
+      // sort directory profiles by name
+      const sortByName = (a, b) =>
+        a.name.toLowerCase().localeCompare(b.name.toLowerCase())
 
       if (searchProfiles === null) {
         if (view === 'dir') {
-          // sort by name
-          data.sort((a, b) => {
-            const nameA = a.name.toLowerCase()
-            const nameB = b.name.toLowerCase()
-
-            if (nameA < nameB) {
-              return -1
-            }
-            if (nameA > nameB) {
-              return 1
-            }
-            return 0
-          })
+          data.sort(sortByName)
         }
         setProfiles(data)
       } else {
         // loop searchProfiles and find the match
-        let filteredProfiles = []
-        searchProfiles.forEach(searchProfile => {
-          let profile
-          if (view === 'dir') {
-            profile = data.find(
-              profile => profile?.profile_url === searchProfile.profile_url
+        let filteredProfiles = searchProfiles
+          .map(searchProfile =>
+            data.find(profile =>
+              view === 'dir'
+                ? profile?.profile_url === searchProfile.profile_url
+                : profile[3] === searchProfile.profile_url
             )
-          } else {
-            profile = data.find(
-              profile => profile[3] === searchProfile.profile_url
-            )
-          }
-          if (profile !== undefined) {
-            filteredProfiles.push(profile)
-          }
-        })
-        console.log(filteredProfiles)
-        if (view === 'dir') {
-          filteredProfiles.sort((a, b) => {
-            const nameA = a.name.toLowerCase()
-            const nameB = b.name.toLowerCase()
+          )
+          .filter(profile => profile !== undefined)
 
-            if (nameA < nameB) {
-              return -1
-            }
-            if (nameA > nameB) {
-              return 1
-            }
-            return 0
-          })
+        if (view === 'dir') {
+          filteredProfiles.sort(sortByName)
         }
-        console.log('after sort', filteredProfiles)
         setProfiles(filteredProfiles)
       }
     } catch (error) {
