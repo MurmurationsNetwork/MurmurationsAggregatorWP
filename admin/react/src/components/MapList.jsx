@@ -444,7 +444,8 @@ export default function MapList({
             tag_slug: profile.map.tag_slug,
             status: profile.status,
             is_available: profile.is_available,
-            unavailable_message: profile.unavailable_message
+            unavailable_message: profile.unavailable_message,
+            has_authority: profile.has_authority,
           }
         }
 

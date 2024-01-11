@@ -613,6 +613,13 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				if ( $node->unavailable_message === null ) {
 					$node->unavailable_message = "";
 				}
+
+				// handle has_authority field
+				if ( $node->has_authority === '1' ) {
+					$node->has_authority = true;
+				} else {
+					$node->has_authority = false;
+				}
 			}
 
 			return rest_ensure_response( $nodes );
