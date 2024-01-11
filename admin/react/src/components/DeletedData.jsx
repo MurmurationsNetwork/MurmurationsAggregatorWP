@@ -4,7 +4,7 @@ export default function DeletedData({ deletedProfiles }) {
   return (
     <div>
       {deletedProfiles.length > 0 && (
-        <div>
+        <div className="mb-4">
           <h1 className="text-xl">Deleted Data</h1>
           <table className="table-auto">
             <thead>
