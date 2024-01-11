@@ -105,6 +105,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 			    status VARCHAR(100) NOT NULL DEFAULT 'ignored',
 			    is_available BOOLEAN NOT NULL DEFAULT 0,
 			    unavailable_message VARCHAR(100) DEFAULT NULL,
+			    has_authority BOOLEAN NOT NULL DEFAULT 1,
 			    PRIMARY KEY (id)
 		    ) $charset_collate;";
 

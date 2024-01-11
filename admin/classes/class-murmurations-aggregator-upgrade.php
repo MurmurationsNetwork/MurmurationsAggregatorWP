@@ -13,6 +13,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Upgrade' ) ) {
 			// check the table is existed or not
 			$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) == $table_name;
 
+			// 1.0.0-beta.1
 			$current_version = get_option( 'murmurations_aggregator_version' );
 
 			if ( version_compare( $current_version, '1.0.0-beta.1', '<' ) ) {
@@ -23,11 +24,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_Upgrade' ) ) {
 
 					$wpdb->query( $sql );
 				}
+
+				update_option( 'murmurations_aggregator_version', '1.0.0-beta.1' );
 			}
 
-			// update the plugin version in the database
-			update_option( 'murmurations_aggregator_version', '1.0.0-beta.1' );
-
+			// 1.0.0-beta.3
 			$current_version = get_option( 'murmurations_aggregator_version' );
 
 			if ( version_compare( $current_version, '1.0.0-beta.3', '<' ) ) {
@@ -37,12 +38,22 @@ if ( ! class_exists( 'Murmurations_Aggregator_Upgrade' ) ) {
 
 					$wpdb->query( $sql );
 				}
+				update_option( 'murmurations_aggregator_version', '1.0.0-beta.3' );
 			}
 
-			// update the plugin version in the database
-			update_option( 'murmurations_aggregator_version', '1.0.0-beta.3' );
+			// 1.0.0-beta.6
+			$current_version = get_option( 'murmurations_aggregator_version' );
 
-			// next upgrade put here
+			if ( version_compare( $current_version, '1.0.0-beta.6', '<' ) ) {
+				error_log('upgrade');
+				if ( $table_exists ) {
+					$sql = "ALTER TABLE $table_name
+                        ADD COLUMN has_authority BOOLEAN NOT NULL DEFAULT 1";
+
+					$wpdb->query( $sql );
+				}
+				update_option( 'murmurations_aggregator_version', '1.0.0-beta.6' );
+			}
 
 			// update the latest plugin version to the database
 			update_option( 'murmurations_aggregator_version', MURMURATIONS_AGGREGATOR_VERSION );

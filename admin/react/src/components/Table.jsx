@@ -33,6 +33,7 @@ function Table({
           <th className="p-2 text-center">Profile URL</th>
           <th className="p-2 text-center">Status</th>
           <th className="p-2 text-center">Availability</th>
+          <th className="p-2 text-center">Domain Authority</th>
           <th className="p-2 text-center"></th>
         </tr>
       </thead>

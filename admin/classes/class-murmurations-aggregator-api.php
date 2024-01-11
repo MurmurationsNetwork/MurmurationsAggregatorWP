@@ -726,7 +726,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'last_updated'        => $data['index_data']['last_updated'],
 				'status'              => $data['data']['status'] ?? 'new',
 				'is_available'        => $data['data']['is_available'] ?? true,
-				'unavailable_message' => $data['data']['unavailable_message'] ?? null
+				'unavailable_message' => $data['data']['unavailable_message'] ?? null,
+				'has_authority' => $data['data']['has_authority'] ?? true,
 			) );
 
 			if ( ! $result ) {

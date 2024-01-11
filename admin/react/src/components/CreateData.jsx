@@ -5,6 +5,7 @@ import { createId } from '@paralleldrive/cuid2'
 import { getProxyData, saveCustomMap, saveCustomNodes } from '../utils/api'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
+import {whiteList} from "../data/whiteList";
 
 const excludedKeys = [
   'data_url',
@@ -104,6 +105,19 @@ export default function CreateData({
 
         // set the profileList and save the data to wpdb
         const profiles = responseData.data
+
+        // domain authority - we need to check primary_url and profile_url is match or not
+        let primaryUrlCount = new Map()
+        for (let i = 0; i < profiles.length; i++) {
+          // if the status is deleted, continue
+          if (profiles[i].status === 'deleted') {
+            continue
+          }
+          if (profiles[i].primary_url) {
+            primaryUrlCount.set(profiles[i].primary_url, (primaryUrlCount.get(profiles[i].primary_url) || 0) + 1)
+          }
+        }
+
         const dataWithIds = []
         const progressStep = 100 / profiles.length
         let currentId = 1
@@ -149,7 +163,8 @@ export default function CreateData({
               map_id: mapResponseData.map_id,
               tag_slug: tagSlug,
               status: 'new',
-              is_available: true
+              is_available: true,
+              has_authority: true,
             }
           }
 
@@ -157,6 +172,36 @@ export default function CreateData({
           if (profile_data === '') {
             profileObject.data.is_available = false
             profileObject.data.unavailable_message = fetchProfileError
+          }
+
+          // set domain authority
+          if (profile.profile_url && profile.primary_url) {
+            if (primaryUrlCount.get(profile.primary_url) > 1) {
+              try {
+                const addDefaultScheme = (url) => {
+                  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                    return "https://" + url;
+                  }
+                  return url;
+                };
+
+                // check the domain name is match or not
+                const primaryUrl = new URL(addDefaultScheme(profile.primary_url));
+                const profileUrl = new URL(addDefaultScheme(profile.profile_url));
+
+                // only get last two parts which is the domain name
+                const primaryDomain = primaryUrl.hostname.split('.').slice(-2).join('.');
+                const profileDomain = profileUrl.hostname.split('.').slice(-2).join('.');
+
+                // Compare the domain names to check if they match
+                if (primaryDomain !== profileDomain && !whiteList.includes(profileDomain)) {
+                  profileObject.data.has_authority = false;
+                }
+              } catch (error) {
+                // Handle the error if the URL is invalid
+                console.error("Invalid URL:", error.message);
+              }
+            }
           }
 
           // save data to wpdb
