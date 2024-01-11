@@ -7,6 +7,7 @@ import EditData from './components/EditData'
 import CreateData from './components/CreateData'
 import PopupBox from './components/PopupBox'
 import DeletedData from './components/DeletedData'
+import UnauthorizedData from "./components/UnauthorizedData";
 
 export default function App() {
   // button states
@@ -27,6 +28,7 @@ export default function App() {
   // SelectData states
   const [profileList, setProfileList] = useState([])
   const [deletedProfiles, setDeletedProfiles] = useState([])
+  const [unauthorizedProfiles, setUnauthorizedProfiles] = useState([])
 
   // ProgressBar states
   const [progress, setProgress] = useState(0)
@@ -91,6 +93,7 @@ export default function App() {
         {isMapSelected && !isLoading ? (
           <div className="mt-4 py-4">
             <DeletedData deletedProfiles={deletedProfiles} />
+            <UnauthorizedData unauthorizedProfiles={deletedProfiles} />
             {profileList.length === 0 ? (
               isEdit ? (
                 <EditData
@@ -140,6 +143,8 @@ export default function App() {
           </div>
         ) : (
           <div className="mt-4 py-4">
+            <DeletedData deletedProfiles={deletedProfiles} />
+            <UnauthorizedData unauthorizedProfiles={unauthorizedProfiles} />
             <MapList
               maps={maps}
               getMaps={getMaps}
@@ -154,6 +159,7 @@ export default function App() {
               setProgress={setProgress}
               progress={progress}
               setDeletedProfiles={setDeletedProfiles}
+              setUnauthorizedProfiles={setUnauthorizedProfiles}
             />
           </div>
         )}

@@ -10,25 +10,27 @@ import {
   updateCustomMapLastUpdated
 } from '../utils/api'
 import PropTypes from 'prop-types'
-import { formDefaults } from '../data/formDefaults'
+import {formDefaults} from '../data/formDefaults'
 import ProgressBar from './ProgressBar'
-import { useState } from 'react'
+import {useState} from 'react'
+import {whiteList} from "../data/whiteList";
 
 export default function MapList({
-  maps,
-  getMaps,
-  setFormData,
-  setIsEdit,
-  setIsMapSelected,
-  isLoading,
-  setIsLoading,
-  setIsRetrieving,
-  setProfileList,
-  setCurrentTime,
-  setProgress,
-  progress,
-  setDeletedProfiles
-}) {
+                                  maps,
+                                  getMaps,
+                                  setFormData,
+                                  setIsEdit,
+                                  setIsMapSelected,
+                                  isLoading,
+                                  setIsLoading,
+                                  setIsRetrieving,
+                                  setProfileList,
+                                  setCurrentTime,
+                                  setProgress,
+                                  progress,
+                                  setDeletedProfiles,
+                                  setUnauthorizedProfiles
+                                }) {
   const [isPopupOpen, setIsPopupOpen] = useState(false)
   const [mapIdToDelete, setMapIdToDelete] = useState(null)
 
@@ -96,11 +98,32 @@ export default function MapList({
 
       let dataWithIds = []
       let deletedProfiles = []
+      let unauthorizedProfiles = []
       let currentId = 1
       const progressStep = 100 / (profiles.length + unavailableProfiles.length)
       let progress = 0
 
       if (profiles.length > 0) {
+        // checking domain authority
+        // get all nodes from WordPress
+        const allNodesResponse = await getCustomNodes(mapId)
+        const allNodesResponseData = await allNodesResponse.json()
+        if (!allNodesResponse.ok) {
+          alert(
+            `Get Nodes Error: ${allNodesResponse.status} ${JSON.stringify(
+              allNodesResponseData
+            )}`
+          )
+          return
+        }
+        let primaryUrlCount = new Map()
+        for (let node of allNodesResponseData) {
+          if (node?.profile_data?.primary_url) {
+            const cleanUrl = node.profile_data.primary_url.replace(/^https?:\/\//, '');
+            primaryUrlCount.set(cleanUrl, (primaryUrlCount.get(cleanUrl) || 0) + 1)
+          }
+        }
+
         for (let i = 0; i < profiles.length; i++) {
           // update progress
           progress = (i + 1) * progressStep
@@ -121,7 +144,7 @@ export default function MapList({
           const customNodesResponseData = await customNodesResponse.json()
           if (!response.ok && response.status !== 404) {
             alert(
-              `Delete Profile Error: ${
+              `Get Profile Error: ${
                 customNodesResponse.status
               } ${JSON.stringify(customNodesResponseData)}`
             )
@@ -134,7 +157,7 @@ export default function MapList({
               map_id: mapId,
               tag_slug: tagSlug,
               is_available: true,
-              unavailable_message: ''
+              has_authority: true,
             }
           }
 
@@ -206,6 +229,36 @@ export default function MapList({
             profileObject.data.unavailable_message = fetchProfileError
           }
 
+          // set domain authority
+          if (profile.profile_url && profile.primary_url) {
+            if (primaryUrlCount.get(profile.primary_url) > 1) {
+              try {
+                const addDefaultScheme = (url) => {
+                  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                    return "https://" + url;
+                  }
+                  return url;
+                };
+
+                // check the domain name is match or not
+                const primaryUrl = new URL(addDefaultScheme(profile.primary_url));
+                const profileUrl = new URL(addDefaultScheme(profile.profile_url));
+
+                // only get last two parts which is the domain name
+                const primaryDomain = primaryUrl.hostname.split('.').slice(-2).join('.');
+                const profileDomain = profileUrl.hostname.split('.').slice(-2).join('.');
+
+                // Compare the domain names to check if they match
+                if (primaryDomain !== profileDomain && !whiteList.includes(profileDomain)) {
+                  profileObject.data.has_authority = false;
+                }
+              } catch (error) {
+                // Handle the error if the URL is invalid
+                console.error("Invalid URL:", error.message);
+              }
+            }
+          }
+
           // give extra data to profile
           profileObject.id = currentId
           profileObject.profile_data = profile_data
@@ -234,6 +287,11 @@ export default function MapList({
                 )}. Please delete the map and try again.`
               )
               return
+            }
+
+            if (!profileObject.data.has_authority) {
+              unauthorizedProfiles.push(profileObject)
+              continue
             }
           } else {
             profileObject.data.status = customNodesResponseData[0].status
@@ -317,7 +375,7 @@ export default function MapList({
         }
       }
 
-      if (deletedProfiles.length === 0 && dataWithIds.length === 0) {
+      if (deletedProfiles.length === 0 && dataWithIds.length === 0 && unauthorizedProfiles.length === 0) {
         setProfileList([])
         setIsMapSelected(false)
         setIsRetrieving(false)
@@ -326,8 +384,8 @@ export default function MapList({
         return
       }
 
-      // if it only has deleted profiles, update map timestamp
-      if (deletedProfiles.length > 0 && dataWithIds.length === 0) {
+      // if it only has deleted profiles and unauthorized profiles, update map timestamp
+      if ((deletedProfiles.length > 0 || unauthorizedProfiles.length > 0) && dataWithIds.length === 0) {
         const mapResponse = await updateCustomMapLastUpdated(mapId, currentTime)
         if (!mapResponse.ok) {
           const mapResponseData = await mapResponse.json()
@@ -338,11 +396,14 @@ export default function MapList({
           )
         }
         setCurrentTime('')
+        setIsMapSelected(false)
+      } else {
+        setIsMapSelected(true)
       }
 
       setDeletedProfiles(deletedProfiles)
+      setUnauthorizedProfiles(unauthorizedProfiles)
       setProfileList(dataWithIds)
-      setIsMapSelected(true)
     } catch (error) {
       alert(`Retrieve node error: ${error}`)
     } finally {
@@ -578,10 +639,10 @@ export default function MapList({
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="w-1/2 rounded bg-yellow-100 p-8 shadow-xl">
             <p className="mb-4 text-center text-2xl">Loading...</p>
-            {<ProgressBar progress={progress} />}
+            {<ProgressBar progress={progress}/>}
             <p className="mt-4 text-center text-xl">
               Murmurations is an unfunded volunteer-led project.
-              <br />
+              <br/>
               Please consider{' '}
               <a
                 href="https://opencollective.com/murmurations"
@@ -636,5 +697,6 @@ MapList.propTypes = {
   setCurrentTime: PropTypes.func.isRequired,
   setProgress: PropTypes.func.isRequired,
   progress: PropTypes.number.isRequired,
-  setDeletedProfiles: PropTypes.func.isRequired
+  setDeletedProfiles: PropTypes.func.isRequired,
+  setUnauthorizedProfiles: PropTypes.func.isRequired
 }
