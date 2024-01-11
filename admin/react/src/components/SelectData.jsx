@@ -39,7 +39,7 @@ export default function SelectData({
   const [selectedStatusOption, setSelectedStatusOption] = useState('publish')
 
   const toggleSelectAll = () => {
-    profileList = profileList.filter(response => response.data.is_available)
+    profileList = profileList.filter(response => response.data.is_available && response.data.has_authority)
     if (selectedIds.length === profileList.length) {
       setSelectedIds([])
     } else {
