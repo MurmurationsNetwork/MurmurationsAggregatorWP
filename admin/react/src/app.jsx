@@ -7,7 +7,7 @@ import EditData from './components/EditData'
 import CreateData from './components/CreateData'
 import PopupBox from './components/PopupBox'
 import DeletedData from './components/DeletedData'
-import UnauthorizedData from "./components/UnauthorizedData";
+import UnauthorizedData from './components/UnauthorizedData'
 
 export default function App() {
   // button states

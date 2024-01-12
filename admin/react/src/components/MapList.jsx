@@ -10,27 +10,27 @@ import {
   updateCustomMapLastUpdated
 } from '../utils/api'
 import PropTypes from 'prop-types'
-import {formDefaults} from '../data/formDefaults'
+import { formDefaults } from '../data/formDefaults'
 import ProgressBar from './ProgressBar'
-import {useState} from 'react'
-import {whiteList} from "../data/whiteList";
+import { useState } from 'react'
+import { whiteList } from '../data/whiteList'
 
 export default function MapList({
-                                  maps,
-                                  getMaps,
-                                  setFormData,
-                                  setIsEdit,
-                                  setIsMapSelected,
-                                  isLoading,
-                                  setIsLoading,
-                                  setIsRetrieving,
-                                  setProfileList,
-                                  setCurrentTime,
-                                  setProgress,
-                                  progress,
-                                  setDeletedProfiles,
-                                  setUnauthorizedProfiles
-                                }) {
+  maps,
+  getMaps,
+  setFormData,
+  setIsEdit,
+  setIsMapSelected,
+  isLoading,
+  setIsLoading,
+  setIsRetrieving,
+  setProfileList,
+  setCurrentTime,
+  setProgress,
+  progress,
+  setDeletedProfiles,
+  setUnauthorizedProfiles
+}) {
   const [isPopupOpen, setIsPopupOpen] = useState(false)
   const [mapIdToDelete, setMapIdToDelete] = useState(null)
 
@@ -119,8 +119,14 @@ export default function MapList({
         let primaryUrlCount = new Map()
         for (let node of allNodesResponseData) {
           if (node?.profile_data?.primary_url) {
-            const cleanUrl = node.profile_data.primary_url.replace(/^https?:\/\//, '');
-            primaryUrlCount.set(cleanUrl, (primaryUrlCount.get(cleanUrl) || 0) + 1)
+            const cleanUrl = node.profile_data.primary_url.replace(
+              /^https?:\/\//,
+              ''
+            )
+            primaryUrlCount.set(
+              cleanUrl,
+              (primaryUrlCount.get(cleanUrl) || 0) + 1
+            )
           }
         }
 
@@ -157,7 +163,7 @@ export default function MapList({
               map_id: mapId,
               tag_slug: tagSlug,
               is_available: true,
-              has_authority: true,
+              has_authority: true
             }
           }
 
@@ -233,28 +239,44 @@ export default function MapList({
           if (profile.profile_url && profile.primary_url) {
             if (primaryUrlCount.get(profile.primary_url) > 1) {
               try {
-                const addDefaultScheme = (url) => {
-                  if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                    return "https://" + url;
+                const addDefaultScheme = url => {
+                  if (
+                    !url.startsWith('http://') &&
+                    !url.startsWith('https://')
+                  ) {
+                    return 'https://' + url
                   }
-                  return url;
-                };
+                  return url
+                }
 
                 // check the domain name is match or not
-                const primaryUrl = new URL(addDefaultScheme(profile.primary_url));
-                const profileUrl = new URL(addDefaultScheme(profile.profile_url));
+                const primaryUrl = new URL(
+                  addDefaultScheme(profile.primary_url)
+                )
+                const profileUrl = new URL(
+                  addDefaultScheme(profile.profile_url)
+                )
 
                 // only get last two parts which is the domain name
-                const primaryDomain = primaryUrl.hostname.split('.').slice(-2).join('.');
-                const profileDomain = profileUrl.hostname.split('.').slice(-2).join('.');
+                const primaryDomain = primaryUrl.hostname
+                  .split('.')
+                  .slice(-2)
+                  .join('.')
+                const profileDomain = profileUrl.hostname
+                  .split('.')
+                  .slice(-2)
+                  .join('.')
 
                 // Compare the domain names to check if they match
-                if (primaryDomain !== profileDomain && !whiteList.includes(profileDomain)) {
-                  profileObject.data.has_authority = false;
+                if (
+                  primaryDomain !== profileDomain &&
+                  !whiteList.includes(profileDomain)
+                ) {
+                  profileObject.data.has_authority = false
                 }
               } catch (error) {
                 // Handle the error if the URL is invalid
-                console.error("Invalid URL:", error.message);
+                console.error('Invalid URL:', error.message)
               }
             }
           }
@@ -375,7 +397,11 @@ export default function MapList({
         }
       }
 
-      if (deletedProfiles.length === 0 && dataWithIds.length === 0 && unauthorizedProfiles.length === 0) {
+      if (
+        deletedProfiles.length === 0 &&
+        dataWithIds.length === 0 &&
+        unauthorizedProfiles.length === 0
+      ) {
         setProfileList([])
         setIsMapSelected(false)
         setIsRetrieving(false)
@@ -385,7 +411,10 @@ export default function MapList({
       }
 
       // if it only has deleted profiles and unauthorized profiles, update map timestamp
-      if ((deletedProfiles.length > 0 || unauthorizedProfiles.length > 0) && dataWithIds.length === 0) {
+      if (
+        (deletedProfiles.length > 0 || unauthorizedProfiles.length > 0) &&
+        dataWithIds.length === 0
+      ) {
         const mapResponse = await updateCustomMapLastUpdated(mapId, currentTime)
         if (!mapResponse.ok) {
           const mapResponseData = await mapResponse.json()
@@ -445,7 +474,7 @@ export default function MapList({
             status: profile.status,
             is_available: profile.is_available,
             unavailable_message: profile.unavailable_message,
-            has_authority: profile.has_authority,
+            has_authority: profile.has_authority
           }
         }
 
@@ -640,10 +669,10 @@ export default function MapList({
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="w-1/2 rounded bg-yellow-100 p-8 shadow-xl">
             <p className="mb-4 text-center text-2xl">Loading...</p>
-            {<ProgressBar progress={progress}/>}
+            {<ProgressBar progress={progress} />}
             <p className="mt-4 text-center text-xl">
               Murmurations is an unfunded volunteer-led project.
-              <br/>
+              <br />
               Please consider{' '}
               <a
                 href="https://opencollective.com/murmurations"

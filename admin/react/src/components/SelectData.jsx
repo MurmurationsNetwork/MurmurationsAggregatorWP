@@ -39,7 +39,9 @@ export default function SelectData({
   const [selectedStatusOption, setSelectedStatusOption] = useState('publish')
 
   const toggleSelectAll = () => {
-    profileList = profileList.filter(response => response.data.is_available && response.data.has_authority)
+    profileList = profileList.filter(
+      response => response.data.is_available && response.data.has_authority
+    )
     if (selectedIds.length === profileList.length) {
       setSelectedIds([])
     } else {
@@ -269,7 +271,8 @@ export default function SelectData({
     // if the extra_notes of all profiles are unavailable, it means all nodes are handled, we can refresh the page
     if (
       newProfileList.length === 0 ||
-      newProfileList.every(profile => !profile.data.is_available) || newProfileList.every(profile => !profile.data.has_authority)
+      newProfileList.every(profile => !profile.data.is_available) ||
+      newProfileList.every(profile => !profile.data.has_authority)
     ) {
       if (currentTime !== '') {
         const response = await updateCustomMapLastUpdated(mapId, currentTime)

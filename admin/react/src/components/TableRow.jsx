@@ -61,33 +61,33 @@ function TableRow({
         {response.data.is_available
           ? 'Available'
           : 'Unavailable-' +
-          (response.data.unavailable_message
-            ? response.data.unavailable_message
-            : '')}
+            (response.data.unavailable_message
+              ? response.data.unavailable_message
+              : '')}
       </td>
       <td className="px-2 py-1 text-center">
         {response.data.has_authority ? 'Yes' : 'No'}
       </td>
-        <td className="px-2 py-1 text-center">
-          {response.data.extra_notes === 'see updates' ? (
-            <button
-              onClick={() =>
-                handleSeeUpdates(
-                  response.data.map_id,
-                  response.index_data.profile_url,
-                  response.profile_data
-                )
-              }
-              className="animate-pulse bg-orange-500 px-2 font-bold text-white"
-            >
-              See Updates
-            </button>
-          ) : (
-            response.data.extra_notes
-          )}
-        </td>
+      <td className="px-2 py-1 text-center">
+        {response.data.extra_notes === 'see updates' ? (
+          <button
+            onClick={() =>
+              handleSeeUpdates(
+                response.data.map_id,
+                response.index_data.profile_url,
+                response.profile_data
+              )
+            }
+            className="animate-pulse bg-orange-500 px-2 font-bold text-white"
+          >
+            See Updates
+          </button>
+        ) : (
+          response.data.extra_notes
+        )}
+      </td>
     </tr>
-)
+  )
 }
 
 TableRow.propTypes = {

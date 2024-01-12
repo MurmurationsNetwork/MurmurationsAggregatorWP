@@ -5,7 +5,7 @@ import { createId } from '@paralleldrive/cuid2'
 import { getProxyData, saveCustomMap, saveCustomNodes } from '../utils/api'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
-import {whiteList} from "../data/whiteList";
+import { whiteList } from '../data/whiteList'
 
 const excludedKeys = [
   'data_url',
@@ -114,7 +114,10 @@ export default function CreateData({
             continue
           }
           if (profiles[i].primary_url) {
-            primaryUrlCount.set(profiles[i].primary_url, (primaryUrlCount.get(profiles[i].primary_url) || 0) + 1)
+            primaryUrlCount.set(
+              profiles[i].primary_url,
+              (primaryUrlCount.get(profiles[i].primary_url) || 0) + 1
+            )
           }
         }
 
@@ -164,7 +167,7 @@ export default function CreateData({
               tag_slug: tagSlug,
               status: 'new',
               is_available: true,
-              has_authority: true,
+              has_authority: true
             }
           }
 
@@ -178,28 +181,44 @@ export default function CreateData({
           if (profile.profile_url && profile.primary_url) {
             if (primaryUrlCount.get(profile.primary_url) > 1) {
               try {
-                const addDefaultScheme = (url) => {
-                  if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                    return "https://" + url;
+                const addDefaultScheme = url => {
+                  if (
+                    !url.startsWith('http://') &&
+                    !url.startsWith('https://')
+                  ) {
+                    return 'https://' + url
                   }
-                  return url;
-                };
+                  return url
+                }
 
                 // check the domain name is match or not
-                const primaryUrl = new URL(addDefaultScheme(profile.primary_url));
-                const profileUrl = new URL(addDefaultScheme(profile.profile_url));
+                const primaryUrl = new URL(
+                  addDefaultScheme(profile.primary_url)
+                )
+                const profileUrl = new URL(
+                  addDefaultScheme(profile.profile_url)
+                )
 
                 // only get last two parts which is the domain name
-                const primaryDomain = primaryUrl.hostname.split('.').slice(-2).join('.');
-                const profileDomain = profileUrl.hostname.split('.').slice(-2).join('.');
+                const primaryDomain = primaryUrl.hostname
+                  .split('.')
+                  .slice(-2)
+                  .join('.')
+                const profileDomain = profileUrl.hostname
+                  .split('.')
+                  .slice(-2)
+                  .join('.')
 
                 // Compare the domain names to check if they match
-                if (primaryDomain !== profileDomain && !whiteList.includes(profileDomain)) {
-                  profileObject.data.has_authority = false;
+                if (
+                  primaryDomain !== profileDomain &&
+                  !whiteList.includes(profileDomain)
+                ) {
+                  profileObject.data.has_authority = false
                 }
               } catch (error) {
                 // Handle the error if the URL is invalid
-                console.error("Invalid URL:", error.message);
+                console.error('Invalid URL:', error.message)
               }
             }
           }

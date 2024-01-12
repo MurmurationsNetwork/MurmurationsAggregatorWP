@@ -1,3 +1,1 @@
-export const whiteList = [
-  'murmurations.network',
-]
+export const whiteList = ['murmurations.network']
