@@ -13,7 +13,7 @@ import PropTypes from 'prop-types'
 import { formDefaults } from '../data/formDefaults'
 import ProgressBar from './ProgressBar'
 import { useState } from 'react'
-import { whiteList } from '../data/whiteList'
+import {checkAuthority, generateUrlMap} from "../utils/domainAuthority";
 
 export default function MapList({
   maps,
@@ -44,13 +44,23 @@ export default function MapList({
     setDeletedProfiles([])
   }
 
+  /**
+   * Retrieve data from the index service with timestamp, which means get updated profiles only.
+   * There are 5 types of profiles:
+   * 1. new profiles - profiles that are not in the nodes table
+   * 2. updated profiles - profiles that are in the nodes table and have updates
+   * 3. unavailable profiles - profiles that unavailable in nodes table needs to check again to see if it's available now
+   * 4. deleted profiles - profiles status is marked as "deleted" in the index service
+   * 5. unauthorized profiles - if a profile's domain authority is false, and there are no other available profiles, it will be marked as unauthorized. Otherwise, unauthorized profiles should be showed in the profiles list.
+   */
   const handleRetrieve = async (mapId, requestUrl, tagSlug) => {
     setIsLoading(true)
     setIsRetrieving(true)
     setDeletedProfiles([])
+    setUnauthorizedProfiles([])
 
     try {
-      // get map data from WP
+      // Get map information from WordPress DB
       const mapResponse = await getCustomMap(mapId)
       const mapResponseData = await mapResponse.json()
       if (!mapResponse.ok) {
@@ -60,15 +70,17 @@ export default function MapList({
         return
       }
 
-      // get map last_updated
-      const mapLastUpdated = mapResponseData.last_updated
+      // Get map last_updated
+      const mapLastUpdated = mapResponseData?.last_updated
       if (mapLastUpdated) {
         requestUrl += `&last_updated=${mapLastUpdated}`
       }
 
-      // get data from requestUrl - Index URL + Query URL
+      // Before retrieving data, get the current time
       const currentTime = new Date().getTime().toString()
       setCurrentTime(currentTime)
+
+      // Get data from requestUrl - Index URL + Query URL
       const response = await fetch(requestUrl)
       const responseData = await response.json()
       if (!response.ok) {
@@ -77,14 +89,16 @@ export default function MapList({
         )
         return
       }
+
+      // Get the profiles from requestUrl
       const profiles = responseData.data
 
-      // get unavailable profiles
+      // Get unavailable profiles from WordPress DB
       let unavailableProfiles = []
       const unavailableNodesResponse = await getCustomUnavailableNodes(mapId)
       const unavailableNodesResponseData = await unavailableNodesResponse.json()
       if (!unavailableNodesResponse.ok) {
-        if (unavailableNodesResponse.status !== 404) {
+        if (unavailableNodesResponse.status === 404) {
           alert(
             `Unavailable Nodes Error: ${
               unavailableNodesResponse.status
@@ -96,16 +110,18 @@ export default function MapList({
         unavailableProfiles = unavailableNodesResponseData
       }
 
+      // Define variables, dataWithIds is the final profiles list
       let dataWithIds = []
       let deletedProfiles = []
       let unauthorizedProfiles = []
       let currentId = 1
+
+      // Setup progress bar
       const progressStep = 100 / (profiles.length + unavailableProfiles.length)
       let progress = 0
 
       if (profiles.length > 0) {
-        // checking domain authority
-        // get all nodes from WordPress
+        // Get all nodes from WordPress DB to generate a primary url Map
         const allNodesResponse = await getCustomNodes(mapId)
         const allNodesResponseData = await allNodesResponse.json()
         if (!allNodesResponse.ok) {
@@ -116,22 +132,11 @@ export default function MapList({
           )
           return
         }
-        let primaryUrlCount = new Map()
-        for (let node of allNodesResponseData) {
-          if (node?.profile_data?.primary_url) {
-            const cleanUrl = node.profile_data.primary_url.replace(
-              /^https?:\/\//,
-              ''
-            )
-            primaryUrlCount.set(
-              cleanUrl,
-              (primaryUrlCount.get(cleanUrl) || 0) + 1
-            )
-          }
-        }
+        const primaryUrlCount = generateUrlMap(allNodesResponseData)
 
+        // Loop through profiles which is from Index Service
         for (let i = 0; i < profiles.length; i++) {
-          // update progress
+          // Update progress
           progress = (i + 1) * progressStep
           if (progress > 100) {
             setProgress(100)
@@ -140,9 +145,9 @@ export default function MapList({
           }
 
           const profile = profiles[i]
-          let profile_data = ''
+          let profileData = ''
 
-          // get node information
+          // Get single node information
           const customNodesResponse = await getCustomNodes(
             mapId,
             profile.profile_url
@@ -157,7 +162,7 @@ export default function MapList({
           }
 
           let profileObject = {
-            profile_data: profile_data,
+            profile_data: profileData,
             index_data: profile,
             data: {
               map_id: mapId,
@@ -167,23 +172,21 @@ export default function MapList({
             }
           }
 
-          // handle deleted profiles
+          // Handle deleted profiles
           if (profile.status === 'deleted') {
             if (customNodesResponse.status === 404) {
               continue
             }
 
-            // if customNodesResponse is not 404, need to get the node_id and post_id
+            // If customNodesResponse is not 404, save information into profileObject
             profileObject.data.node_id = customNodesResponseData[0].id
             profileObject.data.post_id = customNodesResponseData[0].post_id
-
-            // if the status is deleted, we need to get profile_data from wpdb
             profileObject.profile_data = customNodesResponseData[0].profile_data
 
+            // Request to delete WP Nodes
             const deleteNodeResponse = await deleteWpNodes(
               profileObject.data.post_id
             )
-
             if (!deleteNodeResponse.ok) {
               const deleteNodeResponseData = await deleteNodeResponse.json()
               if (deleteNodeResponse.status !== 404) {
@@ -195,8 +198,8 @@ export default function MapList({
               }
             }
 
-            // delete node from nodes table
-            const deleteResponse = await deleteCustomNodes(profileObject)
+            // Delete node from nodes table - no need to check the node_id because it's mandatory field in the table
+            const deleteResponse = await deleteCustomNodes(profileObject.data.node_id)
 
             if (!deleteResponse.ok) {
               const deleteResponseData = await deleteResponse.json()
@@ -207,17 +210,19 @@ export default function MapList({
               )
             }
 
-            // put deleted profile in list
+            // Put deleted profile in list
             deletedProfiles.push(profileObject)
             continue
           }
 
+          // Handle new profiles and updated profiles
+          // Check the profile_url is available or not
           let fetchProfileError = ''
           if (profile.profile_url) {
             try {
               const response = await getProxyData(profile.profile_url)
               if (response.ok) {
-                profile_data = await response.json()
+                profileData = await response.json()
               } else {
                 fetchProfileError = 'STATUS-' + response.status
               }
@@ -230,68 +235,30 @@ export default function MapList({
             }
           }
 
-          if (profile_data === '') {
+          // If profileData is empty, then it's not available
+          if (profileData === '') {
             profileObject.data.is_available = false
             profileObject.data.unavailable_message = fetchProfileError
           }
 
-          // set domain authority
-          if (profile.profile_url && profile.primary_url) {
-            if (primaryUrlCount.get(profile.primary_url) > 1) {
-              try {
-                const addDefaultScheme = url => {
-                  if (
-                    !url.startsWith('http://') &&
-                    !url.startsWith('https://')
-                  ) {
-                    return 'https://' + url
-                  }
-                  return url
-                }
-
-                // check the domain name is match or not
-                const primaryUrl = new URL(
-                  addDefaultScheme(profile.primary_url)
-                )
-                const profileUrl = new URL(
-                  addDefaultScheme(profile.profile_url)
-                )
-
-                // only get last two parts which is the domain name
-                const primaryDomain = primaryUrl.hostname
-                  .split('.')
-                  .slice(-2)
-                  .join('.')
-                const profileDomain = profileUrl.hostname
-                  .split('.')
-                  .slice(-2)
-                  .join('.')
-
-                // Compare the domain names to check if they match
-                if (
-                  primaryDomain !== profileDomain &&
-                  !whiteList.includes(profileDomain)
-                ) {
-                  profileObject.data.has_authority = false
-                }
-              } catch (error) {
-                // Handle the error if the URL is invalid
-                console.error('Invalid URL:', error.message)
-              }
-            }
-          }
-
-          // give extra data to profile
+          // Give extra data to profile
           profileObject.id = currentId
-          profileObject.profile_data = profile_data
+          profileObject.profile_data = profileData
           profileObject.data.status = 'new'
           profileObject.data.extra_notes = ''
 
+          // Set domain authority
+          if (profile.profile_url && profile.primary_url && primaryUrlCount.get(profile.primary_url) > 1) {
+            profileObject.data.has_authority = checkAuthority(profile.primary_url, profile.profile_url)
+          }
+
+          // If WP nodes is 404, it's new profile. If WP nodes is not 404, it's updated profile.
           if (customNodesResponse.status === 404) {
             const profileResponse = await saveCustomNodes(profileObject)
-
             if (!profileResponse.ok) {
               const profileResponseData = await profileResponse.json()
+
+              // if the profile_url length is too long, alert the user and skip the profile
               if (
                 profileResponse.status === 400 &&
                 profileResponseData?.code === 'profile_url_length_exceeded'
@@ -301,6 +268,7 @@ export default function MapList({
                 )
                 continue
               }
+
               alert(
                 `Unable to save profiles to wpdb, errors: ${
                   profileResponse.status
@@ -311,6 +279,7 @@ export default function MapList({
               return
             }
 
+            // If a profile is new and has no domain authority, put it in unauthorizedProfiles
             if (!profileObject.data.has_authority) {
               unauthorizedProfiles.push(profileObject)
               continue
@@ -327,7 +296,7 @@ export default function MapList({
               profileObject.data.extra_notes = 'see updates'
             }
 
-            // ignore if status is not new and it doesn't have updates
+            // Ignore profiles whose status is not 'new' and which do not have any updates - I want to show profiles with updates only
             if (
               customNodesResponseData[0].status !== 'new' &&
               profileObject.data.extra_notes !== 'see updates'
@@ -341,10 +310,10 @@ export default function MapList({
         }
       }
 
-      // handle unavailable profiles
+      // Handle unavailable profiles
       if (unavailableProfiles.length > 0) {
         for (let i = 0; i < unavailableProfiles.length; i++) {
-          // update progress
+          // Update progress
           progress += progressStep
           if (progress > 100) {
             setProgress(100)
@@ -354,16 +323,15 @@ export default function MapList({
 
           const profile = unavailableProfiles[i]
 
-          // check this profile is already in the list or not
+          // Check this profile is already in the list or not
           const isProfileInList = dataWithIds.find(
             profileInList => profileInList.data.node_id === profile.id
           )
-
           if (isProfileInList) {
             continue
           }
 
-          // fetch the data, if it's available now, add it to the list
+          // Fetch the data, if it's available now, add it to the list
           let profile_data = ''
           if (profile.profile_url) {
             try {
@@ -372,7 +340,7 @@ export default function MapList({
                 profile_data = await response.json()
               }
             } catch (error) {
-              // if there is an error, don't add it to the list
+              // If there is an error, don't add it to the list
               continue
             }
           }
@@ -410,7 +378,7 @@ export default function MapList({
         return
       }
 
-      // if it only has deleted profiles and unauthorized profiles, update map timestamp
+      // If it only has deleted profiles and unauthorized profiles, update map timestamp and set `setIsMapSelected` to false to return to the map list
       if (
         (deletedProfiles.length > 0 || unauthorizedProfiles.length > 0) &&
         dataWithIds.length === 0
