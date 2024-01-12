@@ -2,10 +2,11 @@ import MapSettings from './MapSettings'
 import DataSource from './DataSource'
 import ProgressBar from './ProgressBar'
 import { createId } from '@paralleldrive/cuid2'
-import { getProxyData, saveCustomMap, saveCustomNodes } from '../utils/api'
+import { saveCustomMap, saveCustomNodes } from '../utils/api'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
-import { whiteList } from '../data/whiteList'
+import { checkAuthority, generateUrlMap } from '../utils/domainAuthority'
+import { fetchProfileData } from '../utils/fetchProfile'
 
 const excludedKeys = [
   'data_url',
@@ -46,7 +47,7 @@ export default function CreateData({
       }
     }
 
-    // handle country array
+    // Handle country array
     if (selectedCountry.length > 0) {
       queryParams.push(
         `${encodeURIComponent('country')}=${encodeURIComponent(
@@ -57,12 +58,9 @@ export default function CreateData({
 
     const queryString = queryParams.join('&')
     const pageQueries = 'page=1&page_size=500'
-
-    const urlWithParams =
-      formData.data_url +
-      '?' +
-      (queryString ? `${queryString}&` : '') +
-      pageQueries
+    const urlWithParams = `${formData.data_url}?${
+      queryString ? `${queryString}&` : ''
+    }${pageQueries}`
 
     try {
       setCurrentTime(new Date().getTime().toString())
@@ -82,7 +80,7 @@ export default function CreateData({
           return
         }
 
-        // we have a valid response, we can save the map to the server
+        // If we find any valid responses, we can save the map to WP Map
         const tagSlug = 'murm_' + createId()
         const mapResponse = await saveCustomMap(
           formData.map_name,
@@ -103,64 +101,36 @@ export default function CreateData({
           return
         }
 
-        // set the profileList and save the data to wpdb
+        // Set the profileList and save the data to wpdb
         const profiles = responseData.data
 
-        // domain authority - we need to check primary_url and profile_url is match or not
-        let primaryUrlCount = new Map()
-        for (let i = 0; i < profiles.length; i++) {
-          // if the status is deleted, continue
-          if (profiles[i].status === 'deleted') {
-            continue
-          }
-          if (profiles[i].primary_url) {
-            primaryUrlCount.set(
-              profiles[i].primary_url,
-              (primaryUrlCount.get(profiles[i].primary_url) || 0) + 1
-            )
-          }
-        }
+        // Count domain authority
+        const primaryUrlCount = generateUrlMap(profiles, 'primary_url')
 
         const dataWithIds = []
         const progressStep = 100 / profiles.length
         let currentId = 1
         for (let i = 0; i < profiles.length; i++) {
-          // update progress
-          if ((i + 1) * progressStep > 100) {
+          // Update progress
+          progress = (i + 1) * progressStep
+          if (progress > 100) {
             setProgress(100)
           } else {
-            setProgress((i + 1) * progressStep)
+            setProgress(progress)
           }
 
-          // if the status is deleted, continue
+          // If the status is deleted, continue
           if (profiles[i].status === 'deleted') {
             continue
           }
 
           const profile = profiles[i]
-          let profile_data = ''
-          let fetchProfileError = ''
-          if (profile.profile_url) {
-            try {
-              const response = await getProxyData(profile.profile_url)
-              if (response.ok) {
-                profile_data = await response.json()
-              } else {
-                fetchProfileError = 'STATUS-' + response.status
-              }
-            } catch (error) {
-              if (error.message === 'Failed to fetch') {
-                fetchProfileError = 'CORS'
-              } else {
-                fetchProfileError = 'UNKNOWN'
-              }
-            }
-          }
-
-          // construct the profile object
+          let { profileData, fetchProfileError } = await fetchProfileData(
+            profile.profile_url
+          )
           let profileObject = {
             id: currentId,
-            profile_data: profile_data,
+            profile_data: profileData,
             index_data: profile,
             data: {
               map_id: mapResponseData.map_id,
@@ -171,59 +141,25 @@ export default function CreateData({
             }
           }
 
-          // set availability
-          if (profile_data === '') {
+          // Set availability
+          if (profileData === '') {
             profileObject.data.is_available = false
             profileObject.data.unavailable_message = fetchProfileError
           }
 
-          // set domain authority
-          if (profile.profile_url && profile.primary_url) {
-            if (primaryUrlCount.get(profile.primary_url) > 1) {
-              try {
-                const addDefaultScheme = url => {
-                  if (
-                    !url.startsWith('http://') &&
-                    !url.startsWith('https://')
-                  ) {
-                    return 'https://' + url
-                  }
-                  return url
-                }
-
-                // check the domain name is match or not
-                const primaryUrl = new URL(
-                  addDefaultScheme(profile.primary_url)
-                )
-                const profileUrl = new URL(
-                  addDefaultScheme(profile.profile_url)
-                )
-
-                // only get last two parts which is the domain name
-                const primaryDomain = primaryUrl.hostname
-                  .split('.')
-                  .slice(-2)
-                  .join('.')
-                const profileDomain = profileUrl.hostname
-                  .split('.')
-                  .slice(-2)
-                  .join('.')
-
-                // Compare the domain names to check if they match
-                if (
-                  primaryDomain !== profileDomain &&
-                  !whiteList.includes(profileDomain)
-                ) {
-                  profileObject.data.has_authority = false
-                }
-              } catch (error) {
-                // Handle the error if the URL is invalid
-                console.error('Invalid URL:', error.message)
-              }
-            }
+          // Set domain authority
+          if (
+            profile.profile_url &&
+            profile.primary_url &&
+            primaryUrlCount.get(profile.primary_url) > 1
+          ) {
+            profileObject.data.has_authority = checkAuthority(
+              profile.primary_url,
+              profile.profile_url
+            )
           }
 
-          // save data to wpdb
+          // Save data to wpdb
           // todo: status needs to update according to the settings
           const profileResponse = await saveCustomNodes(profileObject)
 
@@ -239,17 +175,16 @@ export default function CreateData({
               continue
             }
             alert(
-              `
-                }Unable to save profiles to wpdb, errors: ${
-                  profileResponse.status
-                } ${JSON.stringify(
-                  profileResponseData
-                )}. Please delete the map and try again.`
+              `Unable to save profiles to wpdb, errors: ${
+                profileResponse.status
+              } ${JSON.stringify(
+                profileResponseData
+              )}. Please delete the map and try again.`
             )
             return
           }
 
-          // set node_id
+          // Set node_id
           profileObject.data.node_id = profileResponseData.node_id
 
           currentId++

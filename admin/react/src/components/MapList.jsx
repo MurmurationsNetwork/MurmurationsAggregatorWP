@@ -13,7 +13,8 @@ import PropTypes from 'prop-types'
 import { formDefaults } from '../data/formDefaults'
 import ProgressBar from './ProgressBar'
 import { useState } from 'react'
-import {checkAuthority, generateUrlMap} from "../utils/domainAuthority";
+import { checkAuthority, generateUrlMap } from '../utils/domainAuthority'
+import { fetchProfileData } from '../utils/fetchProfile'
 
 export default function MapList({
   maps,
@@ -42,6 +43,7 @@ export default function MapList({
     setProfileList([])
     setCurrentTime('')
     setDeletedProfiles([])
+    setUnauthorizedProfiles([])
   }
 
   /**
@@ -132,7 +134,10 @@ export default function MapList({
           )
           return
         }
-        const primaryUrlCount = generateUrlMap(allNodesResponseData)
+        const primaryUrlCount = generateUrlMap(
+          allNodesResponseData,
+          'profile_data.primary_url'
+        )
 
         // Loop through profiles which is from Index Service
         for (let i = 0; i < profiles.length; i++) {
@@ -199,7 +204,9 @@ export default function MapList({
             }
 
             // Delete node from nodes table - no need to check the node_id because it's mandatory field in the table
-            const deleteResponse = await deleteCustomNodes(profileObject.data.node_id)
+            const deleteResponse = await deleteCustomNodes(
+              profileObject.data.node_id
+            )
 
             if (!deleteResponse.ok) {
               const deleteResponseData = await deleteResponse.json()
@@ -217,23 +224,9 @@ export default function MapList({
 
           // Handle new profiles and updated profiles
           // Check the profile_url is available or not
-          let fetchProfileError = ''
-          if (profile.profile_url) {
-            try {
-              const response = await getProxyData(profile.profile_url)
-              if (response.ok) {
-                profileData = await response.json()
-              } else {
-                fetchProfileError = 'STATUS-' + response.status
-              }
-            } catch (error) {
-              if (error.message === 'Failed to fetch') {
-                fetchProfileError = 'CORS'
-              } else {
-                fetchProfileError = 'UNKNOWN'
-              }
-            }
-          }
+          let { profileData: fetchedProfileData, fetchProfileError } =
+            await fetchProfileData(profile.profile_url)
+          profileData = fetchedProfileData
 
           // If profileData is empty, then it's not available
           if (profileData === '') {
@@ -248,9 +241,18 @@ export default function MapList({
           profileObject.data.extra_notes = ''
 
           // Set domain authority
-          if (profile.profile_url && profile.primary_url && primaryUrlCount.get(profile.primary_url) > 1) {
-            profileObject.data.has_authority = checkAuthority(profile.primary_url, profile.profile_url)
+          if (
+            profile.profile_url &&
+            profile.primary_url &&
+            primaryUrlCount.get(profile.primary_url) > 1
+          ) {
+            profileObject.data.has_authority = checkAuthority(
+              profile.primary_url,
+              profile.profile_url
+            )
           }
+
+          console.log('my profileObject', profileObject)
 
           // If WP nodes is 404, it's new profile. If WP nodes is not 404, it's updated profile.
           if (customNodesResponse.status === 404) {
@@ -414,9 +416,10 @@ export default function MapList({
     setIsRetrieving(true)
     setIsMapSelected(true)
     setDeletedProfiles([])
+    setUnauthorizedProfiles([])
 
     try {
-      // get nodes from WP
+      // Get nodes from WP
       const response = await getCustomNodes(mapId)
       const profiles = await response.json()
       if (!response.ok) {
@@ -461,6 +464,7 @@ export default function MapList({
     setIsEdit(true)
     setIsMapSelected(true)
     setDeletedProfiles([])
+    setUnauthorizedProfiles([])
     setProfileList([])
     const map = maps.find(map => map.id === mapId)
     setFormData({
@@ -481,6 +485,7 @@ export default function MapList({
     setIsPopupOpen(false)
     setIsLoading(true)
     setDeletedProfiles([])
+    setUnauthorizedProfiles([])
 
     if (!mapIdToDelete) {
       alert(`Delete Map ID is missing.`)
