@@ -100,7 +100,7 @@ export default function MapList({
       const unavailableNodesResponse = await getCustomUnavailableNodes(mapId)
       const unavailableNodesResponseData = await unavailableNodesResponse.json()
       if (!unavailableNodesResponse.ok) {
-        if (unavailableNodesResponse.status === 404) {
+        if (unavailableNodesResponse.status !== 404) {
           alert(
             `Unavailable Nodes Error: ${
               unavailableNodesResponse.status
