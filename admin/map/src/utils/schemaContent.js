@@ -63,7 +63,7 @@ export function schemaContent(responseData, linkType) {
 
 function addImageToContent(content, imageUrl) {
   if (imageUrl) {
-    content += `<img src='${imageUrl}' style='height: 50px; width: auto' id='profile_image' alt="" />`
+    content += `<img src='${imageUrl}' style='max-height: 50px; width: auto; display: inherit' id='profile_image' alt="" />`
 
     const img = new Image()
     img.src = imageUrl
