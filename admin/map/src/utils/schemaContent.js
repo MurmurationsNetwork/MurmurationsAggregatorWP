@@ -21,7 +21,7 @@ export function schemaContent(responseData, linkType) {
       content = addImageToContent(content, imageUrl)
       content = addTitleToContent(
         content,
-        responseData?.profile_data?.full_name
+        responseData?.profile_data?.name
       )
       content = addDescriptionToContent(
         content,
@@ -37,13 +37,10 @@ export function schemaContent(responseData, linkType) {
     case 'offers_wants_schema-v0.1.0':
       content = addImageToContent(content, imageUrl)
       content = addTitleToContent(content, responseData?.profile_data?.title)
-      content = addTextToContent(
+      content = addExchangeTypeToContent(
         content,
-        responseData?.profile_data?.exchange_type
-      )
-      content = addTextToContent(
-        content,
-        responseData?.profile_data?.transaction_type
+        responseData?.profile_data?.exchange_type ? 
+        responseData?.profile_data?.exchange_type === 'offer' ? 'Offer' : 'Want' : ''
       )
       content = addDescriptionToContent(
         content,
@@ -84,9 +81,9 @@ function addTitleToContent(content, title) {
   return content
 }
 
-function addTextToContent(content, text) {
-  if (text) {
-    content += `<p>${text}</p>`
+function addExchangeTypeToContent(content, exchange_type) {
+  if (exchange_type) {
+    content += `<p><em>${exchange_type}</em></p>`
   }
   return content
 }
