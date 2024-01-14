@@ -14,9 +14,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 				return '<div class="text-center font-bold">Please provide a tag_slug in your shortcode.</div>';
 			}
 
-			$view = isset( $atts['view'] ) ? esc_attr( $atts['view'] ) : 'map';
-			$height = isset( $atts['height'] ) ? esc_attr( $atts['height'] ) : '60';
-			$width = isset( $atts['width'] ) ? esc_attr( $atts['width'] ) : '100';
+			$view      = isset( $atts['view'] ) ? esc_attr( $atts['view'] ) : 'map';
+			$height    = isset( $atts['height'] ) ? esc_attr( $atts['height'] ) : '60';
+			$width     = isset( $atts['width'] ) ? esc_attr( $atts['width'] ) : '100';
 			$link_type = isset( $atts['link_type'] ) ? esc_attr( $atts['link_type'] ) : 'primary';
 			$page_size = isset( $atts['page_size'] ) ? esc_attr( $atts['page_size'] ) : '10';
 
@@ -24,14 +24,14 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 		}
 
 		public function enqueue_assets(): void {
-			$script = 'admin/assets/map/index.js';
+			$script      = 'admin/assets/map/index.js';
 			$script_file = MURMURATIONS_AGGREGATOR_DIR . '/' . $script;
 
 			if ( file_exists( $script_file ) ) {
 				wp_enqueue_script( 'murmurations-aggregator', MURMURATIONS_AGGREGATOR_URL . $script, array(), filemtime( $script_file ), true );
 			}
 
-			$style = 'admin/assets/map/index.css';
+			$style      = 'admin/assets/map/index.css';
 			$style_file = MURMURATIONS_AGGREGATOR_DIR . '/' . $style;
 
 			if ( file_exists( $style_file ) ) {
@@ -50,15 +50,15 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 		public function murmurations_data( $atts ): string {
 			$attributes = shortcode_atts(
 				array(
-					'path' => 'default_path',
+					'path'  => 'default_path',
 					'title' => '',
 				),
 				$atts
 			);
 
 			$json_path = $attributes['path'];
-			$title = $attributes['title'];
-			$data = $this->get_murmurations_data();
+			$title     = $attributes['title'];
+			$data      = $this->get_murmurations_data();
 
 			if ( is_null( $data ) ) {
 				return '';
@@ -81,23 +81,23 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			}
 
 			$content = '';
-			$schema = Murmurations_Aggregator_Utils::get_json_value_by_path( 'linked_schemas.0', $data );
+			$schema  = Murmurations_Aggregator_Utils::get_json_value_by_path( 'linked_schemas.0', $data );
 
 			switch ( $schema ) {
 				case 'organizations_schema-v1.0.0':
 					$content .= do_shortcode( '[murmurations_data path="description"]' ) ? do_shortcode( '[murmurations_data path="description"]' ) . ', ' : '';
-					$content = substr( $content, 0, -2 );
+					$content = substr( $content, 0, - 2 );
 					break;
 				case 'people_schema-v0.1.0':
 					$content .= do_shortcode( '[murmurations_data path="name"]' ) ? do_shortcode( '[murmurations_data path="name"]' ) . ', ' : '';
 					$content .= do_shortcode( '[murmurations_data path="description"]' ) ? do_shortcode( '[murmurations_data path="description"]' ) . ', ' : '';
-					$content = substr( $content, 0, -2 );
+					$content = substr( $content, 0, - 2 );
 					break;
 				case 'offers_wants_schema-v0.1.0':
 					$content .= do_shortcode( '[murmurations_data path="title"]' ) ? do_shortcode( '[murmurations_data path="title"]' ) . ', ' : '';
 					$content .= do_shortcode( '[murmurations_data path="exchange_type"]' ) ? do_shortcode( '[murmurations_data path="exchange_type"]' ) . ', ' : '';
 					$content .= do_shortcode( '[murmurations_data path="details_url"]' ) ? do_shortcode( '[murmurations_data path="details_url"]' ) . ', ' : '';
-					$content = substr( $content, 0, -2 );
+					$content = substr( $content, 0, - 2 );
 					break;
 			}
 
