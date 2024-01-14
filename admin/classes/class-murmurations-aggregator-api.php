@@ -645,7 +645,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'data'                => json_encode( $data['profile_data'] ),
 				'last_updated'        => $data['index_data']['last_updated'],
 				'is_available'        => $data['data']['is_available'] ?? true,
-				'unavailable_message' => $unavailable_message
+				'unavailable_message' => $unavailable_message,
+				'has_authority'       => $data['data']['has_authority'] ?? true,
 			), array(
 				'profile_url' => $data['index_data']['profile_url'],
 				'map_id'      => $data['data']['map_id'],
@@ -682,6 +683,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$node_id = $request->get_param( 'node_id' );
 			$data    = $request->get_json_params();
 
+			error_log( print_r( $data, true ) );
+
 			// validate data
 			if ( ! isset( $node_id ) || ! isset( $data['data'] ) || ! isset( $data['profile_data'] ) || ! isset( $data['index_data'] ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
@@ -689,17 +692,22 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			// update status in node table
 			// if the status is 'dismiss' or 'ignore', set 'post_id' to null
+			$has_authority = isset( $data['data']['has_authority'] ) && $data['data']['has_authority'] !== '' ? $data['data']['has_authority'] : true;
+
+			error_log( print_r( $has_authority, true ) );
 			if ( $data['data']['status'] === 'dismiss' || $data['data']['status'] === 'ignore' ) {
 				$result = $this->wpdb->update( $this->node_table_name, array(
-					'status'  => $data['data']['status'],
-					'post_id' => null,
+					'status'        => $data['data']['status'],
+					'has_authority' => $has_authority,
+					'post_id'       => null,
 				), array(
 					'profile_url' => $data['index_data']['profile_url'],
 					'map_id'      => $data['data']['map_id'],
 				) );
 			} else {
 				$result = $this->wpdb->update( $this->node_table_name, array(
-					'status' => $data['data']['status'],
+					'status'        => $data['data']['status'],
+					'has_authority' => $has_authority,
 				), array(
 					'profile_url' => $data['index_data']['profile_url'],
 					'map_id'      => $data['data']['map_id'],
@@ -707,6 +715,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			}
 
 			if ( ! $result ) {
+				// show error_log
+				error_log( 'Failed to update node status. Query: ' . $this->wpdb->last_query );
+
 				return new WP_Error( 'node_status update_failed', 'Failed to update node status.', array( 'status' => 500 ) );
 			}
 
@@ -734,7 +745,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'status'              => $data['data']['status'] ?? 'new',
 				'is_available'        => $data['data']['is_available'] ?? true,
 				'unavailable_message' => $data['data']['unavailable_message'] ?? null,
-				'has_authority' => $data['data']['has_authority'] ?? true,
+				'has_authority'       => $data['data']['has_authority'] ?? true,
 			) );
 
 			if ( ! $result ) {

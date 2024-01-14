@@ -7,13 +7,13 @@ import {
   getCustomUnavailableNodes,
   getProxyData,
   saveCustomNodes,
-  updateCustomMapLastUpdated
+  updateCustomMapLastUpdated, updateCustomNodesStatus
 } from '../utils/api'
 import PropTypes from 'prop-types'
 import { formDefaults } from '../data/formDefaults'
 import ProgressBar from './ProgressBar'
 import { useState } from 'react'
-import { checkAuthority, generateUrlMap } from '../utils/domainAuthority'
+import {addDefaultScheme, checkAuthority, generateAuthoritySet} from '../utils/domainAuthority'
 import { fetchProfileData } from '../utils/fetchProfile'
 
 export default function MapList({
@@ -113,10 +113,9 @@ export default function MapList({
       }
 
       // Define variables, dataWithIds is the final profiles list
-      let dataWithIds = []
+      let dataWithoutIds = []
       let deletedProfiles = []
       let unauthorizedProfiles = []
-      let currentId = 1
 
       // Setup progress bar
       const progressStep = 100 / (profiles.length + unavailableProfiles.length)
@@ -134,9 +133,11 @@ export default function MapList({
           )
           return
         }
-        const primaryUrlCount = generateUrlMap(
+
+        const authorityCheckingList = generateAuthoritySet(
           allNodesResponseData,
-          'profile_data.primary_url'
+          'profile_data.primary_url',
+          'profile_url'
         )
 
         // Loop through profiles which is from Index Service
@@ -172,8 +173,8 @@ export default function MapList({
             data: {
               map_id: mapId,
               tag_slug: tagSlug,
-              is_available: true,
-              has_authority: true
+              is_available: 1,
+              has_authority: 1
             }
           }
 
@@ -189,17 +190,18 @@ export default function MapList({
             profileObject.profile_data = customNodesResponseData[0].profile_data
 
             // Request to delete WP Nodes
-            const deleteNodeResponse = await deleteWpNodes(
-              profileObject.data.post_id
-            )
-            if (!deleteNodeResponse.ok) {
-              const deleteNodeResponseData = await deleteNodeResponse.json()
-              if (deleteNodeResponse.status !== 404) {
+            if (profileObject.data.post_id) {
+              const deleteNodeResponse = await deleteWpNodes(
+                profileObject.data.post_id
+              )
+              if (!deleteNodeResponse.ok) {
+                const deleteNodeResponseData = await deleteNodeResponse.json()
                 alert(
                   `Delete Profile Error: ${
                     deleteNodeResponse.status
                   } ${JSON.stringify(deleteNodeResponseData)}`
                 )
+                continue
               }
             }
 
@@ -215,6 +217,7 @@ export default function MapList({
                   deleteResponseData
                 )}`
               )
+              continue
             }
 
             // Put deleted profile in list
@@ -230,21 +233,19 @@ export default function MapList({
 
           // If profileData is empty, then it's not available
           if (profileData === '') {
-            profileObject.data.is_available = false
+            profileObject.data.is_available = 0
             profileObject.data.unavailable_message = fetchProfileError
           }
 
           // Give extra data to profile
-          profileObject.id = currentId
           profileObject.profile_data = profileData
           profileObject.data.status = 'new'
           profileObject.data.extra_notes = ''
 
           // Set domain authority
           if (
-            profile.profile_url &&
-            profile.primary_url &&
-            primaryUrlCount.get(profile.primary_url) > 1
+            profile?.profile_url &&
+            profile?.primary_url && authorityCheckingList.has(addDefaultScheme(profile.primary_url))
           ) {
             profileObject.data.has_authority = checkAuthority(
               profile.primary_url,
@@ -252,10 +253,11 @@ export default function MapList({
             )
           }
 
-          console.log('my profileObject', profileObject)
-
           // If WP nodes is 404, it's new profile. If WP nodes is not 404, it's updated profile.
           if (customNodesResponse.status === 404) {
+            if (!profileObject.data.has_authority) {
+              profileObject.data.status = 'ignore'
+            }
             const profileResponse = await saveCustomNodes(profileObject)
             if (!profileResponse.ok) {
               const profileResponseData = await profileResponse.json()
@@ -287,9 +289,47 @@ export default function MapList({
               continue
             }
           } else {
-            profileObject.data.status = customNodesResponseData[0].status
+            // Update information to profileObject from Nodes table
             profileObject.data.node_id = customNodesResponseData[0].id
             profileObject.data.post_id = customNodesResponseData[0].post_id
+
+            // Handle domain authority first, because if a profile has no domain authority, it should be ignored
+            if (!profileObject.data.has_authority) {
+              // if a published profile has no domain authority, mark it as ignored
+              profileObject.data.status = 'ignore'
+              if (customNodesResponseData[0].status === 'publish') {
+                // Delete the profile from WP nodes
+                const deleteWPNodeResponse = await deleteWpNodes(
+                  customNodesResponseData[0].post_id
+                )
+                if (!deleteWPNodeResponse.ok) {
+                  const deleteWPNodeResponseData = await deleteWPNodeResponse.json()
+                  alert(
+                    `Delete Profile Error: ${
+                      deleteWPNodeResponse.status
+                    } ${JSON.stringify(deleteWPNodeResponseData)}`
+                  )
+                  continue
+                }
+              }
+              // Update the profile in nodes table
+              const updateResponse = await updateCustomNodesStatus(profileObject)
+              if (!updateResponse.ok) {
+                const updateResponseData = await updateResponse.json()
+                alert(
+                  `Update Node Status Error: ${updateResponse.status} ${JSON.stringify(
+                    updateResponseData
+                  )}`
+                )
+                continue
+              }
+
+              unauthorizedProfiles.push(profileObject)
+              continue
+            }
+
+            // Showing the updates if there is any
+            profileObject.data.status = customNodesResponseData[0].status
 
             if (
               customNodesResponseData[0].last_updated !==
@@ -307,8 +347,7 @@ export default function MapList({
             }
           }
 
-          currentId++
-          dataWithIds.push(profileObject)
+          dataWithoutIds.push(profileObject)
         }
       }
 
@@ -326,7 +365,7 @@ export default function MapList({
           const profile = unavailableProfiles[i]
 
           // Check this profile is already in the list or not
-          const isProfileInList = dataWithIds.find(
+          const isProfileInList = dataWithoutIds.find(
             profileInList => profileInList.data.node_id === profile.id
           )
           if (isProfileInList) {
@@ -349,7 +388,6 @@ export default function MapList({
 
           if (profile_data !== '') {
             let profileObject = {
-              id: currentId,
               profile_data: profile_data,
               index_data: profile,
               data: {
@@ -357,19 +395,18 @@ export default function MapList({
                 tag_slug: tagSlug,
                 node_id: profile.id,
                 status: profile.status,
-                is_available: true,
+                is_available: 1,
                 unavailable_message: ''
               }
             }
-            currentId++
-            dataWithIds.push(profileObject)
+            dataWithoutIds.push(profileObject)
           }
         }
       }
 
       if (
         deletedProfiles.length === 0 &&
-        dataWithIds.length === 0 &&
+        dataWithoutIds.length === 0 &&
         unauthorizedProfiles.length === 0
       ) {
         setProfileList([])
@@ -383,7 +420,7 @@ export default function MapList({
       // If it only has deleted profiles and unauthorized profiles, update map timestamp and set `setIsMapSelected` to false to return to the map list
       if (
         (deletedProfiles.length > 0 || unauthorizedProfiles.length > 0) &&
-        dataWithIds.length === 0
+        dataWithoutIds.length === 0
       ) {
         const mapResponse = await updateCustomMapLastUpdated(mapId, currentTime)
         if (!mapResponse.ok) {
@@ -398,6 +435,20 @@ export default function MapList({
         setIsMapSelected(false)
       } else {
         setIsMapSelected(true)
+      }
+
+      if (dataWithoutIds.length > 0 && unauthorizedProfiles.length > 0) {
+        dataWithoutIds = dataWithoutIds.concat(unauthorizedProfiles)
+        unauthorizedProfiles = []
+      }
+
+      // loop through dataWithoutIds to add ids
+      const dataWithIds = []
+      let currentId = 1
+      for (let profile of dataWithoutIds) {
+        profile.id = currentId
+        currentId++
+        dataWithIds.push(profile)
       }
 
       setDeletedProfiles(deletedProfiles)

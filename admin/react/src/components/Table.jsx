@@ -14,7 +14,7 @@ function Table({
   const isAllSelected =
     selectedIds.length > 0 &&
     selectedIds.length ===
-      tableList.filter(response => response.data.is_available).length
+      tableList.filter(response => (response.data.is_available && response.data.has_authority)).length
 
   return (
     <table className="shadow-md">

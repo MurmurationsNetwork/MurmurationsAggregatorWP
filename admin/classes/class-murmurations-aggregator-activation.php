@@ -102,7 +102,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 			    profile_url VARCHAR(2000) NOT NULL,
 			    data TEXT NOT NULL,
 			    last_updated VARCHAR(100) NOT NULL,
-			    status VARCHAR(100) NOT NULL DEFAULT 'ignored',
+			    status VARCHAR(100) NOT NULL DEFAULT 'ignore',
 			    is_available BOOLEAN NOT NULL DEFAULT 0,
 			    unavailable_message VARCHAR(100) DEFAULT NULL,
 			    has_authority BOOLEAN NOT NULL DEFAULT 1,

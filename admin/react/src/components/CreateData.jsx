@@ -5,7 +5,7 @@ import { createId } from '@paralleldrive/cuid2'
 import { saveCustomMap, saveCustomNodes } from '../utils/api'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
-import { checkAuthority, generateUrlMap } from '../utils/domainAuthority'
+import {checkAuthority, generateAuthoritySet} from '../utils/domainAuthority'
 import { fetchProfileData } from '../utils/fetchProfile'
 
 const excludedKeys = [
@@ -104,8 +104,8 @@ export default function CreateData({
         // Set the profileList and save the data to wpdb
         const profiles = responseData.data
 
-        // Count domain authority
-        const primaryUrlCount = generateUrlMap(profiles, 'primary_url')
+        // Generate the authority set - the profiles in the set has authority
+        const authorityCheckingList = generateAuthoritySet(profiles, 'primary_url', 'profile_url')
 
         const dataWithIds = []
         const progressStep = 100 / profiles.length
@@ -136,27 +136,28 @@ export default function CreateData({
               map_id: mapResponseData.map_id,
               tag_slug: tagSlug,
               status: 'new',
-              is_available: true,
-              has_authority: true
+              is_available: 1,
+              has_authority: 1
             }
           }
 
           // Set availability
           if (profileData === '') {
-            profileObject.data.is_available = false
+            profileObject.data.is_available = 0
             profileObject.data.unavailable_message = fetchProfileError
           }
 
           // Set domain authority
           if (
-            profile.profile_url &&
-            profile.primary_url &&
-            primaryUrlCount.get(profile.primary_url) > 1
+            profile?.profile_url &&
+            profile?.primary_url && authorityCheckingList.has(profile.primary_url)
           ) {
-            profileObject.data.has_authority = checkAuthority(
+            const hasAuthority = checkAuthority(
               profile.primary_url,
               profile.profile_url
             )
+            profileObject.data.has_authority = hasAuthority
+            if (!hasAuthority) {profileObject.data.status = 'ignore'}
           }
 
           // Save data to wpdb

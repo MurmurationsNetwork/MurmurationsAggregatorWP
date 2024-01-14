@@ -45,10 +45,10 @@ if ( ! class_exists( 'Murmurations_Aggregator_Upgrade' ) ) {
 			$current_version = get_option( 'murmurations_aggregator_version' );
 
 			if ( version_compare( $current_version, '1.0.0-beta.6', '<' ) ) {
-				error_log('upgrade');
 				if ( $table_exists ) {
 					$sql = "ALTER TABLE $table_name
-                        ADD COLUMN has_authority BOOLEAN NOT NULL DEFAULT 1";
+                        ADD COLUMN has_authority BOOLEAN NOT NULL DEFAULT 1,
+                         MODIFY status VARCHAR(100) NOT NULL DEFAULT 'ignore'";
 
 					$wpdb->query( $sql );
 				}
