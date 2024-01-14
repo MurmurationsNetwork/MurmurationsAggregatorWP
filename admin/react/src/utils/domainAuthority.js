@@ -1,5 +1,5 @@
-export function generateAuthoritySet(nodes, primaryUrlField, profileUrlField) {
-  let authorityMatchSet = new Set()
+export function generateAuthorityMap(nodes, primaryUrlField, profileUrlField) {
+  let authorityMatchMap = new Map()
   for (let node of nodes) {
     if (node?.status && node.status === 'deleted') {
       continue
@@ -9,11 +9,11 @@ export function generateAuthoritySet(nodes, primaryUrlField, profileUrlField) {
     if (!primaryUrl || !profileUrl) {
       continue
     }
-    if (!authorityMatchSet.has(primaryUrl) && checkAuthority(primaryUrl, profileUrl)) {
-      authorityMatchSet.add(primaryUrl)
+    if (!authorityMatchMap.has(primaryUrl) && checkAuthority(primaryUrl, profileUrl)) {
+      authorityMatchMap.set(primaryUrl, (authorityMatchMap.get(primaryUrl) || 0) + 1)
     }
   }
-  return authorityMatchSet
+  return authorityMatchMap
 }
 
 function getNestedProperty(obj, path) {

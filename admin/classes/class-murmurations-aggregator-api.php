@@ -190,6 +190,18 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			register_rest_route(
 				$backend_namespace,
+				'/nodes/(?P<node_id>[\d]+)/authority',
+				array(
+					'methods'             => 'PUT',
+					'callback'            => array( $this, 'put_node_authority' ),
+					'permission_callback' => function () {
+						return current_user_can( 'activate_plugins' );
+					},
+				),
+			);
+
+			register_rest_route(
+				$backend_namespace,
 				'/nodes',
 				array(
 					'methods'             => 'POST',
@@ -683,8 +695,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$node_id = $request->get_param( 'node_id' );
 			$data    = $request->get_json_params();
 
-			error_log( print_r( $data, true ) );
-
 			// validate data
 			if ( ! isset( $node_id ) || ! isset( $data['data'] ) || ! isset( $data['profile_data'] ) || ! isset( $data['index_data'] ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
@@ -694,7 +704,6 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			// if the status is 'dismiss' or 'ignore', set 'post_id' to null
 			$has_authority = isset( $data['data']['has_authority'] ) && $data['data']['has_authority'] !== '' ? $data['data']['has_authority'] : true;
 
-			error_log( print_r( $has_authority, true ) );
 			if ( $data['data']['status'] === 'dismiss' || $data['data']['status'] === 'ignore' ) {
 				$result = $this->wpdb->update( $this->node_table_name, array(
 					'status'        => $data['data']['status'],
@@ -715,13 +724,32 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			}
 
 			if ( ! $result ) {
-				// show error_log
-				error_log( 'Failed to update node status. Query: ' . $this->wpdb->last_query );
-
 				return new WP_Error( 'node_status update_failed', 'Failed to update node status.', array( 'status' => 500 ) );
 			}
 
 			return rest_ensure_response( 'Node status updated successfully.' );
+		}
+
+		public function put_node_authority($request): WP_REST_Response|WP_Error {
+			$node_id = $request->get_param( 'node_id' );
+			$data    = $request->get_json_params();
+
+			// validate data
+			if ( ! isset( $node_id ) || ! isset( $data['has_authority'] ) ) {
+				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
+			}
+
+			$result = $this->wpdb->update( $this->node_table_name, array(
+				'has_authority' => $data['has_authority'],
+			), array(
+				'id' => $node_id,
+			) );
+
+			if ( $result === false ) {
+				return new WP_Error( 'node_authority_update_failed', 'Failed to update node authority.', array( 'status' => 500 ) );
+			}
+
+			return rest_ensure_response( 'Node authority updated successfully.' );
 		}
 
 		public function post_node( $request ): WP_REST_Response|WP_Error {

@@ -5,7 +5,7 @@ import { createId } from '@paralleldrive/cuid2'
 import { saveCustomMap, saveCustomNodes } from '../utils/api'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
-import {checkAuthority, generateAuthoritySet} from '../utils/domainAuthority'
+import {checkAuthority, generateAuthorityMap,} from '../utils/domainAuthority'
 import { fetchProfileData } from '../utils/fetchProfile'
 
 const excludedKeys = [
@@ -105,7 +105,7 @@ export default function CreateData({
         const profiles = responseData.data
 
         // Generate the authority set - the profiles in the set has authority
-        const authorityCheckingList = generateAuthoritySet(profiles, 'primary_url', 'profile_url')
+        const authorityCheckingList = generateAuthorityMap(profiles, 'primary_url', 'profile_url')
 
         const dataWithIds = []
         const progressStep = 100 / profiles.length

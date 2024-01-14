@@ -7,13 +7,13 @@ import {
   getCustomUnavailableNodes,
   getProxyData,
   saveCustomNodes,
-  updateCustomMapLastUpdated, updateCustomNodesStatus
+  updateCustomMapLastUpdated, updateCustomNodesAuthority, updateCustomNodesStatus
 } from '../utils/api'
 import PropTypes from 'prop-types'
 import { formDefaults } from '../data/formDefaults'
 import ProgressBar from './ProgressBar'
 import { useState } from 'react'
-import {addDefaultScheme, checkAuthority, generateAuthoritySet} from '../utils/domainAuthority'
+import {addDefaultScheme, checkAuthority, generateAuthorityMap} from '../utils/domainAuthority'
 import { fetchProfileData } from '../utils/fetchProfile'
 
 export default function MapList({
@@ -124,7 +124,7 @@ export default function MapList({
       if (profiles.length > 0) {
         // Get all nodes from WordPress DB to generate a primary url Map
         const allNodesResponse = await getCustomNodes(mapId)
-        const allNodesResponseData = await allNodesResponse.json()
+        let allNodesResponseData = await allNodesResponse.json()
         if (!allNodesResponse.ok) {
           alert(
             `Get Nodes Error: ${allNodesResponse.status} ${JSON.stringify(
@@ -134,7 +134,7 @@ export default function MapList({
           return
         }
 
-        const authorityCheckingList = generateAuthoritySet(
+        const authorityCheckingList = generateAuthorityMap(
           allNodesResponseData,
           'profile_data.primary_url',
           'profile_url'
@@ -348,6 +348,47 @@ export default function MapList({
           }
 
           dataWithoutIds.push(profileObject)
+        }
+      }
+
+      // Domain Authority Checking: Update the other data after we have new data
+      // Get all nodes from WordPress DB to generate a primary url Map
+      const allNodesResponse = await getCustomNodes(mapId)
+      let allNodesResponseData = await allNodesResponse.json()
+      if (!allNodesResponse.ok) {
+        alert(
+          `Get Nodes Error: ${allNodesResponse.status} ${JSON.stringify(
+            allNodesResponseData
+          )}`
+        )
+        return
+      }
+
+      const authorityCheckingList = generateAuthorityMap(
+        allNodesResponseData,
+        'profile_data.primary_url',
+        'profile_url'
+      )
+
+      for (let i = 0; i < allNodesResponseData.length; i++) {
+        const node = allNodesResponseData[i]
+        if (node?.id && node.profile_data.primary_url && node.profile_url) {
+          let hasAuthority = 1
+          if (authorityCheckingList.has(addDefaultScheme(node.profile_data.primary_url))) {
+            hasAuthority = checkAuthority(
+              node.profile_data.primary_url,
+              node.profile_url
+            )
+          }
+          const updateResponse = await updateCustomNodesAuthority(node.id.toString(), hasAuthority)
+          if (!updateResponse.ok) {
+            const updateResponseData = await updateResponse.json()
+            alert(
+              `Update Node Status Error: ${updateResponse.status} ${JSON.stringify(
+                updateResponseData
+              )}`
+            )
+          }
         }
       }
 
