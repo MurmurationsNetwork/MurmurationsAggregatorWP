@@ -1,5 +1,3 @@
-import { whiteList } from '../data/whiteList'
-
 export function generateUrlMap(nodes, urlField) {
   let primaryUrlCount = new Map()
   for (let node of nodes) {
@@ -29,7 +27,7 @@ export function checkAuthority(originPrimaryUrl, originProfileUrl) {
   const profileDomain = profileUrl.hostname.split('.').slice(-2).join('.')
 
   return !(
-    primaryDomain !== profileDomain && !whiteList.includes(profileDomain)
+    primaryDomain !== profileDomain
   )
 }
 

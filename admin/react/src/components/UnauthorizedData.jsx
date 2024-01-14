@@ -5,7 +5,7 @@ export default function UnauthorizedData({ unauthorizedProfiles }) {
     <div>
       {unauthorizedProfiles.length > 0 && (
         <div className="mb-4">
-          <h1 className="text-xl">Unauthorized Domain</h1>
+          <h1 className="text-xl">Overwritten by Domain Authority</h1>
           <table className="table-auto">
             <thead>
               <tr>
