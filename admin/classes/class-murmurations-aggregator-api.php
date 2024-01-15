@@ -730,7 +730,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			return rest_ensure_response( 'Node status updated successfully.' );
 		}
 
-		public function put_node_authority($request): WP_REST_Response|WP_Error {
+		public function put_node_authority( $request ): WP_REST_Response|WP_Error {
 			$node_id = $request->get_param( 'node_id' );
 			$data    = $request->get_json_params();
 
