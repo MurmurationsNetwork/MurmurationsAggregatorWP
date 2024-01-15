@@ -22,8 +22,8 @@ function getNestedProperty(obj, path) {
 
 export function checkAuthority(originPrimaryUrl, originProfileUrl) {
   try {
-    const primaryUrl = new URL(originPrimaryUrl)
-    const profileUrl = new URL(originProfileUrl)
+    const primaryUrl = new URL(addDefaultScheme(originPrimaryUrl))
+    const profileUrl = new URL(addDefaultScheme(originProfileUrl))
 
     if (!primaryUrl.protocol.startsWith('http') ||
       !profileUrl.protocol.startsWith('http')) {
