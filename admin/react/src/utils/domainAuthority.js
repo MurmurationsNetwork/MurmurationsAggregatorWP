@@ -31,11 +31,7 @@ export function checkAuthority(originPrimaryUrl, originProfileUrl) {
       return 0
     }
 
-    const primaryDomain = checkTrailingSlash(primaryUrl.hostname + primaryUrl.pathname)
-    const profileDomain = profileUrl.hostname + profileUrl.pathname.split('/').slice(0,-1).join('/')
-
-    return primaryDomain === profileDomain ? 1 : 0
-
+    return primaryUrl.hostname === profileUrl.hostname ? 1 : 0
   }
   catch (e) {
     console.log(e)
@@ -46,13 +42,6 @@ export function checkAuthority(originPrimaryUrl, originProfileUrl) {
 export function addDefaultScheme(url) {
   if (!url.startsWith('http://') && !url.startsWith('https://')) {
     return 'https://' + url
-  }
-  return url
-}
-
-function checkTrailingSlash(url) {
-  if(url.endsWith('/')){
-    return url.slice(0,-1)
   }
   return url
 }
