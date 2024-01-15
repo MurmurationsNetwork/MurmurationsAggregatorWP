@@ -389,8 +389,78 @@ export default function MapList({
               )}`
             )
           }
+          // construct the profileObject and put it in unauthorizedProfiles
+          let profileObject = {
+            profile_data: node.profile_data,
+            index_data: {
+              profile_url: node.profile_url,
+            },
+            data: {
+              node_id: node.id,
+              post_id: node.post_id,
+              map_id: node.map.id,
+              is_available: node.is_available,
+              unavailable_message: node.unavailable_message,
+              has_authority: hasAuthority,
+              last_updated: node.last_updated,
+              status: node.status,
+            }
+          }
+          if (!profileObject.data.has_authority) {
+            // if a published profile has no domain authority, mark it as ignored
+            profileObject.data.status = 'ignore'
+            if (node.status === 'publish') {
+              // Delete the profile from WP nodes
+              const deleteWPNodeResponse = await deleteWpNodes(
+                profileObject.data.post_id
+              )
+              if (!deleteWPNodeResponse.ok) {
+                const deleteWPNodeResponseData = await deleteWPNodeResponse.json()
+                alert(
+                  `Delete Profile Error: ${
+                    deleteWPNodeResponse.status
+                  } ${JSON.stringify(deleteWPNodeResponseData)}`
+                )
+                continue
+              }
+            }
+            // Update the profile in nodes table
+            const updateResponse = await updateCustomNodesStatus(profileObject)
+            if (!updateResponse.ok) {
+              const updateResponseData = await updateResponse.json()
+              alert(
+                `Update Node Status Error: ${updateResponse.status} ${JSON.stringify(
+                  updateResponseData
+                )}`
+              )
+              continue
+            }
+
+            unauthorizedProfiles.push(profileObject)
+          } else {
+            // From NAP to AP
+            // I can use data.node_id to find the matched profile in dataWithoutIds
+            let matchedProfile = dataWithoutIds.find(
+              profile => profile.data.node_id === node.id
+            )
+            if (matchedProfile) {
+              if (hasAuthority !== matchedProfile.data.has_authority) {
+                // replace dataWithoutIds with matchedProfile
+                dataWithoutIds = matchedProfile.map(item => {
+                  if (item.data.node_id === node.id) {
+                    item.data.has_authority = hasAuthority
+                  }
+                  return item
+                })
+              }
+            }
+          }
         }
       }
+
+      // remove duplicates from unauthorizedProfiles
+      unauthorizedProfiles = unauthorizedProfiles.filter((item, index, self) =>
+        self.findIndex(t => t.data.node_id === item.data.node_id) === index);
 
       // Handle unavailable profiles
       if (unavailableProfiles.length > 0) {
@@ -500,6 +570,7 @@ export default function MapList({
     } finally {
       setIsLoading(false)
       setProgress(0)
+      window.scrollTo(0, 0);
     }
   }
 

@@ -723,7 +723,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				) );
 			}
 
-			if ( ! $result ) {
+			if ( $result === false ) {
 				return new WP_Error( 'node_status update_failed', 'Failed to update node status.', array( 'status' => 500 ) );
 			}
 
