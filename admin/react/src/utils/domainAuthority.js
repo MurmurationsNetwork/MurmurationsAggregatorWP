@@ -45,5 +45,11 @@ export function cleanUrl(url) {
     url = url.substring(4);
   }
 
-  return url;
+  // Remove .json if it's the last part of the URL
+  const parts = url.split('/');
+  if (parts[parts.length - 1].endsWith('.json')) {
+    parts.pop();
+  }
+
+  return parts.join('/');
 }
