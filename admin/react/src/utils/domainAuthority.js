@@ -4,8 +4,8 @@ export function generateAuthorityMap(nodes, primaryUrlField, profileUrlField) {
     if (node?.status && node.status === 'deleted') {
       continue
     }
-    const primaryUrl = getNestedProperty(node, primaryUrlField)
-    const profileUrl = getNestedProperty(node, profileUrlField)
+    const primaryUrl = cleanUrl(getNestedProperty(node, primaryUrlField))
+    const profileUrl = cleanUrl(getNestedProperty(node, profileUrlField))
     if (!primaryUrl || !profileUrl) {
       continue
     }
@@ -22,19 +22,28 @@ function getNestedProperty(obj, path) {
 
 export function checkAuthority(originPrimaryUrl, originProfileUrl) {
   // Check the domain name is match or not
-  const primaryUrl = new URL(addDefaultScheme(originPrimaryUrl))
-  const profileUrl = new URL(addDefaultScheme(originProfileUrl))
+  const primaryUrl = cleanUrl(originPrimaryUrl)
+  const profileUrl = cleanUrl(originProfileUrl)
 
-  // Only get last two parts which is the domain name
-  const primaryDomain = primaryUrl.hostname.split('.').slice(-2).join('.')
-  const profileDomain = profileUrl.hostname.split('.').slice(-2).join('.')
-
-  return primaryDomain === profileDomain ? 1 : 0
+  return primaryUrl === profileUrl ? 1 : 0
 }
 
-export function addDefaultScheme(url) {
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    return 'https://' + url
+export function cleanUrl(url) {
+  // If the last character is a slash, remove it
+  if (url.endsWith('/')) {
+    url = url.slice(0, -1);
   }
-  return url
+
+  // If the string includes ://, discard this substring and everything to the left of it
+  const protocolIndex = url.indexOf('://');
+  if (protocolIndex !== -1) {
+    url = url.substring(protocolIndex + 3);
+  }
+
+  // If the string starts with www., remove those 4 characters
+  if (url.startsWith('www.')) {
+    url = url.substring(4);
+  }
+
+  return url;
 }
