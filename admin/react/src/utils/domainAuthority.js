@@ -4,8 +4,8 @@ export function generateAuthorityMap(nodes, primaryUrlField, profileUrlField) {
     if (node?.status && node.status === 'deleted') {
       continue
     }
-    const primaryUrl = cleanUrl(getNestedProperty(node, primaryUrlField))
-    const profileUrl = cleanUrl(getNestedProperty(node, profileUrlField))
+    const primaryUrl = addDefaultScheme(getNestedProperty(node, primaryUrlField))
+    const profileUrl = addDefaultScheme(getNestedProperty(node, profileUrlField))
     if (!primaryUrl || !profileUrl) {
       continue
     }
@@ -21,35 +21,38 @@ function getNestedProperty(obj, path) {
 }
 
 export function checkAuthority(originPrimaryUrl, originProfileUrl) {
-  // Check the domain name is match or not
-  const primaryUrl = cleanUrl(originPrimaryUrl)
-  const profileUrl = cleanUrl(originProfileUrl)
+  try {
+    const primaryUrl = new URL(originPrimaryUrl)
+    const profileUrl = new URL(originProfileUrl)
 
-  return primaryUrl === profileUrl ? 1 : 0
+    if (!primaryUrl.protocol.startsWith('http') ||
+      !profileUrl.protocol.startsWith('http')) {
+      console.log('Invalid protocol')
+      return 0
+    }
+
+    const primaryDomain = checkTrailingSlash(primaryUrl.hostname + primaryUrl.pathname)
+    const profileDomain = profileUrl.hostname + profileUrl.pathname.split('/').slice(0,-1).join('/')
+
+    return primaryDomain === profileDomain ? 1 : 0
+
+  }
+  catch (e) {
+    console.log(e)
+    return 0
+  }
 }
 
-export function cleanUrl(url) {
-  // If the last character is a slash, remove it
-  if (url.endsWith('/')) {
-    url = url.slice(0, -1);
+export function addDefaultScheme(url) {
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return 'https://' + url
   }
+  return url
+}
 
-  // If the string includes ://, discard this substring and everything to the left of it
-  const protocolIndex = url.indexOf('://');
-  if (protocolIndex !== -1) {
-    url = url.substring(protocolIndex + 3);
+function checkTrailingSlash(url) {
+  if(url.endsWith('/')){
+    return url.slice(0,-1)
   }
-
-  // If the string starts with www., remove those 4 characters
-  if (url.startsWith('www.')) {
-    url = url.substring(4);
-  }
-
-  // Remove .json if it's the last part of the URL
-  const parts = url.split('/');
-  if (parts[parts.length - 1].endsWith('.json')) {
-    parts.pop();
-  }
-
-  return parts.join('/');
+  return url
 }
