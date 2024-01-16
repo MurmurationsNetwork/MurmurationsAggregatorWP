@@ -4,7 +4,7 @@ export default function MapSettings({ formData, handleInputChange }) {
   return (
     <div>
       <h3 className="text-lg">Map Settings</h3>
-      <div className="border-2 border-dotted border-red-500 p-4 mt-2">
+      <div className="mt-2 border-2 border-dotted border-red-500 p-4">
         <div className="mb-4">
           Use{' '}
           <a
@@ -20,7 +20,7 @@ export default function MapSettings({ formData, handleInputChange }) {
 
         <div className="mb-4">
           <label
-            className="block text-gray-700 font-bold mb-2"
+            className="mb-2 block font-bold text-gray-700"
             htmlFor="map_name"
           >
             Map Center Latitude
@@ -31,7 +31,7 @@ export default function MapSettings({ formData, handleInputChange }) {
             name="map_center_lat"
             value={formData.map_center_lat}
             onChange={handleInputChange}
-            className="w-full border rounded py-2 px-3"
+            className="w-full rounded border px-3 py-2"
             min={-90}
             max={90}
             step="any"
@@ -39,7 +39,7 @@ export default function MapSettings({ formData, handleInputChange }) {
         </div>
         <div className="mb-4">
           <label
-            className="block text-gray-700 font-bold mb-2"
+            className="mb-2 block font-bold text-gray-700"
             htmlFor="map_name"
           >
             Map Center Longitude
@@ -50,7 +50,7 @@ export default function MapSettings({ formData, handleInputChange }) {
             name="map_center_lon"
             value={formData.map_center_lon}
             onChange={handleInputChange}
-            className="w-full border rounded py-2 px-3"
+            className="w-full rounded border px-3 py-2"
             min={-180}
             max={180}
             step="any"
@@ -58,7 +58,7 @@ export default function MapSettings({ formData, handleInputChange }) {
         </div>
         <div className="mb-4">
           <label
-            className="block text-gray-700 font-bold mb-2"
+            className="mb-2 block font-bold text-gray-700"
             htmlFor="map_name"
           >
             Map Scale
@@ -69,7 +69,7 @@ export default function MapSettings({ formData, handleInputChange }) {
             name="map_scale"
             value={formData.map_scale}
             onChange={handleInputChange}
-            className="w-full border rounded py-2 px-3"
+            className="w-full rounded border px-3 py-2"
             min={0}
             max={20}
             step="any"

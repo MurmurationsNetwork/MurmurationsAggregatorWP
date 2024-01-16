@@ -9,6 +9,7 @@ import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
 
 import 'leaflet/dist/leaflet.css'
 import '@changey/react-leaflet-markercluster/dist/styles.min.css'
+import { schemaContent } from '../utils/schemaContent'
 
 delete L.Icon.Default.prototype._getIconUrl
 
@@ -37,47 +38,7 @@ const markerClicked = async (profile, apiUrl, linkType) => {
       `Error getting post, please contact the administrator, error: ${responseData}`
     )
   }
-  let content = ''
-  const imageUrl = responseData?.profile_data?.image
-  if (imageUrl) {
-    content += `<img src='${imageUrl}' style='height: 50px; width: auto' id='profile_image' />`
-
-    const img = new Image()
-    img.src = imageUrl
-    img.onerror = () => {
-      const profileImage = document.getElementById('profile_image')
-      if (profileImage) {
-        profileImage.style.display = 'none'
-      }
-    }
-  }
-  const title = responseData?.title
-  if (title) {
-    content += `<p><strong>${title}</strong></p>`
-  }
-  const description = responseData?.profile_data?.description
-  if (description) {
-    content += `<p>${limitString(description, 200)}</p>`
-  }
-  const postUrl =
-    linkType === 'wp'
-      ? responseData.post_url
-      : responseData?.profile_data?.primary_url
-  if (postUrl && linkType === 'primary') {
-    content += `<p><a target='_blank' rel='noreferrer' href='${postUrl}'>${postUrl}</a></p>`
-  }
-  if (postUrl && linkType === 'wp') {
-    content += `<p><a href='${postUrl}'>More...</a></p>`
-  }
-  return content
-}
-
-function limitString(inputString, maxLength) {
-  if (inputString.length <= maxLength) {
-    return inputString
-  } else {
-    return inputString.substring(0, maxLength) + '...'
-  }
+  return schemaContent(responseData, linkType)
 }
 
 export default function MapClient({

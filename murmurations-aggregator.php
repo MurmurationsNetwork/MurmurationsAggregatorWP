@@ -3,7 +3,7 @@
  * Plugin Name:       Murmurations Collaborative Map Builder
  * Plugin URI:        https://github.com/MurmurationsNetwork/MurmurationsAggregatorWP
  * Description:       Collect and display data from the Murmurations network.
- * Version:           1.0.0-beta.5
+ * Version:           1.0.0-beta.6
  * Requires at least: 6.4
  * Text Domain:       murmurations-aggregator
  * Author:            Murmurations Network
@@ -33,7 +33,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! class_exists( 'MurmurationsAggregator' ) ) {
-	define( 'MURMURATIONS_AGGREGATOR_VERSION', '1.0.0-beta.5' );
+	define( 'MURMURATIONS_AGGREGATOR_VERSION', '1.0.0-beta.6' );
 	define( 'MURMURATIONS_AGGREGATOR_URL', plugin_dir_url( __FILE__ ) );
 	define( 'MURMURATIONS_AGGREGATOR_DIR', __DIR__ );
 	define( 'MURMURATIONS_AGGREGATOR_TABLE', 'murmurations_maps' );
@@ -50,6 +50,8 @@ if ( ! class_exists( 'MurmurationsAggregator' ) ) {
 			$this->register_custom_post();
 			$this->register_api();
 			$this->register_shortcode();
+			$this->register_single();
+			$this->register_excerpt();
 		}
 
 		private function register_autoloads(): void {
@@ -83,6 +85,14 @@ if ( ! class_exists( 'MurmurationsAggregator' ) ) {
 
 		public function register_shortcode(): void {
 			new Murmurations_Aggregator_Shortcode();
+		}
+
+		public function register_single(): void {
+			new Murmurations_Aggregator_Single();
+		}
+
+		public function register_excerpt(): void {
+			new Murmurations_Aggregator_Excerpt();
 		}
 	}
 

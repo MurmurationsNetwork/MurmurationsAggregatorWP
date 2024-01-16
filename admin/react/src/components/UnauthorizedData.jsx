@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types'
 
-export default function DeletedData({ deletedProfiles }) {
+export default function UnauthorizedData({ unauthorizedProfiles }) {
   return (
     <div>
-      {deletedProfiles.length > 0 && (
+      {unauthorizedProfiles.length > 0 && (
         <div className="mb-4">
-          <h1 className="text-xl">Deleted Data</h1>
+          <h1 className="text-xl">Overwritten by Domain Authority</h1>
           <table className="table-auto">
             <thead>
               <tr>
@@ -16,7 +16,7 @@ export default function DeletedData({ deletedProfiles }) {
               </tr>
             </thead>
             <tbody>
-              {deletedProfiles.map((profile, index) => (
+              {unauthorizedProfiles.map((profile, index) => (
                 <tr key={index}>
                   <td className="border px-4 py-2">{index + 1}</td>
                   <td className="border px-4 py-2">
@@ -40,6 +40,6 @@ export default function DeletedData({ deletedProfiles }) {
   )
 }
 
-DeletedData.propTypes = {
-  deletedProfiles: PropTypes.array.isRequired
+UnauthorizedData.propTypes = {
+  unauthorizedProfiles: PropTypes.array.isRequired
 }

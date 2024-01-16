@@ -1,6 +1,6 @@
-import { iterateObject } from '../utils/iterateObject'
 import PropTypes from 'prop-types'
 import { useEffect, useRef, useState } from 'react'
+import { schemaContent } from '../utils/schemaContent'
 
 export default function Directory({ profiles, linkType, pageSize }) {
   const [currentPage, setCurrentPage] = useState(1)
@@ -16,6 +16,9 @@ export default function Directory({ profiles, linkType, pageSize }) {
   useEffect(() => {
     if (totalPages) {
       setPageNumbers(calculatePageNumbers(currentPage, totalPages))
+    }
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages)
     }
     if (directoryComponent.current) {
       const position = directoryComponent.current.offsetTop
@@ -82,111 +85,83 @@ export default function Directory({ profiles, linkType, pageSize }) {
   }
 
   return (
-    <div className="max-w-screen-md mx-auto" ref={directoryComponent}>
+    <div className="mx-auto max-w-screen-md" ref={directoryComponent}>
       <div className="divide-y divide-gray-300">
         {currentProfiles.map((profile, index) => (
           <div key={index}>
-            <li key={profile.id} className="py-4 dir-item">
-              {profile.profile_data.image && (
-                <img
-                  src={profile.profile_data.image}
-                  alt="Profile Logo"
-                  className="mb-4 max-h-16"
-                  onError={e => {
-                    e.target.style.display = 'none'
-                  }}
-                />
-              )}
-              <p className="text-lg font-bold mb-2">{profile.name}</p>
-              <div className="space-y-2">
-                <p className="text-sm truncate">
-                  {linkType === 'wp' ? (
-                    <a href={profile.post_url}>More...</a>
-                  ) : (
-                    <span>
-                      <a
-                        href={profile.profile_data.primary_url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {profile.profile_data.primary_url}
-                      </a>
-                    </span>
-                  )}
-                </p>
-                {Object.entries(iterateObject(profile.profile_data)).map(
-                  ([key, value]) => (
-                    <p key={key} className="text-sm truncate">
-                      {key}: {value}
-                    </p>
-                  )
-                )}
-              </div>
-            </li>
+            <div
+              dangerouslySetInnerHTML={{
+                __html: schemaContent(profile, linkType)
+              }}
+            />
             <hr className="my-4" />
           </div>
         ))}
       </div>
-      <div className="flex flex-row flex-wrap items-center justify-center my-4">
-        <button
-          className="px-4 py-2 m-1 rounded bg-gray-500 text-white"
-          onClick={() => handlePageChange(1)}
-        >
-          &lt;&lt;
-        </button>
-        <button
-          className="px-4 py-2 m-1 rounded bg-gray-500 text-white"
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-        >
-          &lt;
-        </button>
-        {pageNumbers.map(page => (
-          <button
-            key={page}
-            onClick={() => handlePageChange(page)}
-            className={`px-4 py-2 m-1 rounded ${
-              currentPage === page
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-500 text-white'
-            }`}
-          >
-            {page}
-          </button>
-        ))}
-        <button
-          className="px-4 py-2 m-1 rounded bg-gray-500 text-white"
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-        >
-          &gt;
-        </button>
-        <button
-          className="px-4 py-2 m-1 rounded bg-gray-500 text-white"
-          onClick={() => handlePageChange(totalPages)}
-        >
-          &gt;&gt;
-        </button>
-      </div>
-      <div className="flex flex-row flex-wrap items-center justify-center my-4">
-        <input
-          type="text"
-          placeholder="Go to page..."
-          value={inputPage}
-          onChange={handlePageInput}
-          onKeyDown={handleKeyDown}
-          className="px-2 py-1 m-1 rounded border-2 border-gray-300"
-        />
-        <button
-          className="px-2 py-1 m-1 rounded bg-gray-500 text-white"
-          onClick={jumpToPage}
-        >
-          Go
-        </button>
-        <span className="px-4 py-2">
-          Page {currentPage} of {totalPages}
-        </span>
-      </div>
+      {currentProfiles.length > 0 ? (
+        <div>
+          <div className="my-4 flex flex-row flex-wrap items-center justify-center">
+            <button
+              className="m-1 rounded bg-gray-500 px-4 py-2 text-white"
+              onClick={() => handlePageChange(1)}
+            >
+              &lt;&lt;
+            </button>
+            <button
+              className="m-1 rounded bg-gray-500 px-4 py-2 text-white"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              &lt;
+            </button>
+            {pageNumbers.map(page => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`m-1 rounded px-4 py-2 ${
+                  currentPage === page
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-500 text-white'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              className="m-1 rounded bg-gray-500 px-4 py-2 text-white"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              &gt;
+            </button>
+            <button
+              className="m-1 rounded bg-gray-500 px-4 py-2 text-white"
+              onClick={() => handlePageChange(totalPages)}
+            >
+              &gt;&gt;
+            </button>
+          </div>
+          <div className="my-4 flex flex-row flex-wrap items-center justify-center">
+            <input
+              type="text"
+              placeholder="Go to page..."
+              value={inputPage}
+              onChange={handlePageInput}
+              onKeyDown={handleKeyDown}
+              className="m-1 rounded border-2 border-gray-300 px-2 py-1"
+            />
+            <button
+              className="m-1 rounded bg-gray-500 px-2 py-1 text-white"
+              onClick={jumpToPage}
+            >
+              Go
+            </button>
+            <span className="px-4 py-2">
+              Page {currentPage} of {totalPages}
+            </span>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

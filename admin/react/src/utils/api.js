@@ -157,9 +157,15 @@ export const updateCustomNodesStatus = async profile => {
   )
 }
 
-export const deleteCustomNodes = async profile => {
-  const nodeId = profile.data.node_id
+export const updateCustomNodesAuthority = async (nodeId, hasAuthority) => {
+  return fetchRequest(
+    `${apiUrl}/nodes/${nodeId}/authority?_wpnonce=${wp_nonce}`,
+    'PUT',
+    { has_authority: hasAuthority }
+  )
+}
 
+export const deleteCustomNodes = async nodeId => {
   return await fetchRequest(
     `${apiUrl}/nodes/${nodeId}?_wpnonce=${wp_nonce}`,
     'DELETE'

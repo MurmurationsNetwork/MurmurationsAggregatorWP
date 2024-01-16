@@ -33,13 +33,17 @@ export default function SelectData({
   setOriginalJson,
   setModifiedJson,
   currentTime,
-  setCurrentTime
+  setCurrentTime,
+  setDeletedProfiles,
+  setUnauthorizedProfiles
 }) {
   const [selectedIds, setSelectedIds] = useState([])
   const [selectedStatusOption, setSelectedStatusOption] = useState('publish')
 
   const toggleSelectAll = () => {
-    profileList = profileList.filter(response => response.data.is_available)
+    profileList = profileList.filter(
+      response => response.data.is_available && response.data.has_authority
+    )
     if (selectedIds.length === profileList.length) {
       setSelectedIds([])
     } else {
@@ -269,7 +273,8 @@ export default function SelectData({
     // if the extra_notes of all profiles are unavailable, it means all nodes are handled, we can refresh the page
     if (
       newProfileList.length === 0 ||
-      newProfileList.every(profile => !profile.data.is_available)
+      newProfileList.every(profile => !profile.data.is_available) ||
+      newProfileList.every(profile => !profile.data.has_authority)
     ) {
       if (currentTime !== '') {
         const response = await updateCustomMapLastUpdated(mapId, currentTime)
@@ -301,6 +306,8 @@ export default function SelectData({
     setSelectedIds([])
     setProgress(0)
     setIsLoading(false)
+    setDeletedProfiles([])
+    setUnauthorizedProfiles([])
   }
 
   const handleDropdownChange = function () {
@@ -310,14 +317,16 @@ export default function SelectData({
 
   const handleCancel = () => {
     setIsMapSelected(false)
+    setDeletedProfiles([])
+    setUnauthorizedProfiles([])
     window.scrollTo(0, 0)
   }
 
   return (
     <div>
       {isLoading && <ProgressBar progress={progress} />}
-      <h2 className="text-2xl mb-8">Select Nodes</h2>
-      <p className="text-base mb-8">
+      <h2 className="mb-8 text-2xl">Select Nodes</h2>
+      <p className="mb-8 text-base">
         Manage the nodes to display in your map or directory. You can learn more{' '}
         <a
           href="https://docs.murmurations.network/developers/wp-aggregator.html#managing-nodes"
@@ -361,15 +370,15 @@ export default function SelectData({
             </label>
             <button
               type="submit"
-              className={`mx-4 rounded-full bg-orange-500 px-4 py-2 font-bold text-white text-lg active:scale-90 hover:scale-110 hover:bg-orange-400 disabled:opacity-75 ${
-                isLoading ? 'opacity-50 cursor-not-allowed' : ''
+              className={`mx-4 rounded-full bg-orange-500 px-4 py-2 text-lg font-bold text-white hover:scale-110 hover:bg-orange-400 active:scale-90 disabled:opacity-75 ${
+                isLoading ? 'cursor-not-allowed opacity-50' : ''
               }`}
             >
               {isLoading ? 'Submitting...' : 'Submit'}
             </button>
             <button
               onClick={handleCancel}
-              className="mx-4 rounded-full bg-gray-500 px-4 py-2 font-bold text-white text-base active:scale-90 hover:scale-110 hover:bg-gray-400 disabled:opacity-75"
+              className="mx-4 rounded-full bg-gray-500 px-4 py-2 text-base font-bold text-white hover:scale-110 hover:bg-gray-400 active:scale-90 disabled:opacity-75"
             >
               Cancel
             </button>
@@ -399,5 +408,7 @@ SelectData.propTypes = {
   setOriginalJson: PropTypes.func.isRequired,
   setModifiedJson: PropTypes.func.isRequired,
   currentTime: PropTypes.string.isRequired,
-  setCurrentTime: PropTypes.func.isRequired
+  setCurrentTime: PropTypes.func.isRequired,
+  setDeletedProfiles: PropTypes.func.isRequired,
+  setUnauthorizedProfiles: PropTypes.func.isRequired
 }

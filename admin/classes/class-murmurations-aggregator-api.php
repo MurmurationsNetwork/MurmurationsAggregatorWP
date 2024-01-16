@@ -190,6 +190,18 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			register_rest_route(
 				$backend_namespace,
+				'/nodes/(?P<node_id>[\d]+)/authority',
+				array(
+					'methods'             => 'PUT',
+					'callback'            => array( $this, 'put_node_authority' ),
+					'permission_callback' => function () {
+						return current_user_can( 'activate_plugins' );
+					},
+				),
+			);
+
+			register_rest_route(
+				$backend_namespace,
 				'/nodes',
 				array(
 					'methods'             => 'POST',
@@ -240,7 +252,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			while ( $query->have_posts() ) {
 				$query->the_post();
-				$profile_data = get_post_meta( get_the_ID(), 'murmurations_profile_data', true );
+				$profile_data  = get_post_meta( get_the_ID(), 'murmurations_profile_data', true );
+				$profile_query = $this->wpdb->prepare( "SELECT profile_url FROM $this->node_table_name WHERE post_id = %d", get_the_ID() );
+				$node          = $this->wpdb->get_row( $profile_query );
 
 				if ( $view === 'dir' ) {
 					$map[] = [
@@ -248,12 +262,14 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 						'name'         => get_the_title(),
 						'post_url'     => get_permalink(),
 						'profile_data' => $profile_data,
+						'profile_url'  => $node->profile_url ?? "",
 					];
 				} else {
 					$map[] = [
 						$profile_data['geolocation']['lon'] ?? "",
 						$profile_data['geolocation']['lat'] ?? "",
 						get_the_ID(),
+						$node->profile_url ?? "",
 					];
 				}
 			}
@@ -384,7 +400,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				// delete tags
 				$tag_slug = $map->tag_slug;
 				$tag      = get_term_by( 'slug', $tag_slug, 'murmurations_node_tags' );
-				wp_delete_term( $tag->term_id, 'murmurations_node_tags' );
+				if ( isset( $tag->term_id ) ) {
+					wp_delete_term( $tag->term_id, 'murmurations_node_tags' );
+				} else {
+					error_log( 'Term ID not found in term: ' . print_r( $tag, true ) );
+				}
 			}
 
 			// delete map
@@ -482,9 +502,10 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$post_title = $data['profile_data']['name'] ?? $data['profile_data']['title'];
 
 			$post_id = wp_insert_post( array(
-				'post_title'  => $post_title,
-				'post_type'   => 'murmurations_node',
-				'post_status' => 'publish',
+				'post_title'   => $post_title,
+				'post_type'    => 'murmurations_node',
+				'post_status'  => 'publish',
+				'post_excerpt' => '[murmurations_excerpt]'
 			) );
 
 			// set tags
@@ -501,6 +522,12 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			// set custom fields
 			if ( ! is_wp_error( $post_id ) ) {
 				update_post_meta( $post_id, 'murmurations_profile_data', $data['profile_data'] );
+
+				// modify the template
+				$custom_template = Murmurations_Aggregator_Utils::get_custom_template( $data['profile_data']['linked_schemas'][0] );
+				if ( ! is_null( $custom_template ) ) {
+					update_post_meta( $post_id, '_wp_page_template', $custom_template );
+				}
 			}
 
 			if ( is_wp_error( $post_id ) ) {
@@ -598,6 +625,13 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				if ( $node->unavailable_message === null ) {
 					$node->unavailable_message = "";
 				}
+
+				// handle has_authority field
+				if ( $node->has_authority === '1' ) {
+					$node->has_authority = true;
+				} else {
+					$node->has_authority = false;
+				}
 			}
 
 			return rest_ensure_response( $nodes );
@@ -623,7 +657,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'data'                => json_encode( $data['profile_data'] ),
 				'last_updated'        => $data['index_data']['last_updated'],
 				'is_available'        => $data['data']['is_available'] ?? true,
-				'unavailable_message' => $unavailable_message
+				'unavailable_message' => $unavailable_message,
+				'has_authority'       => $data['data']['has_authority'] ?? true,
 			), array(
 				'profile_url' => $data['index_data']['profile_url'],
 				'map_id'      => $data['data']['map_id'],
@@ -667,28 +702,54 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			// update status in node table
 			// if the status is 'dismiss' or 'ignore', set 'post_id' to null
+			$has_authority = isset( $data['data']['has_authority'] ) && $data['data']['has_authority'] !== '' ? $data['data']['has_authority'] : true;
+
 			if ( $data['data']['status'] === 'dismiss' || $data['data']['status'] === 'ignore' ) {
 				$result = $this->wpdb->update( $this->node_table_name, array(
-					'status'  => $data['data']['status'],
-					'post_id' => null,
+					'status'        => $data['data']['status'],
+					'has_authority' => $has_authority,
+					'post_id'       => null,
 				), array(
 					'profile_url' => $data['index_data']['profile_url'],
 					'map_id'      => $data['data']['map_id'],
 				) );
 			} else {
 				$result = $this->wpdb->update( $this->node_table_name, array(
-					'status' => $data['data']['status'],
+					'status'        => $data['data']['status'],
+					'has_authority' => $has_authority,
 				), array(
 					'profile_url' => $data['index_data']['profile_url'],
 					'map_id'      => $data['data']['map_id'],
 				) );
 			}
 
-			if ( ! $result ) {
+			if ( $result === false ) {
 				return new WP_Error( 'node_status update_failed', 'Failed to update node status.', array( 'status' => 500 ) );
 			}
 
 			return rest_ensure_response( 'Node status updated successfully.' );
+		}
+
+		public function put_node_authority( $request ): WP_REST_Response|WP_Error {
+			$node_id = $request->get_param( 'node_id' );
+			$data    = $request->get_json_params();
+
+			// validate data
+			if ( ! isset( $node_id ) || ! isset( $data['has_authority'] ) ) {
+				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
+			}
+
+			$result = $this->wpdb->update( $this->node_table_name, array(
+				'has_authority' => $data['has_authority'],
+			), array(
+				'id' => $node_id,
+			) );
+
+			if ( $result === false ) {
+				return new WP_Error( 'node_authority_update_failed', 'Failed to update node authority.', array( 'status' => 500 ) );
+			}
+
+			return rest_ensure_response( 'Node authority updated successfully.' );
 		}
 
 		public function post_node( $request ): WP_REST_Response|WP_Error {
@@ -711,7 +772,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				'last_updated'        => $data['index_data']['last_updated'],
 				'status'              => $data['data']['status'] ?? 'new',
 				'is_available'        => $data['data']['is_available'] ?? true,
-				'unavailable_message' => $data['data']['unavailable_message'] ?? null
+				'unavailable_message' => $data['data']['unavailable_message'] ?? null,
+				'has_authority'       => $data['data']['has_authority'] ?? true,
 			) );
 
 			if ( ! $result ) {

@@ -11,12 +11,14 @@ function create_murmurations_node_post_type(): void {
 		'labels'          => $labels,
 		'public'          => true,
 		'has_archive'     => true,
-		'supports'        => array( 'title', 'editor', 'thumbnail', 'custom-fields', 'revisions' ),
+		'rewrite'         => array( 'slug' => 'murmurations-node' ),
+		'supports'        => array( 'title', 'editor', 'thumbnail', 'custom-fields', 'revisions', 'excerpt' ),
 		'capability_type' => 'post',
 		'capabilities'    => array(
 			'create_posts' => false,
 		),
 		'map_meta_cap'    => true,
+		'show_in_rest'    => true,
 	);
 
 	register_post_type( MURMURATIONS_AGGREGATOR_POST_TYPE, $args );
@@ -34,6 +36,7 @@ function create_murmurations_node_taxonomy(): void {
 			'show_admin_column' => true,
 			'query_var'         => true,
 			'rewrite'           => array( 'slug' => 'murmurations-node-tags' ),
+			'show_in_rest'      => true,
 		)
 	);
 
@@ -48,6 +51,7 @@ function create_murmurations_node_taxonomy(): void {
 			'show_admin_column' => true,
 			'query_var'         => true,
 			'rewrite'           => array( 'slug' => 'murmurations-node-categories' ),
+			'show_in_rest'      => true,
 		)
 	);
 }
@@ -98,16 +102,23 @@ if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 			    profile_url VARCHAR(2000) NOT NULL,
 			    data TEXT NOT NULL,
 			    last_updated VARCHAR(100) NOT NULL,
-			    status VARCHAR(100) NOT NULL DEFAULT 'ignored',
+			    status VARCHAR(100) NOT NULL DEFAULT 'ignore',
 			    is_available BOOLEAN NOT NULL DEFAULT 0,
 			    unavailable_message VARCHAR(100) DEFAULT NULL,
-			    PRIMARY KEY (id),
-			    FOREIGN KEY (map_id) REFERENCES $table_name(id) ON DELETE CASCADE
+			    has_authority BOOLEAN NOT NULL DEFAULT 1,
+			    PRIMARY KEY (id)
 		    ) $charset_collate;";
 
 			require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 			dbDelta( $sql );
 			dbDelta( $node_sql );
+
+			// Add the foreign key constraint
+			$foreign_key_sql = "ALTER TABLE $node_table_name 
+                        ADD FOREIGN KEY (map_id) 
+                        REFERENCES $table_name(id) 
+                        ON DELETE CASCADE;";
+			$wpdb->query( $foreign_key_sql );
 		}
 	}
 }

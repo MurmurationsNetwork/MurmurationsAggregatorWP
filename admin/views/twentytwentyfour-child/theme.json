@@ -1,0 +1,27 @@
+{
+	"$schema": "https://schemas.wp.org/wp/6.4/theme.json",
+	"customTemplates": [
+		{
+			"name": "single-organization-schema",
+			"title": "Murm: Organization Schema",
+			"postTypes": [
+				"murmurations_node"
+			]
+		},
+		{
+			"name": "single-people-schema",
+			"title": "Murm: People Schema",
+			"postTypes": [
+				"murmurations_node"
+			]
+		},
+		{
+			"name": "single-offers-wants-prototype-schema",
+			"title": "Murm: Offer Or Want Schema",
+			"postTypes": [
+				"murmurations_node"
+			]
+		}
+	],
+	"version": 2
+}
