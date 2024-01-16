@@ -5,7 +5,7 @@ import { createId } from '@paralleldrive/cuid2'
 import { saveCustomMap, saveCustomNodes } from '../utils/api'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
-import {checkAuthority, generateAuthorityMap,} from '../utils/domainAuthority'
+import {addDefaultScheme, checkAuthority, generateAuthorityMap,} from '../utils/domainAuthority'
 import { fetchProfileData } from '../utils/fetchProfile'
 
 const excludedKeys = [
@@ -150,7 +150,7 @@ export default function CreateData({
           // Set domain authority
           if (
             profile?.profile_url &&
-            profile?.primary_url && authorityCheckingList.has(profile.primary_url)
+            profile?.primary_url && authorityCheckingList.has(addDefaultScheme(profile.primary_url))
           ) {
             const hasAuthority = checkAuthority(
               profile.primary_url,
