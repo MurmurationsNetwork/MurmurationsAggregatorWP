@@ -40,7 +40,7 @@ export function checkAuthority(originPrimaryUrl, originProfileUrl) {
 }
 
 export function addDefaultScheme(url) {
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+  if (url !== undefined && !url?.startsWith('http://') && !url?.startsWith('https://')) {
     return 'https://' + url
   }
   return url

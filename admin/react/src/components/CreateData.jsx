@@ -150,7 +150,7 @@ export default function CreateData({
           // Set domain authority
           if (
             profile?.profile_url &&
-            profile?.primary_url && authorityCheckingList.has(addDefaultScheme(profile.primary_url))
+            profile?.primary_url && authorityCheckingList.has(addDefaultScheme(profile?.primary_url))
           ) {
             const hasAuthority = checkAuthority(
               profile.primary_url,

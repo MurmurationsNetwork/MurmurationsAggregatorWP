@@ -246,7 +246,7 @@ export default function MapList({
           // Set domain authority
           if (
             profile?.profile_url &&
-            profile?.primary_url && authorityCheckingList.has(addDefaultScheme(profile.primary_url))
+            profile?.primary_url && authorityCheckingList.has(addDefaultScheme(profile?.primary_url))
           ) {
             profileObject.data.has_authority = checkAuthority(
               profile.primary_url,
@@ -378,7 +378,7 @@ export default function MapList({
         const node = allNodesResponseData[i]
         if (node?.id && node.profile_data.primary_url && node.profile_url) {
           let hasAuthority = 1
-          if (authorityCheckingList.has(addDefaultScheme(node.profile_data.primary_url))) {
+          if (authorityCheckingList.has(addDefaultScheme(node?.profile_data?.primary_url))) {
             hasAuthority = checkAuthority(
               node.profile_data.primary_url,
               node.profile_url
