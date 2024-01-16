@@ -408,6 +408,7 @@ export default function MapList({
               has_authority: hasAuthority,
               last_updated: node.last_updated,
               status: node.status,
+              tag_slug: tagSlug,
             }
           }
           if (!profileObject.data.has_authority) {
