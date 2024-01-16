@@ -165,6 +165,7 @@ export default function MapList({
                 customNodesResponse.status
               } ${JSON.stringify(customNodesResponseData)}`
             )
+            continue
           }
 
           let profileObject = {
@@ -324,7 +325,10 @@ export default function MapList({
                 continue
               }
 
-              unauthorizedProfiles.push(profileObject)
+              // if a profile is already ignore, don't add it to the list
+              if (customNodesResponseData[0].status !== 'ignore') {
+                unauthorizedProfiles.push(profileObject)
+              }
               continue
             }
 
@@ -389,7 +393,7 @@ export default function MapList({
               )}`
             )
           }
-          // construct the profileObject and put it in unauthorizedProfiles
+          // Construct the profileObject and put it in unauthorizedProfiles
           let profileObject = {
             profile_data: node.profile_data,
             index_data: {
@@ -407,7 +411,7 @@ export default function MapList({
             }
           }
           if (!profileObject.data.has_authority) {
-            // if a published profile has no domain authority, mark it as ignored
+            // If a published profile has no domain authority, mark it as ignored
             profileObject.data.status = 'ignore'
             if (node.status === 'publish') {
               // Delete the profile from WP nodes
@@ -436,7 +440,10 @@ export default function MapList({
               continue
             }
 
-            unauthorizedProfiles.push(profileObject)
+            // If a profile is already ignore, don't add it to the list
+            if (node.status !== 'ignore') {
+              unauthorizedProfiles.push(profileObject)
+            }
           } else {
             // From NAP to AP
             // I can use data.node_id to find the matched profile in dataWithoutIds
@@ -452,6 +459,11 @@ export default function MapList({
                   }
                   return item
                 })
+              }
+            } else {
+              hasAuthority = hasAuthority === 1
+              if (node.has_authority !== hasAuthority) {
+                dataWithoutIds.push(profileObject)
               }
             }
           }
@@ -550,7 +562,6 @@ export default function MapList({
 
       if (dataWithoutIds.length > 0 && unauthorizedProfiles.length > 0) {
         dataWithoutIds = dataWithoutIds.concat(unauthorizedProfiles)
-        unauthorizedProfiles = []
       }
 
       // loop through dataWithoutIds to add ids

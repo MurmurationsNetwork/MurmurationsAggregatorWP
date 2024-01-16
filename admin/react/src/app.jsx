@@ -93,7 +93,7 @@ export default function App() {
         {isMapSelected && !isLoading ? (
           <div className="mt-4 py-4">
             <DeletedData deletedProfiles={deletedProfiles} />
-            <UnauthorizedData unauthorizedProfiles={deletedProfiles} />
+            <UnauthorizedData unauthorizedProfiles={unauthorizedProfiles} />
             {profileList.length === 0 ? (
               isEdit ? (
                 <EditData
@@ -138,6 +138,8 @@ export default function App() {
                 setModifiedJson={setModifiedJson}
                 currentTime={currentTime}
                 setCurrentTime={setCurrentTime}
+                setDeletedProfiles={setDeletedProfiles}
+                setUnauthorizedProfiles={setUnauthorizedProfiles}
               />
             )}
           </div>

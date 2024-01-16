@@ -33,7 +33,9 @@ export default function SelectData({
   setOriginalJson,
   setModifiedJson,
   currentTime,
-  setCurrentTime
+  setCurrentTime,
+  setDeletedProfiles,
+  setUnauthorizedProfiles
 }) {
   const [selectedIds, setSelectedIds] = useState([])
   const [selectedStatusOption, setSelectedStatusOption] = useState('publish')
@@ -304,6 +306,8 @@ export default function SelectData({
     setSelectedIds([])
     setProgress(0)
     setIsLoading(false)
+    setDeletedProfiles([])
+    setUnauthorizedProfiles([])
   }
 
   const handleDropdownChange = function () {
@@ -313,6 +317,8 @@ export default function SelectData({
 
   const handleCancel = () => {
     setIsMapSelected(false)
+    setDeletedProfiles([])
+    setUnauthorizedProfiles([])
     window.scrollTo(0, 0)
   }
 
@@ -402,5 +408,7 @@ SelectData.propTypes = {
   setOriginalJson: PropTypes.func.isRequired,
   setModifiedJson: PropTypes.func.isRequired,
   currentTime: PropTypes.string.isRequired,
-  setCurrentTime: PropTypes.func.isRequired
+  setCurrentTime: PropTypes.func.isRequired,
+  setDeletedProfiles: PropTypes.func.isRequired,
+  setUnauthorizedProfiles: PropTypes.func.isRequired
 }
