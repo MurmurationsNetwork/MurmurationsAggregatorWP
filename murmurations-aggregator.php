@@ -24,7 +24,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
 Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-the Murmurations Collaborative Map Builder plugin. If not, see 
+the Murmurations Collaborative Map Builder plugin. If not, see
 https://www.gnu.org/licenses/gpl-3.0.html.
 */
 
@@ -55,16 +55,18 @@ if ( ! class_exists( 'MurmurationsAggregator' ) ) {
 		}
 
 		private function register_autoloads(): void {
-			spl_autoload_register( function ( $name ) {
-				$name = strtolower( $name );
-				$name = str_replace( '_', '-', $name );
-				$name = 'class-' . $name;
-				$file = __DIR__ . '/admin/classes/' . $name . '.php';
+			spl_autoload_register(
+				function ( $name ) {
+					$name = strtolower( $name );
+					$name = str_replace( '_', '-', $name );
+					$name = 'class-' . $name;
+					$file = __DIR__ . '/admin/classes/' . $name . '.php';
 
-				if ( file_exists( $file ) ) {
-					require_once $file;
+					if ( file_exists( $file ) ) {
+							require_once $file;
+					}
 				}
-			} );
+			);
 		}
 
 		public function register_admin_page(): void {

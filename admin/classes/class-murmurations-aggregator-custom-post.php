@@ -74,9 +74,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_Custom_Post' ) ) {
 				$json_data = $results[0]->data;
 				$data      = json_decode( $json_data, true );
 
-				$json_output = json_encode($data, JSON_PRETTY_PRINT);
+				$json_output = json_encode( $data, JSON_PRETTY_PRINT );
 
-				echo '<pre>' . esc_html($json_output) . '</pre>';
+				echo '<pre>' . esc_html( $json_output ) . '</pre>';
 			} else {
 				echo '<p>Data Not Found.</p>';
 			}

@@ -67,7 +67,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			$output = Murmurations_Aggregator_Utils::get_json_value_by_path( $json_path, $data );
 
 			if ( ! is_null( $output ) ) {
-				return "<p>" . ( ! empty( $title ) ? $title . ": " : "" ) . $this->format_output( $output ) . "</p>";
+				return '<p>' . ( ! empty( $title ) ? $title . ': ' : '' ) . $this->format_output( $output ) . '</p>';
 			} else {
 				return '';
 			}
@@ -86,18 +86,18 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			switch ( $schema ) {
 				case 'organizations_schema-v1.0.0':
 					$content .= do_shortcode( '[murmurations_data path="description"]' ) ? do_shortcode( '[murmurations_data path="description"]' ) . ', ' : '';
-					$content = substr( $content, 0, - 2 );
+					$content  = substr( $content, 0, - 2 );
 					break;
 				case 'people_schema-v0.1.0':
 					$content .= do_shortcode( '[murmurations_data path="name"]' ) ? do_shortcode( '[murmurations_data path="name"]' ) . ', ' : '';
 					$content .= do_shortcode( '[murmurations_data path="description"]' ) ? do_shortcode( '[murmurations_data path="description"]' ) . ', ' : '';
-					$content = substr( $content, 0, - 2 );
+					$content  = substr( $content, 0, - 2 );
 					break;
 				case 'offers_wants_schema-v0.1.0':
 					$content .= do_shortcode( '[murmurations_data path="title"]' ) ? do_shortcode( '[murmurations_data path="title"]' ) . ', ' : '';
 					$content .= do_shortcode( '[murmurations_data path="exchange_type"]' ) ? do_shortcode( '[murmurations_data path="exchange_type"]' ) . ', ' : '';
 					$content .= do_shortcode( '[murmurations_data path="details_url"]' ) ? do_shortcode( '[murmurations_data path="details_url"]' ) . ', ' : '';
-					$content = substr( $content, 0, - 2 );
+					$content  = substr( $content, 0, - 2 );
 					break;
 			}
 
