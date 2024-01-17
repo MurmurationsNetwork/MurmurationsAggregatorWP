@@ -2,16 +2,18 @@
 **Contributors:** [geoffturk](https://profiles.wordpress.org/geoffturk/), [twang443](https://profiles.wordpress.org/twang443/)  
 **Donate link:** https://opencollective.com/murmurations  
 **Tags:** murmurations, network, regenerative economy, map  
-**Requires at least:** 6.3.2  
-**Tested up to:** 6.3.2  
+**Requires at least:** 6.4.2  
+**Tested up to:** 6.4.2  
 **Stable tag:** 1.0.0  
 **Requires PHP:** 8.0  
 **License:** GPLv3 or later  
 **License URI:** https://www.gnu.org/licenses/gpl-3.0.html  
 
-Generate a profile for your organization and share it in the Murmurations network
+Create maps and directories of organizations, offers/wants and individuals shared across the Murmurations network
 
 ## Description ##
+
+This plugin is designed to collect data from the Murmurations network, store it locally (while allowing manual approval/rejection of collected nodes), and display it in a variety of ways, including via a built in Leaflet map interface, a built-in directory interface, or through WP REST API endpoints that provide data to local client-side interfaces or other services.
 
 Murmurations is a distributed data sharing network built to help connect regenerative economy projects and organizations and make them visible to the world and each other.
 
@@ -31,8 +33,6 @@ To enable these entities to work together, Murmurations provides:
 The initial use case for Murmurations is to facilitate decentralized mapping of purpose-driven and solidarity economy organizations and projects.
 
 Further historical background is in the 2019 [Murmurations Whitepaper](https://murmurations.network/wp-content/uploads/2019/09/murmurations-white-paper-v0.1.0.pdf).
-
-This plugin is designed to collect data from the Murmurations network, store it locally (while allowing manual approval/rejection of collected nodes), and display it in a variety of ways, including via a built in Leaflet map interface, a built-in directory interface, or through WP REST API endpoints that provide data to local client-side interfaces or other services.
 
 ## Installation ##
 
