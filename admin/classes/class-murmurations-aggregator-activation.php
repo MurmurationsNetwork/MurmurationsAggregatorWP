@@ -109,7 +109,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Activation' ) ) {
 			    PRIMARY KEY (id)
 		    ) $charset_collate;";
 
-			require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 			dbDelta( $sql );
 			dbDelta( $node_sql );
 

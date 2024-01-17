@@ -43,10 +43,14 @@ if ( ! class_exists( 'Murmurations_Aggregator_Admin_Page' ) ) {
 			}
 
 			// add site url to script
-			wp_localize_script( 'murmurations-aggregator', 'murmurations_aggregator', array(
-				'wordpress_url' => get_site_url(),
-				'wp_nonce'      => wp_create_nonce( 'wp_rest' ),
-			) );
+			wp_localize_script(
+				'murmurations-aggregator',
+				'murmurations_aggregator',
+				array(
+					'wordpress_url' => get_site_url(),
+					'wp_nonce'      => wp_create_nonce( 'wp_rest' ),
+				)
+			);
 		}
 	}
 }
