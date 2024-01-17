@@ -54,7 +54,23 @@ See the [common terms](https://docs.murmurations.network/about/common-terms.html
 
 == Screenshots ==
 
-[TODO] To be completed.
+1. Initial admin view
+
+2. Setting up a map
+
+3. Creating a map
+
+4. Generating a map
+
+5. Selecting nodes to display
+
+6. Submitting nodes
+
+7. Map created
+
+8. Adding shortcode to a post
+
+9. Map displayed in post
 
 == Changelog ==
 

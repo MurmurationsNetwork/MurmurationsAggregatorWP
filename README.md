@@ -54,7 +54,41 @@ See the [common terms](https://docs.murmurations.network/about/common-terms.html
 
 ## Screenshots ##
 
-[TODO] To be completed.
+### 1. Initial admin view ###
+![Initial admin view](assets/screenshot-1.png)
+
+
+### 2. Setting up a map ###
+![Setting up a map](assets/screenshot-2.png)
+
+
+### 3. Creating a map ###
+![Creating a map](assets/screenshot-3.png)
+
+
+### 4. Generating a map ###
+![Generating a map](assets/screenshot-4.png)
+
+
+### 5. Selecting nodes to display ###
+![Selecting nodes to display](assets/screenshot-5.png)
+
+
+### 6. Submitting nodes ###
+![Submitting nodes](assets/screenshot-6.png)
+
+
+### 7. Map created ###
+![Map created](assets/screenshot-7.png)
+
+
+### 8. Adding shortcode to a post ###
+![Adding shortcode to a post](assets/screenshot-8.png)
+
+
+### 9. Map displayed in post ###
+![Map displayed in post](assets/screenshot-9.png)
+
 
 ## Changelog ##
 
