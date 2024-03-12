@@ -72,7 +72,7 @@ Text Domain: twentytwentyfour-child
 
 For a visual identifier in the WordPress dashboard, copy the screenshot.png file from the parent theme into your child theme directory. This image is what you see as the theme thumbnail in the WordPress admin area. You can also replace it with your own screenshot to reflect the look of your child theme.
 
-### 5. Add Single Schema Templates
+### 4. Add Single Schema Templates
 
 1. Template Creation: Begin by copying the single.php file from the parent theme. Rename it to single-<schema_name>.php (e.g., single-offers-wants-prototype-schema.php). This custom file will allow our plugin to display the data appropriately based on the schema type.
 2. Required Files: Ensure to create and customize the following files based on the single.php template, adapting them to suit different schema types:
