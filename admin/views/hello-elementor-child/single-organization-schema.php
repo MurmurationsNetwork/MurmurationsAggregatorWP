@@ -5,6 +5,8 @@
  * @package HelloElementor
  */
 
+get_header();
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
@@ -44,3 +46,5 @@ while ( have_posts() ) :
 
 <?php
 endwhile;
+
+get_footer();
