@@ -19,10 +19,7 @@ export function schemaContent(responseData, linkType) {
       break
     case 'people_schema-v0.1.0':
       content = addImageToContent(content, imageUrl)
-      content = addTitleToContent(
-        content,
-        responseData?.profile_data?.name
-      )
+      content = addTitleToContent(content, responseData?.profile_data?.name)
       content = addDescriptionToContent(
         content,
         responseData?.profile_data?.description
@@ -39,13 +36,20 @@ export function schemaContent(responseData, linkType) {
       content = addTitleToContent(content, responseData?.profile_data?.title)
       content = addExchangeTypeToContent(
         content,
-        responseData?.profile_data?.exchange_type ? 
-        responseData?.profile_data?.exchange_type === 'offer' ? 'Offer' : 'Want' : ''
+        responseData?.profile_data?.exchange_type
+          ? responseData?.profile_data?.exchange_type === 'offer'
+            ? 'Offer'
+            : 'Want'
+          : ''
       )
       content = addDescriptionToContent(
         content,
         responseData?.profile_data?.description
       )
+      // content = addContactToContent(
+      //   content,
+      //   responseData?.profile_data?.contact_details
+      // )
       content = addUrlToContent(
         content,
         responseData?.profile_data?.details_url,
@@ -91,6 +95,16 @@ function addExchangeTypeToContent(content, exchange_type) {
 function addDescriptionToContent(content, description) {
   if (description) {
     content += `<p>${limitString(description, 200)}</p>`
+  }
+  return content
+}
+
+function addContactToContent(content, contactDetails) {
+  if (contactDetails?.email) {
+    content += `<p>${contactDetails.email}</p>`
+  }
+  if (contactDetails?.contact_form) {
+    content += `<p>${contactDetails.contact_form}</p>`
   }
   return content
 }
