@@ -125,7 +125,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 
 			$table_name = $wpdb->prefix . MURMURATIONS_AGGREGATOR_NODE_TABLE;
 
-			$results = $wpdb->get_results( $wpdb->prepare( "SELECT data FROM $table_name WHERE post_id = %d", $post_id ) );
+			$results = $wpdb->get_results( $wpdb->prepare( 'SELECT data FROM %s WHERE post_id = %d', $table_name, $post_id ) );
 
 			if ( empty( $results ) ) {
 				return null;
@@ -144,9 +144,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			}
 		}
 
-		private function format_array_output( array $array ): string {
+		private function format_array_output( array $unformatted_array ): string {
 			$html_output = '<ul>';
-			foreach ( $array as $item ) {
+			foreach ( $unformatted_array as $item ) {
 				if ( is_array( $item ) ) {
 					// check if associative array (object)
 					if ( $this->is_assoc( $item ) ) {
@@ -167,10 +167,14 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			return $html_output;
 		}
 
-		private function format_string_output( $string ): string {
-			return $this->is_url( $string ) ?
-				'<a target="_blank" href="' . esc_url( $string ) . '">' . esc_html( $string ) . '</a>' :
-				esc_html( $string );
+		private function format_string_output( $unformatted_string ): string {
+			if ( $this->is_email( $unformatted_string ) ) {
+				return '<a href="mailto:' . esc_html( $unformatted_string ) . '">' . esc_html( $unformatted_string ) . '</a>';
+			} elseif ( $this->is_url( $unformatted_string ) ) {
+				return '<a target="_blank" href="' . esc_url( $unformatted_string ) . '">' . esc_html( $unformatted_string ) . '</a>';
+			} else {
+				return esc_html( $unformatted_string );
+			}
 		}
 
 		private function format_key_value( $key, $value ): string {
@@ -187,8 +191,12 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			return array_keys( $arr ) !== range( 0, count( $arr ) - 1 );
 		}
 
-		private function is_url( $string ): bool {
-			return is_string( $string ) && ( str_contains( $string, 'http' ) || str_contains( $string, 'https' ) );
+		private function is_url( $input_string ): bool {
+			return is_string( $input_string ) && ( str_contains( $input_string, 'http' ) || str_contains( $input_string, 'https' ) );
+		}
+
+		private function is_email( $input_string ): bool {
+			return is_string( $input_string ) && str_contains( $input_string, '@' );
 		}
 	}
 }
