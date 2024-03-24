@@ -50,24 +50,35 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 		public function murmurations_data( $atts ): string {
 			$attributes = shortcode_atts(
 				array(
-					'path'  => 'default_path',
-					'title' => '',
+					'path'        => 'default_path',
+					'second_path' => 'second_default_path',
+					'title'       => '',
 				),
 				$atts
 			);
 
-			$json_path = $attributes['path'];
-			$title     = $attributes['title'];
-			$data      = $this->get_murmurations_data();
+			$json_path        = $attributes['path'];
+			$second_json_path = $attributes['second_path'];
+			$title            = $attributes['title'];
+			$data             = $this->get_murmurations_data();
 
 			if ( is_null( $data ) ) {
 				return '';
 			}
 
-			$output = Murmurations_Aggregator_Utils::get_json_value_by_path( $json_path, $data );
+			$output        = Murmurations_Aggregator_Utils::get_json_value_by_path( $json_path, $data );
+			$second_output = ! empty( $second_json_path ) ? Murmurations_Aggregator_Utils::get_json_value_by_path( $second_json_path, $data ) : null;
 
-			if ( ! is_null( $output ) ) {
-				return '<p>' . ( ! empty( $title ) ? $title . ': ' : '' ) . $this->format_output( $output ) . '</p>';
+			if ( ! is_null( $output ) || ! is_null( $second_output ) ) {
+				$formatted_title = ! empty( $title ) ? "<p>$title: " : '<p>';
+
+				if ( ! is_null( $output ) && ! is_null( $second_output ) ) {
+					return $formatted_title . $this->format_output( $output ) . ' - ' . $this->format_output( $second_output ) . '</p>';
+				} else {
+					$single_output = ! is_null( $output ) ? $output : $second_output;
+
+					return $formatted_title . $this->format_output( $single_output ) . '</p>';
+				}
 			} else {
 				return '';
 			}
