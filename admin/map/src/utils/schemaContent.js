@@ -46,10 +46,10 @@ export function schemaContent(responseData, linkType) {
         content,
         responseData?.profile_data?.description
       )
-      // content = addContactToContent(
-      //   content,
-      //   responseData?.profile_data?.contact_details
-      // )
+      content = addContactToContent(
+        content,
+        responseData?.profile_data?.contact_details
+      )
       content = addUrlToContent(
         content,
         responseData?.profile_data?.details_url,
@@ -101,10 +101,10 @@ function addDescriptionToContent(content, description) {
 
 function addContactToContent(content, contactDetails) {
   if (contactDetails?.email) {
-    content += `<p>${contactDetails.email}</p>`
+    content += `<a href="mailto:${contactDetails.email}">${contactDetails.email}</a>`
   }
   if (contactDetails?.contact_form) {
-    content += `<p>${contactDetails.contact_form}</p>`
+    content += `<a href="${contactDetails.contact_form}" target="_blank">${contactDetails.contact_form}</a>`
   }
   return content
 }
