@@ -103,6 +103,9 @@ function addContactToContent(content, contactDetails) {
   if (contactDetails?.email) {
     content += `<a href="mailto:${contactDetails.email}">${contactDetails.email}</a>`
   }
+  if (contactDetails?.email && contactDetails?.contact_form) {
+    content += ' - '
+  }
   if (contactDetails?.contact_form) {
     content += `<a href="${contactDetails.contact_form}" target="_blank">${contactDetails.contact_form}</a>`
   }
