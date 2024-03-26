@@ -6,7 +6,7 @@ import { saveCustomMap, saveCustomNodes } from '../utils/api'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
 import {addDefaultScheme, checkAuthority, generateAuthorityMap,} from '../utils/domainAuthority'
-import { fetchProfileData } from '../utils/fetchProfile'
+import {fetchProfileData, validateProfileData} from '../utils/fetchProfile'
 
 const excludedKeys = [
   'data_url',
@@ -145,6 +145,15 @@ export default function CreateData({
           if (profileData === '') {
             profileObject.data.is_available = 0
             profileObject.data.unavailable_message = fetchProfileError
+          }
+
+          // Send profile data to validate
+          if (profileData) {
+            const isValid = await validateProfileData(profileData)
+            if (!isValid) {
+              profileObject.data.is_available = 0
+              profileObject.data.unavailable_message = 'Invalid Profile Data'
+            }
           }
 
           // Set domain authority
