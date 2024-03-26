@@ -6,6 +6,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			add_shortcode( 'murmurations_map', array( $this, 'murmurations_map' ) );
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 			add_shortcode( 'murmurations_data', array( $this, 'murmurations_data' ) );
+			add_shortcode( 'murmurations_image', array( $this, 'murmurations_image' ) );
 			add_shortcode( 'murmurations_excerpt', array( $this, 'murmurations_excerpt' ) );
 		}
 
@@ -79,6 +80,40 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 
 					return $formatted_title . $this->format_output( $single_output ) . '</p>';
 				}
+			} else {
+				return '';
+			}
+		}
+
+		public function murmurations_image( $atts ): string {
+			$attributes = shortcode_atts(
+				array(
+					'path'  => 'default_image_path',
+					'width' => '200',
+				),
+				$atts
+			);
+
+			$json_path = $attributes['path'];
+			$width     = $attributes['width'];
+			$data      = $this->get_murmurations_data();
+
+			if ( is_null( $data ) ) {
+				return '';
+			}
+
+			$image_path = Murmurations_Aggregator_Utils::get_json_value_by_path( $json_path, $data );
+
+			if ( ! is_null( $image_path ) ) {
+				$img_tag = "<p><img src='" . esc_url( $image_path ) . "' alt='image'";
+
+				if ( ! empty( $width ) ) {
+					$img_tag .= " width='" . intval( $width ) . "'";
+				}
+
+				$img_tag .= ' /></p>';
+
+				return $img_tag;
 			} else {
 				return '';
 			}
