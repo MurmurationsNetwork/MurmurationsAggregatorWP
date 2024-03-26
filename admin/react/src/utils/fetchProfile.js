@@ -25,13 +25,17 @@ export async function fetchProfileData(profileUrl) {
 }
 
 export async function validateProfileData(profileData) {
-  const response = await fetch('https://test-index.murmurations.network/v2/validate', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(profileData)
-  })
+  try {
+    const response = await fetch('https://test-index.murmurations.network/v2/validate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(profileData)
+    })
 
-  return response.ok
+    return response.ok
+  } catch (error) {
+    return false
+  }
 }
