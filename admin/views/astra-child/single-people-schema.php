@@ -5,6 +5,7 @@ get_header(); ?>
 <?php
 function my_custom_content_before_post(): void {
 	if ( is_single() ) {
+		echo do_shortcode( '[murmurations_image path="image"]' );
 		echo do_shortcode( '[murmurations_data title="Name" path="name"]' );
 		echo do_shortcode( '[murmurations_data title="Nickname" path="nickname"]' );
 		echo do_shortcode( '[murmurations_data title="Primary URL" path="primary_url"]' );

@@ -5,6 +5,7 @@ get_header(); ?>
 <?php
 function my_custom_content_before_post(): void {
 	if ( is_single() ) {
+		echo do_shortcode( '[murmurations_image path="image"]' );
 		echo do_shortcode( '[murmurations_data title="Exchange Type" path="exchange_type"]' );
 		echo do_shortcode( '[murmurations_data title="Item Type" path="item_type"]' );
 		echo do_shortcode( '[murmurations_data title="Tags" path="tags"]' );

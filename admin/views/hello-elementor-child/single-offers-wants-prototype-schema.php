@@ -25,6 +25,7 @@ while ( have_posts() ) :
 
         <div class="page-content">
 			<?php
+			echo do_shortcode( '[murmurations_image path="image"]' );
 			echo do_shortcode( '[murmurations_data title="Exchange Type" path="exchange_type"]' );
 			echo do_shortcode( '[murmurations_data title="Item Type" path="item_type"]' );
 			echo do_shortcode( '[murmurations_data title="Tags" path="tags"]' );
