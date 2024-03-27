@@ -19,6 +19,7 @@ get_header();
                 <div class="entry-content">
                     <p>
 						<?php
+						echo do_shortcode( '[murmurations_image path="image"]' );
 						echo do_shortcode( '[murmurations_data title="Name" path="name"]' );
 						echo do_shortcode( '[murmurations_data title="Nickname" path="nickname"]' );
 						echo do_shortcode( '[murmurations_data title="Description" path="description"]' );
