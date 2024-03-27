@@ -149,7 +149,7 @@ export default function CreateData({
 
           // Send profile data to validate
           if (profileData) {
-            const isValid = await validateProfileData(profileData)
+            const isValid = await validateProfileData(profileData, formData?.data_url)
             if (!isValid) {
               profileObject.data.is_available = 0
               profileObject.data.unavailable_message = 'Invalid Profile Data'

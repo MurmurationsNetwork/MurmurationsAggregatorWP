@@ -239,7 +239,7 @@ export default function MapList({
           }
 
           // Validate the profile data before adding to the list
-          const isValid = await validateProfileData(profileData)
+          const isValid = await validateProfileData(profileData, mapResponseData?.data_url)
           if (!isValid) {
             profileObject.data.is_available = 0
             profileObject.data.unavailable_message = 'Invalid Profile Data'
@@ -513,7 +513,7 @@ export default function MapList({
               }
 
               // Validate the profile data before adding to the list
-              const isValid = await validateProfileData(profile_data)
+              const isValid = await validateProfileData(profile_data, mapResponseData?.data_url)
               if (!isValid) {
                 continue
               }

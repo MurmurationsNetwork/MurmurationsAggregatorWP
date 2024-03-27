@@ -24,9 +24,10 @@ export async function fetchProfileData(profileUrl) {
   return { profileData, fetchProfileError }
 }
 
-export async function validateProfileData(profileData) {
+export async function validateProfileData(profileData, dataUrl) {
   try {
-    const response = await fetch('https://test-index.murmurations.network/v2/validate', {
+    const url = new URL(dataUrl)
+    const response = await fetch(`${url.origin}/v2/validate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
