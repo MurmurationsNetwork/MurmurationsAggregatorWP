@@ -236,13 +236,13 @@ export default function MapList({
           if (profileData === '') {
             profileObject.data.is_available = 0
             profileObject.data.unavailable_message = fetchProfileError
-          }
-
-          // Validate the profile data before adding to the list
-          const isValid = await validateProfileData(profileData, mapResponseData?.data_url)
-          if (!isValid) {
-            profileObject.data.is_available = 0
-            profileObject.data.unavailable_message = 'Invalid Profile Data'
+          } else {
+            // Validate the profile data before adding to the list
+            const isValid = await validateProfileData(profileData, mapResponseData?.index_url)
+            if (!isValid) {
+              profileObject.data.is_available = 0
+              profileObject.data.unavailable_message = 'Invalid Profile Data'
+            }
           }
 
           // Give extra data to profile
@@ -511,12 +511,6 @@ export default function MapList({
               if (response.ok) {
                 profile_data = await response.json()
               }
-
-              // Validate the profile data before adding to the list
-              const isValid = await validateProfileData(profile_data, mapResponseData?.data_url)
-              if (!isValid) {
-                continue
-              }
             } catch (error) {
               // If there is an error, don't add it to the list
               continue
@@ -524,6 +518,13 @@ export default function MapList({
           }
 
           if (profile_data !== '') {
+            // Validate the profile data before adding to the list
+            const isValid = await validateProfileData(profile_data, mapResponseData?.index_url)
+            if (!isValid) {
+              // If the profile data is invalid, don't add it to the list
+              continue
+            }
+
             let profileObject = {
               profile_data: profile_data,
               index_data: profile,
