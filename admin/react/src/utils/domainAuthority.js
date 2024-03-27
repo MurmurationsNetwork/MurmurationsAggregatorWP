@@ -22,6 +22,11 @@ function getNestedProperty(obj, path) {
 
 export function checkAuthority(originPrimaryUrl, originProfileUrl) {
   try {
+    if (originPrimaryUrl === "https://") {
+      console.log('Invalid URL')
+      return 0
+    }
+
     const primaryUrl = new URL(addDefaultScheme(originPrimaryUrl))
     const profileUrl = new URL(addDefaultScheme(originProfileUrl))
 

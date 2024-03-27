@@ -14,7 +14,7 @@ import { formDefaults } from '../data/formDefaults'
 import ProgressBar from './ProgressBar'
 import { useState } from 'react'
 import {addDefaultScheme, checkAuthority, generateAuthorityMap} from '../utils/domainAuthority'
-import { fetchProfileData } from '../utils/fetchProfile'
+import {fetchProfileData, validateProfileData} from '../utils/fetchProfile'
 
 export default function MapList({
   maps,
@@ -236,6 +236,13 @@ export default function MapList({
           if (profileData === '') {
             profileObject.data.is_available = 0
             profileObject.data.unavailable_message = fetchProfileError
+          } else {
+            // Validate the profile data before adding to the list
+            const isValid = await validateProfileData(profileData, mapResponseData?.index_url)
+            if (!isValid) {
+              profileObject.data.is_available = 0
+              profileObject.data.unavailable_message = 'Invalid Profile Data'
+            }
           }
 
           // Give extra data to profile
@@ -511,6 +518,13 @@ export default function MapList({
           }
 
           if (profile_data !== '') {
+            // Validate the profile data before adding to the list
+            const isValid = await validateProfileData(profile_data, mapResponseData?.index_url)
+            if (!isValid) {
+              // If the profile data is invalid, don't add it to the list
+              continue
+            }
+
             let profileObject = {
               profile_data: profile_data,
               index_data: profile,
@@ -520,7 +534,8 @@ export default function MapList({
                 node_id: profile.id,
                 status: profile.status,
                 is_available: 1,
-                unavailable_message: ''
+                unavailable_message: '',
+                has_authority: profile.has_authority
               }
             }
             dataWithoutIds.push(profileObject)
