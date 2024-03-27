@@ -19,6 +19,7 @@ get_header();
                 <div class="entry-content">
                     <p>
 						<?php
+						echo do_shortcode( '[murmurations_image path="image"]' );
 						echo do_shortcode( '[murmurations_data title="Exchange Type" path="exchange_type"]' );
 						echo do_shortcode( '[murmurations_data title="Item Type" path="item_type"]' );
 						echo do_shortcode( '[murmurations_data title="Tags" path="tags"]' );
@@ -26,7 +27,7 @@ get_header();
 						echo do_shortcode( '[murmurations_data title="Description" path="description"]' );
 						echo do_shortcode( '[murmurations_data title="Geolocation Scope" path="geolocation"]' );
 						echo do_shortcode( '[murmurations_data title="Geographic Scope" path="geographic_scope"]' );
-						echo do_shortcode( '[murmurations_data title="Contact Details" path="contact_details.contact_form"]' );
+						echo do_shortcode( '[murmurations_data title="Contact Details" path="contact_details.email" second_path="contact_details.contact_form"]' );
 						echo do_shortcode( '[murmurations_data title="Transaction Type" path="transaction_type"]' );
 						?>
                     </p>

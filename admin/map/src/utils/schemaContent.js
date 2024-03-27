@@ -19,10 +19,7 @@ export function schemaContent(responseData, linkType) {
       break
     case 'people_schema-v0.1.0':
       content = addImageToContent(content, imageUrl)
-      content = addTitleToContent(
-        content,
-        responseData?.profile_data?.name
-      )
+      content = addTitleToContent(content, responseData?.profile_data?.name)
       content = addDescriptionToContent(
         content,
         responseData?.profile_data?.description
@@ -39,12 +36,19 @@ export function schemaContent(responseData, linkType) {
       content = addTitleToContent(content, responseData?.profile_data?.title)
       content = addExchangeTypeToContent(
         content,
-        responseData?.profile_data?.exchange_type ? 
-        responseData?.profile_data?.exchange_type === 'offer' ? 'Offer' : 'Want' : ''
+        responseData?.profile_data?.exchange_type
+          ? responseData?.profile_data?.exchange_type === 'offer'
+            ? 'Offer'
+            : 'Want'
+          : ''
       )
       content = addDescriptionToContent(
         content,
         responseData?.profile_data?.description
+      )
+      content = addContactToContent(
+        content,
+        responseData?.profile_data?.contact_details
       )
       content = addUrlToContent(
         content,
@@ -91,6 +95,19 @@ function addExchangeTypeToContent(content, exchange_type) {
 function addDescriptionToContent(content, description) {
   if (description) {
     content += `<p>${limitString(description, 200)}</p>`
+  }
+  return content
+}
+
+function addContactToContent(content, contactDetails) {
+  if (contactDetails?.email) {
+    content += `<a href="mailto:${contactDetails.email}">${contactDetails.email}</a>`
+  }
+  if (contactDetails?.email && contactDetails?.contact_form) {
+    content += ' - '
+  }
+  if (contactDetails?.contact_form) {
+    content += `<a href="${contactDetails.contact_form}" target="_blank">${contactDetails.contact_form}</a>`
   }
   return content
 }

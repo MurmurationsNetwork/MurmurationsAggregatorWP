@@ -6,6 +6,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			add_shortcode( 'murmurations_map', array( $this, 'murmurations_map' ) );
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 			add_shortcode( 'murmurations_data', array( $this, 'murmurations_data' ) );
+			add_shortcode( 'murmurations_image', array( $this, 'murmurations_image' ) );
 			add_shortcode( 'murmurations_excerpt', array( $this, 'murmurations_excerpt' ) );
 		}
 
@@ -50,24 +51,69 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 		public function murmurations_data( $atts ): string {
 			$attributes = shortcode_atts(
 				array(
-					'path'  => 'default_path',
-					'title' => '',
+					'path'        => 'default_path',
+					'second_path' => 'second_default_path',
+					'title'       => '',
+				),
+				$atts
+			);
+
+			$json_path        = $attributes['path'];
+			$second_json_path = $attributes['second_path'];
+			$title            = $attributes['title'];
+			$data             = $this->get_murmurations_data();
+
+			if ( is_null( $data ) ) {
+				return '';
+			}
+
+			$output        = Murmurations_Aggregator_Utils::get_json_value_by_path( $json_path, $data );
+			$second_output = ! empty( $second_json_path ) ? Murmurations_Aggregator_Utils::get_json_value_by_path( $second_json_path, $data ) : null;
+
+			if ( ! is_null( $output ) || ! is_null( $second_output ) ) {
+				$formatted_title = ! empty( $title ) ? "<p>$title: " : '<p>';
+
+				if ( ! is_null( $output ) && ! is_null( $second_output ) ) {
+					return $formatted_title . $this->format_output( $output ) . ' - ' . $this->format_output( $second_output ) . '</p>';
+				} else {
+					$single_output = ! is_null( $output ) ? $output : $second_output;
+
+					return $formatted_title . $this->format_output( $single_output ) . '</p>';
+				}
+			} else {
+				return '';
+			}
+		}
+
+		public function murmurations_image( $atts ): string {
+			$attributes = shortcode_atts(
+				array(
+					'path'  => 'default_image_path',
+					'width' => '200',
 				),
 				$atts
 			);
 
 			$json_path = $attributes['path'];
-			$title     = $attributes['title'];
+			$width     = $attributes['width'];
 			$data      = $this->get_murmurations_data();
 
 			if ( is_null( $data ) ) {
 				return '';
 			}
 
-			$output = Murmurations_Aggregator_Utils::get_json_value_by_path( $json_path, $data );
+			$image_path = Murmurations_Aggregator_Utils::get_json_value_by_path( $json_path, $data );
 
-			if ( ! is_null( $output ) ) {
-				return '<p>' . ( ! empty( $title ) ? $title . ': ' : '' ) . $this->format_output( $output ) . '</p>';
+			if ( ! is_null( $image_path ) ) {
+				$img_tag = "<p><img src='" . esc_url( $image_path ) . "' alt='image'";
+
+				if ( ! empty( $width ) ) {
+					$img_tag .= " width='" . intval( $width ) . "'";
+				}
+
+				$img_tag .= ' /></p>';
+
+				return $img_tag;
 			} else {
 				return '';
 			}
@@ -133,9 +179,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			}
 		}
 
-		private function format_array_output( array $array ): string {
+		private function format_array_output( array $unformatted_array ): string {
 			$html_output = '<ul>';
-			foreach ( $array as $item ) {
+			foreach ( $unformatted_array as $item ) {
 				if ( is_array( $item ) ) {
 					// check if associative array (object)
 					if ( $this->is_assoc( $item ) ) {
@@ -156,10 +202,14 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			return $html_output;
 		}
 
-		private function format_string_output( $string ): string {
-			return $this->is_url( $string ) ?
-				'<a target="_blank" href="' . esc_url( $string ) . '">' . esc_html( $string ) . '</a>' :
-				esc_html( $string );
+		private function format_string_output( $unformatted_string ): string {
+			if ( $this->is_email( $unformatted_string ) ) {
+				return '<a href="mailto:' . esc_html( $unformatted_string ) . '">' . esc_html( $unformatted_string ) . '</a>';
+			} elseif ( $this->is_url( $unformatted_string ) ) {
+				return '<a target="_blank" href="' . esc_url( $unformatted_string ) . '">' . esc_html( $unformatted_string ) . '</a>';
+			} else {
+				return esc_html( $unformatted_string );
+			}
 		}
 
 		private function format_key_value( $key, $value ): string {
@@ -176,8 +226,12 @@ if ( ! class_exists( 'Murmurations_Aggregator_Shortcode' ) ) {
 			return array_keys( $arr ) !== range( 0, count( $arr ) - 1 );
 		}
 
-		private function is_url( $string ): bool {
-			return is_string( $string ) && ( str_contains( $string, 'http' ) || str_contains( $string, 'https' ) );
+		private function is_url( $input_string ): bool {
+			return is_string( $input_string ) && ( str_contains( $input_string, 'http' ) || str_contains( $input_string, 'https' ) );
+		}
+
+		private function is_email( $input_string ): bool {
+			return is_string( $input_string ) && str_contains( $input_string, '@' );
 		}
 	}
 }
