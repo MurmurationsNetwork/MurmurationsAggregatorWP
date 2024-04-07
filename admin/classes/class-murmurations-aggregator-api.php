@@ -266,7 +266,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				$profile_query = $this->wpdb->prepare( "SELECT profile_url FROM $this->node_table_name WHERE post_id = %d", get_the_ID() );
 				$node          = $this->wpdb->get_row( $profile_query );
 
-				if ( $view === 'dir' ) {
+				if ( 'dir' === $view ) {
 					$map[] = array(
 						'id'           => get_the_ID(),
 						'name'         => get_the_title(),
@@ -417,10 +417,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				// delete tags
 				$tag_slug = $map->tag_slug;
 				$tag      = get_term_by( 'slug', $tag_slug, 'murmurations_node_tags' );
-				if ( isset( $tag->term_id ) ) {
+				if ( $tag && isset( $tag->term_id ) ) {
 					wp_delete_term( $tag->term_id, 'murmurations_node_tags' );
-				} else {
-					error_log( 'Term ID not found in term: ' . print_r( $tag, true ) );
 				}
 			}
 
@@ -445,7 +443,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$result = $this->wpdb->update(
 				$this->table_name,
 				array(
-					'last_updated' => date( 'Y-m-d H:i:s', $data['last_updated'] / 1000 ),
+					'last_updated' => gmdate( 'Y-m-d H:i:s', $data['last_updated'] / 1000 ),
 				),
 				array(
 					'id' => $map_id,
@@ -464,7 +462,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			$post = get_post( $post_id );
 
-			if ( ! $post || $post->post_type !== 'murmurations_node' ) {
+			if ( ! $post || 'murmurations_node' !== $post->post_type ) {
 				return new WP_Error( 'post_not_found', 'Post not found', array( 'status' => 404 ) );
 			}
 
@@ -584,7 +582,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			$trashed_post = get_post( $post_id );
 
-			if ( ! $trashed_post || $trashed_post->post_status !== 'trash' ) {
+			if ( ! $trashed_post || 'trash' !== $trashed_post->post_status ) {
 				return new WP_Error( 'post_not_found', 'Post not found', array( 'status' => 404 ) );
 			}
 
@@ -600,27 +598,27 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function get_nodes( $request ): WP_REST_Response|WP_Error {
-			$mapId       = $request->get_param( 'map_id' );
-			$profileUrl  = $request->get_param( 'profile_url' );
-			$isAvailable = $request->get_param( 'is_available' );
+			$map_id       = $request->get_param( 'map_id' );
+			$profile_url  = $request->get_param( 'profile_url' );
+			$is_available = $request->get_param( 'is_available' );
 
-			if ( ! isset( $mapId ) ) {
+			if ( ! isset( $map_id ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
 			}
 
-			if ( isset( $profileUrl ) ) {
-				$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE map_id = %d AND profile_url = %s", $mapId, $profileUrl );
+			if ( isset( $profile_url ) ) {
+				$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE map_id = %d AND profile_url = %s", $map_id, $profile_url );
 			} else {
-				$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE map_id = %d", $mapId );
+				$query = $this->wpdb->prepare( "SELECT * FROM $this->node_table_name WHERE map_id = %d", $map_id );
 			}
 
-			if ( isset( $isAvailable ) ) {
-				if ( $isAvailable === 'false' ) {
-					$isAvailable = 0;
+			if ( isset( $is_available ) ) {
+				if ( 'false' === $is_available ) {
+					$is_available = 0;
 				} else {
-					$isAvailable = 1;
+					$is_available = 1;
 				}
-				$query .= $this->wpdb->prepare( ' AND is_available = %d', $isAvailable );
+				$query .= $this->wpdb->prepare( ' AND is_available = %d', $is_available );
 			}
 
 			$nodes = $this->wpdb->get_results( $query );
@@ -630,7 +628,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			}
 
 			// get map information and replace map_id field
-			$map = $this->wpdb->get_row( $this->wpdb->prepare( "SELECT * FROM $this->table_name WHERE id = %d", $mapId ) );
+			$map = $this->wpdb->get_row( $this->wpdb->prepare( "SELECT * FROM $this->table_name WHERE id = %d", $map_id ) );
 
 			if ( ! $map ) {
 				return new WP_Error( 'map_not_found', 'Map not found', array( 'status' => 404 ) );
@@ -644,19 +642,19 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				unset( $node->map_id );
 
 				// handle is_available field
-				if ( $node->is_available === '1' ) {
+				if ( '1' === $node->is_available ) {
 					$node->is_available = true;
 				} else {
 					$node->is_available = false;
 				}
 
 				// handle unavailable_message field
-				if ( $node->unavailable_message === null ) {
+				if ( null === $node->unavailable_message ) {
 					$node->unavailable_message = '';
 				}
 
 				// handle has_authority field
-				if ( $node->has_authority === '1' ) {
+				if ( '1' === $node->has_authority ) {
 					$node->has_authority = true;
 				} else {
 					$node->has_authority = false;
@@ -684,10 +682,10 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				$primary_url = $data['primary_url'] ?? '';
 
 				// Parse URLs to get hostnames
-				$profile_host = parse_url( $profile_url, PHP_URL_HOST );
-				$primary_host = parse_url( $primary_url, PHP_URL_HOST );
+				$profile_host = wp_parse_url( $profile_url, PHP_URL_HOST );
+				$primary_host = wp_parse_url( $primary_url, PHP_URL_HOST );
 
-				if ( $profile_host === $primary_host ) {
+				if ( false !== $profile_host && false !== $primary_host && $profile_host === $primary_host ) {
 					$primary_url_map[ $primary_host ] = 1;
 				}
 			}
@@ -704,7 +702,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
 			}
 
-			if ( $data['data']['unavailable_message'] || $data['data']['unavailable_message'] === '' ) {
+			if ( $data['data']['unavailable_message'] || '' === $data['data']['unavailable_message'] ) {
 				$unavailable_message = null;
 			} else {
 				$unavailable_message = $data['data']['unavailable_message'];
@@ -714,7 +712,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$result = $this->wpdb->update(
 				$this->node_table_name,
 				array(
-					'data'                => json_encode( $data['profile_data'] ),
+					'data'                => wp_json_encode( $data['profile_data'] ),
 					'last_updated'        => $data['index_data']['last_updated'],
 					'is_available'        => $data['data']['is_available'] ?? true,
 					'unavailable_message' => $unavailable_message,
@@ -767,9 +765,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			// update status in node table
 			// if the status is 'dismiss' or 'ignore', set 'post_id' to null
-			$has_authority = isset( $data['data']['has_authority'] ) && $data['data']['has_authority'] !== '' ? $data['data']['has_authority'] : true;
+			$has_authority = isset( $data['data']['has_authority'] ) && '' !== $data['data']['has_authority'] ? $data['data']['has_authority'] : true;
 
-			if ( $data['data']['status'] === 'dismiss' || $data['data']['status'] === 'ignore' ) {
+			if ( 'dismiss' === $data['data']['status'] || 'ignore' === $data['data']['status'] ) {
 				$result = $this->wpdb->update(
 					$this->node_table_name,
 					array(
@@ -796,7 +794,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				);
 			}
 
-			if ( $result === false ) {
+			if ( false === $result ) {
 				return new WP_Error( 'node_status update_failed', 'Failed to update node status.', array( 'status' => 500 ) );
 			}
 
@@ -822,7 +820,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				)
 			);
 
-			if ( $result === false ) {
+			if ( false === $result ) {
 				return new WP_Error( 'node_authority_update_failed', 'Failed to update node authority.', array( 'status' => 500 ) );
 			}
 
@@ -847,7 +845,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				array(
 					'profile_url'         => $data['index_data']['profile_url'],
 					'map_id'              => $data['data']['map_id'],
-					'data'                => json_encode( $data['profile_data'] ),
+					'data'                => wp_json_encode( $data['profile_data'] ),
 					'last_updated'        => $data['index_data']['last_updated'],
 					'status'              => $data['data']['status'] ?? 'new',
 					'is_available'        => $data['data']['is_available'] ?? true,
