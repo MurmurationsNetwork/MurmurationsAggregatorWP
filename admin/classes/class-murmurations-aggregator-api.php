@@ -161,7 +161,9 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				array(
 					'methods'             => 'GET',
 					'callback'            => array( $this, 'get_nodes_primary_url_map' ),
-					'permission_callback' => '__return_true',
+					'permission_callback' => function () {
+						return current_user_can( 'activate_plugins' );
+					},
 				),
 			);
 
