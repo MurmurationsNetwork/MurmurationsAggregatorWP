@@ -157,6 +157,16 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 			register_rest_route(
 				$backend_namespace,
+				'/nodes/primary-url-map',
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_nodes_primary_url_map' ),
+					'permission_callback' => '__return_true',
+				),
+			);
+
+			register_rest_route(
+				$backend_namespace,
 				'/nodes/(?P<node_id>[\d]+)',
 				array(
 					array(
@@ -654,6 +664,35 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			}
 
 			return rest_ensure_response( $nodes );
+		}
+
+		public function get_nodes_primary_url_map( $request ): WP_REST_Response|WP_Error {
+			$map_id = $request->get_param( 'map_id' );
+			if ( ! isset( $map_id ) ) {
+				return new WP_Error( 'invalid_data', 'Invalid data provided', array( 'status' => 400 ) );
+			}
+
+			$query = $this->wpdb->prepare( "SELECT profile_url, data FROM $this->node_table_name WHERE map_id = %d", $map_id );
+
+			$rows = $this->wpdb->get_results( $query );
+
+			$primary_url_map = array();
+
+			foreach ( $rows as $row ) {
+				$profile_url = $row->profile_url;
+				$data        = json_decode( $row->data, true );
+				$primary_url = $data['primary_url'] ?? '';
+
+				// Parse URLs to get hostnames
+				$profile_host = parse_url( $profile_url, PHP_URL_HOST );
+				$primary_host = parse_url( $primary_url, PHP_URL_HOST );
+
+				if ( $profile_host === $primary_host ) {
+					$primary_url_map[ $primary_host ] = 1;
+				}
+			}
+
+			return rest_ensure_response( $primary_url_map );
 		}
 
 		public function put_node( $request ): WP_REST_Response|WP_Error {
