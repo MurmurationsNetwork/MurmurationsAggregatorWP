@@ -123,6 +123,12 @@ export const getCustomNodes = async (mapId, profileUrl) => {
   )
 }
 
+export const getPrimaryUrlMap = async mapId => {
+  return await fetch(
+    `${apiUrl}/nodes/primary-url-map?map_id=${mapId}&_wpnonce=${wp_nonce}`
+  )
+}
+
 export const getCustomUnavailableNodes = async mapId => {
   return await fetch(
     `${apiUrl}/nodes?map_id=${mapId}&is_available=false&_wpnonce=${wp_nonce}`
