@@ -19,7 +19,7 @@ export async function getAuthorityMap(mapId) {
     return responseData
   } catch (error) {
     throw new Error(
-      `Error getting maps, please contact the administrator, error: ${error}`
+      `Error getting authority maps, please contact the administrator, error: ${error}`
     )
   }
 }
