@@ -1,4 +1,4 @@
-import {getPrimaryUrlMap} from "./api";
+import { getPrimaryUrlMap } from './api'
 
 export async function getAuthorityMap(mapId) {
   try {
@@ -24,9 +24,13 @@ export async function getAuthorityMap(mapId) {
   }
 }
 
-export function checkAuthority(authorityMap, originPrimaryUrl, originProfileUrl) {
+export function checkAuthority(
+  authorityMap,
+  originPrimaryUrl,
+  originProfileUrl
+) {
   try {
-    if (originPrimaryUrl === "https://") {
+    if (originPrimaryUrl === 'https://') {
       console.log('Invalid URL')
       return 1
     }
@@ -34,27 +38,35 @@ export function checkAuthority(authorityMap, originPrimaryUrl, originProfileUrl)
     const primaryUrl = new URL(addDefaultScheme(originPrimaryUrl))
     const profileUrl = new URL(addDefaultScheme(originProfileUrl))
 
-    if (!primaryUrl.protocol.startsWith('http') ||
-      !profileUrl.protocol.startsWith('http')) {
+    if (
+      !primaryUrl.protocol.startsWith('http') ||
+      !profileUrl.protocol.startsWith('http')
+    ) {
       console.log('Invalid protocol')
       return 1
     }
 
     // If the primary URL is in the authority map, it means that the primary URL has other profiles that have authority, so if the profile URL is not the same as the primary URL, it does not have authority
-    if (authorityMap[primaryUrl.hostname] !== undefined && primaryUrl.hostname !== profileUrl.hostname) {
+    if (
+      authorityMap[primaryUrl.hostname] !== undefined &&
+      primaryUrl.hostname !== profileUrl.hostname
+    ) {
       return 0
     }
 
     return 1
-  }
-  catch (e) {
+  } catch (e) {
     console.log(e)
     return 1
   }
 }
 
 export function addDefaultScheme(url) {
-  if (url !== undefined && !url?.startsWith('http://') && !url?.startsWith('https://')) {
+  if (
+    url !== undefined &&
+    !url?.startsWith('http://') &&
+    !url?.startsWith('https://')
+  ) {
     return 'https://' + url
   }
   return url

@@ -7,14 +7,17 @@ import {
   getCustomUnavailableNodes,
   getProxyData,
   saveCustomNodes,
-  updateCustomMapLastUpdated, updateCustomNodes, updateCustomNodesAuthority, updateCustomNodesStatus
+  updateCustomMapLastUpdated,
+  updateCustomNodes,
+  updateCustomNodesAuthority,
+  updateCustomNodesStatus
 } from '../utils/api'
 import PropTypes from 'prop-types'
 import { formDefaults } from '../data/formDefaults'
 import ProgressBar from './ProgressBar'
 import { useState } from 'react'
-import { checkAuthority, getAuthorityMap} from '../utils/domainAuthority'
-import {fetchProfileData, validateProfileData} from '../utils/fetchProfile'
+import { checkAuthority, getAuthorityMap } from '../utils/domainAuthority'
+import { fetchProfileData, validateProfileData } from '../utils/fetchProfile'
 
 export default function MapList({
   maps,
@@ -124,7 +127,9 @@ export default function MapList({
       if (!customNodesResponse.ok) {
         if (customNodesResponse.status !== 404) {
           alert(
-            `Get Nodes Error: ${customNodesResponse.status} ${JSON.stringify(customNodesResponseData)}`
+            `Get Nodes Error: ${customNodesResponse.status} ${JSON.stringify(
+              customNodesResponseData
+            )}`
           )
           return
         }
@@ -134,7 +139,11 @@ export default function MapList({
 
       // Setup progress bar
       // In the domain authority section, besides the content of profiles already in the database, we will also include updated profiles. Additionally, by adding the original updated profiles and the unavailable profiles, we get the total number of profiles we need to handle.
-      const progressStep = 100 / (2 * profiles.length + unavailableProfiles.length + customProfiles.length)
+      const progressStep =
+        100 /
+        (2 * profiles.length +
+          unavailableProfiles.length +
+          customProfiles.length)
       let progress = 0
 
       if (profiles.length > 0) {
@@ -236,7 +245,10 @@ export default function MapList({
             profileObject.data.unavailable_message = fetchProfileError
           } else {
             // Validate the profile data before adding to the list
-            const isValid = await validateProfileData(profileData, mapResponseData?.index_url)
+            const isValid = await validateProfileData(
+              profileData,
+              mapResponseData?.index_url
+            )
             if (!isValid) {
               profileObject.data.is_available = 0
               profileObject.data.unavailable_message = 'Invalid Profile Data'
@@ -340,7 +352,10 @@ export default function MapList({
 
           if (profile_data !== '') {
             // Validate the profile data before adding to the list
-            const isValid = await validateProfileData(profile_data, mapResponseData?.index_url)
+            const isValid = await validateProfileData(
+              profile_data,
+              mapResponseData?.index_url
+            )
             if (!isValid) {
               // If the profile data is invalid, don't add it to the list
               continue
@@ -349,7 +364,7 @@ export default function MapList({
             let profileObject = {
               profile_data: profile_data,
               index_data: {
-                profile_url: profile.profile_url,
+                profile_url: profile.profile_url
               },
               data: {
                 map_id: mapId,
@@ -412,7 +427,11 @@ export default function MapList({
         const profile = allNodesResponseData[i]
         const originalAuthority = profile.has_authority ? 1 : 0
 
-        if (!profile?.id || !profile?.profile_data?.primary_url || !profile?.profile_url) {
+        if (
+          !profile?.id ||
+          !profile?.profile_data?.primary_url ||
+          !profile?.profile_url
+        ) {
           continue
         }
 
@@ -435,11 +454,16 @@ export default function MapList({
           continue
         }
 
-        const updateResponse = await updateCustomNodesAuthority(profile.id.toString(), hasAuthority)
+        const updateResponse = await updateCustomNodesAuthority(
+          profile.id.toString(),
+          hasAuthority
+        )
         if (!updateResponse.ok) {
           const updateResponseData = await updateResponse.json()
           alert(
-            `Update Authority Error: ${updateResponse.status} ${JSON.stringify(updateResponseData)}`
+            `Update Authority Error: ${updateResponse.status} ${JSON.stringify(
+              updateResponseData
+            )}`
           )
         }
 
@@ -447,7 +471,7 @@ export default function MapList({
         let profileObject = {
           profile_data: profile.profile_data,
           index_data: {
-            profile_url: profile.profile_url,
+            profile_url: profile.profile_url
           },
           data: {
             node_id: profile.id,
@@ -458,7 +482,7 @@ export default function MapList({
             has_authority: hasAuthority,
             last_updated: profile.last_updated,
             status: profile.status,
-            tag_slug: tagSlug,
+            tag_slug: tagSlug
           }
         }
 
@@ -487,9 +511,9 @@ export default function MapList({
           if (!updateResponse.ok) {
             const updateResponseData = await updateResponse.json()
             alert(
-              `Update Node Status Error: ${updateResponse.status} ${JSON.stringify(
-                updateResponseData
-              )}`
+              `Update Node Status Error: ${
+                updateResponse.status
+              } ${JSON.stringify(updateResponseData)}`
             )
             continue
           }
@@ -510,9 +534,9 @@ export default function MapList({
           if (!updateResponse.ok) {
             const updateResponseData = await updateResponse.json()
             alert(
-              `Update Node Authority Error: ${updateResponse.status} ${JSON.stringify(
-                updateResponseData
-              )}`
+              `Update Node Authority Error: ${
+                updateResponse.status
+              } ${JSON.stringify(updateResponseData)}`
             )
           }
         }
@@ -568,7 +592,7 @@ export default function MapList({
     } finally {
       setIsLoading(false)
       setProgress(0)
-      window.scrollTo(0, 0);
+      window.scrollTo(0, 0)
     }
   }
 

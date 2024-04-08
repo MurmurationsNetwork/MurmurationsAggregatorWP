@@ -1,12 +1,12 @@
 import MapSettings from './MapSettings'
 import DataSource from './DataSource'
 import ProgressBar from './ProgressBar'
-import {createId} from '@paralleldrive/cuid2'
-import {saveCustomMap, saveCustomNodes} from '../utils/api'
+import { createId } from '@paralleldrive/cuid2'
+import { saveCustomMap, saveCustomNodes } from '../utils/api'
 import PropTypes from 'prop-types'
-import {useState} from 'react'
-import {fetchProfileData, validateProfileData} from '../utils/fetchProfile'
-import {checkAuthority, getAuthorityMap} from "../utils/domainAuthority";
+import { useState } from 'react'
+import { fetchProfileData, validateProfileData } from '../utils/fetchProfile'
+import { checkAuthority, getAuthorityMap } from '../utils/domainAuthority'
 
 const excludedKeys = [
   'data_url',
@@ -18,18 +18,18 @@ const excludedKeys = [
 ]
 
 export default function CreateData({
-                                     formData,
-                                     handleInputChange,
-                                     setIsLoading,
-                                     setIsRetrieving,
-                                     setIsMapSelected,
-                                     setProfileList,
-                                     progress,
-                                     setProgress,
-                                     isLoading,
-                                     setCurrentTime,
-                                     getMaps
-                                   }) {
+  formData,
+  handleInputChange,
+  setIsLoading,
+  setIsRetrieving,
+  setIsMapSelected,
+  setProfileList,
+  progress,
+  setProgress,
+  isLoading,
+  setCurrentTime,
+  getMaps
+}) {
   const [selectedCountry, setSelectedCountry] = useState([])
 
   const handleSubmit = async event => {
@@ -98,9 +98,7 @@ export default function CreateData({
       const mapResponseData = await mapResponse.json()
       if (!mapResponse.ok) {
         alert(
-          `Map Error: ${mapResponse.status} ${JSON.stringify(
-            mapResponseData
-          )}`
+          `Map Error: ${mapResponse.status} ${JSON.stringify(mapResponseData)}`
         )
         return
       }
@@ -127,7 +125,7 @@ export default function CreateData({
         }
 
         const profile = profiles[i]
-        let {profileData, fetchProfileError} = await fetchProfileData(
+        let { profileData, fetchProfileError } = await fetchProfileData(
           profile.profile_url
         )
         let profileObject = {
@@ -150,7 +148,10 @@ export default function CreateData({
 
         // Send profile data to validate
         if (profileData) {
-          const isValid = await validateProfileData(profileData, formData?.data_url)
+          const isValid = await validateProfileData(
+            profileData,
+            formData?.data_url
+          )
           if (!isValid) {
             profileObject.data.is_available = 0
             profileObject.data.unavailable_message = 'Invalid Profile Data'
@@ -237,7 +238,7 @@ export default function CreateData({
 
   return (
     <div>
-      {isLoading && <ProgressBar progress={progress}/>}
+      {isLoading && <ProgressBar progress={progress} />}
       <h2 className="text-2xl">Create a Map or Directory</h2>
       <p className="my-2 text-base">
         Import nodes from the distributed Murmurations network to create your
