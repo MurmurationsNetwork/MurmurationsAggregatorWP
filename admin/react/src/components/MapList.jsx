@@ -7,7 +7,7 @@ import {
   getCustomUnavailableNodes,
   getProxyData,
   saveCustomNodes,
-  updateCustomMapLastUpdated, updateCustomNodesAuthority, updateCustomNodesStatus
+  updateCustomMapLastUpdated, updateCustomNodes, updateCustomNodesAuthority, updateCustomNodesStatus
 } from '../utils/api'
 import PropTypes from 'prop-types'
 import { formDefaults } from '../data/formDefaults'
@@ -348,7 +348,9 @@ export default function MapList({
 
             let profileObject = {
               profile_data: profile_data,
-              index_data: profile,
+              index_data: {
+                profile_url: profile.profile_url,
+              },
               data: {
                 map_id: mapId,
                 tag_slug: tagSlug,
@@ -356,9 +358,22 @@ export default function MapList({
                 status: profile.status,
                 is_available: 1,
                 unavailable_message: '',
+                last_updated: profile.last_updated,
                 has_authority: profile.has_authority
               }
             }
+
+            const updateResponse = await updateCustomNodes(profileObject)
+            if (!updateResponse.ok) {
+              const saveResponseData = await updateResponse.json()
+              alert(
+                `Save Profile Error: ${updateResponse.status} ${JSON.stringify(
+                  saveResponseData
+                )}`
+              )
+              continue
+            }
+
             dataWithoutIds.push(profileObject)
           }
         }
