@@ -193,8 +193,6 @@ export default function CreateData({
       // Handle Domain Authority
       const authorityMap = await getAuthorityMap(mapResponseData.map_id)
 
-      console.log(authorityMap)
-
       for (let i = 0; i < dataWithoutIds.length; i++) {
         // Update progress
         progress += progressStep

@@ -410,6 +410,7 @@ export default function MapList({
         }
 
         const profile = allNodesResponseData[i]
+        const originalAuthority = profile.has_authority ? 1 : 0
 
         if (!profile?.id || !profile?.profile_data?.primary_url || !profile?.profile_url) {
           continue
@@ -421,7 +422,16 @@ export default function MapList({
           profile.profile_url
         )
 
-        if (profile.has_authority === hasAuthority) {
+        const matchedProfileIndex = dataWithoutIds.findIndex(
+          p => p.data.node_id === profile.id
+        )
+
+        // If we can find data in the dataWithoutIds, update the has_authority field because we set all data has_authority to true in the previous step
+        if (matchedProfileIndex !== -1) {
+          dataWithoutIds[matchedProfileIndex].data.has_authority = hasAuthority
+        }
+
+        if (originalAuthority === hasAuthority) {
           continue
         }
 
@@ -433,7 +443,7 @@ export default function MapList({
           )
         }
 
-        // Construct the profileObject and put it in unauthorizedProfiles
+        // Construct the profileObject
         let profileObject = {
           profile_data: profile.profile_data,
           index_data: {
@@ -452,12 +462,8 @@ export default function MapList({
           }
         }
 
-        const matchedProfile = dataWithoutIds.find(
-          p => p.data.node_id === profile.id
-        )
-
         // From AP to NAP
-        if (profile.has_authority && !hasAuthority) {
+        if (originalAuthority && !hasAuthority) {
           // If a profile has no domain authority, mark it as ignored
           profileObject.data.status = 'ignore'
           if (profile.status === 'publish') {
@@ -489,13 +495,13 @@ export default function MapList({
           }
 
           // If a profile is not in ignore state, and it's not update profiles or unavailable profiles, add it to the unauthorizedProfiles
-          if (profile.status !== 'ignore' && matchedProfile === undefined) {
+          if (profile.status !== 'ignore' && matchedProfileIndex === -1) {
             unauthorizedProfiles.push(profileObject)
           }
         }
 
         // From NAP to AP
-        if (!profile.has_authority && hasAuthority) {
+        if (!originalAuthority && hasAuthority) {
           // Update the profile in nodes table
           const updateResponse = await updateCustomNodesAuthority(
             profileObject.data.node_id,
