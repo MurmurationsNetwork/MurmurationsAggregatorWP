@@ -1,11 +1,12 @@
 import MapSettings from './MapSettings'
 import DataSource from './DataSource'
 import ProgressBar from './ProgressBar'
-import { createId } from '@paralleldrive/cuid2'
-import { saveCustomMap, saveCustomNodes } from '../utils/api'
+import {createId} from '@paralleldrive/cuid2'
+import {saveCustomMap, saveCustomNodes} from '../utils/api'
 import PropTypes from 'prop-types'
-import { useState } from 'react'
+import {useState} from 'react'
 import {fetchProfileData, validateProfileData} from '../utils/fetchProfile'
+import {checkAuthority, getAuthorityMap} from "../utils/domainAuthority";
 
 const excludedKeys = [
   'data_url',
@@ -17,18 +18,18 @@ const excludedKeys = [
 ]
 
 export default function CreateData({
-  formData,
-  handleInputChange,
-  setIsLoading,
-  setIsRetrieving,
-  setIsMapSelected,
-  setProfileList,
-  progress,
-  setProgress,
-  isLoading,
-  setCurrentTime,
-  getMaps
-}) {
+                                     formData,
+                                     handleInputChange,
+                                     setIsLoading,
+                                     setIsRetrieving,
+                                     setIsMapSelected,
+                                     setProfileList,
+                                     progress,
+                                     setProgress,
+                                     isLoading,
+                                     setCurrentTime,
+                                     getMaps
+                                   }) {
   const [selectedCountry, setSelectedCountry] = useState([])
 
   const handleSubmit = async event => {
@@ -64,129 +65,160 @@ export default function CreateData({
     try {
       setCurrentTime(new Date().getTime().toString())
       const response = await fetch(urlWithParams)
-      if (response.ok) {
-        const responseData = await response.json()
-        if (responseData.data && responseData.data.length === 0) {
-          alert('Error: No data found. Please try again.')
-          return
-        }
-        if (
-          responseData.meta &&
-          responseData.meta.total_pages &&
-          responseData.meta.total_pages > 2
-        ) {
-          alert('Error: Too many pages of data. Please narrow your search.')
-          return
-        }
+      if (!response.ok) {
+        alert(`Error from API: ${response.status} ${response.statusText}`)
+        return
+      }
 
-        // If we find any valid responses, we can save the map to WP Map
-        const tagSlug = 'murm_' + createId()
-        const mapResponse = await saveCustomMap(
-          formData.map_name,
-          tagSlug,
-          formData.data_url,
-          urlWithParams.replace(formData.data_url, ''),
-          formData.map_center_lat,
-          formData.map_center_lon,
-          formData.map_scale
+      const responseData = await response.json()
+      if (responseData.data && responseData.data.length === 0) {
+        alert('Error: No data found. Please try again.')
+        return
+      }
+      if (
+        responseData.meta &&
+        responseData.meta.total_pages &&
+        responseData.meta.total_pages > 2
+      ) {
+        alert('Error: Too many pages of data. Please narrow your search.')
+        return
+      }
+
+      // If we find any valid responses, we can save the map to WP Map
+      const tagSlug = 'murm_' + createId()
+      const mapResponse = await saveCustomMap(
+        formData.map_name,
+        tagSlug,
+        formData.data_url,
+        urlWithParams.replace(formData.data_url, ''),
+        formData.map_center_lat,
+        formData.map_center_lon,
+        formData.map_scale
+      )
+      const mapResponseData = await mapResponse.json()
+      if (!mapResponse.ok) {
+        alert(
+          `Map Error: ${mapResponse.status} ${JSON.stringify(
+            mapResponseData
+          )}`
         )
-        const mapResponseData = await mapResponse.json()
-        if (!mapResponse.ok) {
-          alert(
-            `Map Error: ${mapResponse.status} ${JSON.stringify(
-              mapResponseData
-            )}`
-          )
-          return
+        return
+      }
+
+      // Set the profileList and save the data to wpdb
+      const profiles = responseData.data
+
+      const dataWithoutIds = []
+
+      // We need to handle Domain Authority for all profiles after saving to the wpdb
+      const progressStep = 100 / (profiles.length * 2)
+      for (let i = 0; i < profiles.length; i++) {
+        // Update progress
+        progress += progressStep
+        if (progress > 100) {
+          setProgress(100)
+        } else {
+          setProgress(progress)
         }
 
-        // Set the profileList and save the data to wpdb
-        const profiles = responseData.data
+        // If the status is deleted, continue
+        if (profiles[i].status === 'deleted') {
+          continue
+        }
 
-        const dataWithIds = []
-        const progressStep = 100 / profiles.length
-        let currentId = 1
-        for (let i = 0; i < profiles.length; i++) {
-          // Update progress
-          progress = (i + 1) * progressStep
-          if (progress > 100) {
-            setProgress(100)
-          } else {
-            setProgress(progress)
+        const profile = profiles[i]
+        let {profileData, fetchProfileError} = await fetchProfileData(
+          profile.profile_url
+        )
+        let profileObject = {
+          profile_data: profileData,
+          index_data: profile,
+          data: {
+            map_id: mapResponseData.map_id,
+            tag_slug: tagSlug,
+            status: 'new',
+            is_available: 1,
+            has_authority: 1
           }
+        }
 
-          // If the status is deleted, continue
-          if (profiles[i].status === 'deleted') {
+        // Set availability
+        if (profileData === '') {
+          profileObject.data.is_available = 0
+          profileObject.data.unavailable_message = fetchProfileError
+        }
+
+        // Send profile data to validate
+        if (profileData) {
+          const isValid = await validateProfileData(profileData, formData?.data_url)
+          if (!isValid) {
+            profileObject.data.is_available = 0
+            profileObject.data.unavailable_message = 'Invalid Profile Data'
+          }
+        }
+
+        // Save data to wpdb
+        const profileResponse = await saveCustomNodes(profileObject)
+
+        const profileResponseData = await profileResponse.json()
+        if (!profileResponse.ok) {
+          if (
+            profileResponse.status === 400 &&
+            profileResponseData?.code === 'profile_url_length_exceeded'
+          ) {
+            alert(
+              `profile_url_length_exceeded: ${profileObject.index_data.profile_url}`
+            )
             continue
           }
-
-          const profile = profiles[i]
-          let { profileData, fetchProfileError } = await fetchProfileData(
-            profile.profile_url
+          alert(
+            `Unable to save profiles to wpdb, errors: ${
+              profileResponse.status
+            } ${JSON.stringify(
+              profileResponseData
+            )}. Please delete the map and try again.`
           )
-          let profileObject = {
-            id: currentId,
-            profile_data: profileData,
-            index_data: profile,
-            data: {
-              map_id: mapResponseData.map_id,
-              tag_slug: tagSlug,
-              status: 'new',
-              is_available: 1,
-              has_authority: 1
-            }
-          }
-
-          // Set availability
-          if (profileData === '') {
-            profileObject.data.is_available = 0
-            profileObject.data.unavailable_message = fetchProfileError
-          }
-
-          // Send profile data to validate
-          if (profileData) {
-            const isValid = await validateProfileData(profileData, formData?.data_url)
-            if (!isValid) {
-              profileObject.data.is_available = 0
-              profileObject.data.unavailable_message = 'Invalid Profile Data'
-            }
-          }
-
-          // Save data to wpdb
-          // todo: status needs to update according to the settings
-          const profileResponse = await saveCustomNodes(profileObject)
-
-          const profileResponseData = await profileResponse.json()
-          if (!profileResponse.ok) {
-            if (
-              profileResponse.status === 400 &&
-              profileResponseData?.code === 'profile_url_length_exceeded'
-            ) {
-              alert(
-                `profile_url_length_exceeded: ${profileObject.index_data.profile_url}`
-              )
-              continue
-            }
-            alert(
-              `Unable to save profiles to wpdb, errors: ${
-                profileResponse.status
-              } ${JSON.stringify(
-                profileResponseData
-              )}. Please delete the map and try again.`
-            )
-            return
-          }
-
-          // Set node_id
-          profileObject.data.node_id = profileResponseData.node_id
-
-          currentId++
-          dataWithIds.push(profileObject)
+          return
         }
-        setProfileList(dataWithIds)
-      } else {
-        alert(`Error: ${response.status} ${response}`)
+
+        // Set node_id
+        profileObject.data.node_id = profileResponseData.node_id
+
+        dataWithoutIds.push(profileObject)
       }
+
+      let dataWithIds = []
+      let currentId = 1
+
+      // Handle Domain Authority
+      const authorityMap = await getAuthorityMap(mapResponseData.map_id)
+
+      console.log(authorityMap)
+
+      for (let i = 0; i < dataWithoutIds.length; i++) {
+        // Update progress
+        progress += progressStep
+        if (progress > 100) {
+          setProgress(100)
+        } else {
+          setProgress(progress)
+        }
+
+        let profile = dataWithoutIds[i]
+
+        profile.data.has_authority = checkAuthority(
+          authorityMap,
+          profile?.profile_data?.primary_url,
+          profile?.index_data?.profile_url
+        )
+
+        profile.id = currentId
+        currentId++
+
+        dataWithIds.push(profile)
+      }
+
+      setProfileList(dataWithIds)
     } catch (error) {
       setIsMapSelected(false)
       alert(
@@ -207,7 +239,7 @@ export default function CreateData({
 
   return (
     <div>
-      {isLoading && <ProgressBar progress={progress} />}
+      {isLoading && <ProgressBar progress={progress}/>}
       <h2 className="text-2xl">Create a Map or Directory</h2>
       <p className="my-2 text-base">
         Import nodes from the distributed Murmurations network to create your

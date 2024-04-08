@@ -141,7 +141,7 @@ export default function MapList({
         // Loop through profiles which is from Index Service
         for (let i = 0; i < profiles.length; i++) {
           // Update progress
-          progress = (i + 1) * progressStep
+          progress += progressStep
           if (progress > 100) {
             setProgress(100)
           } else {
