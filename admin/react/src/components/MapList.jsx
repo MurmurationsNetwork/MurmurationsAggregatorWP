@@ -117,8 +117,24 @@ export default function MapList({
       let deletedProfiles = []
       let unauthorizedProfiles = []
 
+      // Get Custom Nodes length for later use
+      let customProfiles = []
+      const customNodesResponse = await getCustomNodes(mapId)
+      const customNodesResponseData = await customNodesResponse.json()
+      if (!customNodesResponse.ok) {
+        if (customNodesResponse.status !== 404) {
+          alert(
+            `Get Nodes Error: ${customNodesResponse.status} ${JSON.stringify(customNodesResponseData)}`
+          )
+          return
+        }
+      } else {
+        customProfiles = customNodesResponseData
+      }
+
       // Setup progress bar
-      const progressStep = 100 / (profiles.length + unavailableProfiles.length)
+      // In the domain authority section, besides the content of profiles already in the database, we will also include updated profiles. Additionally, by adding the original updated profiles and the unavailable profiles, we get the total number of profiles we need to handle.
+      const progressStep = 100 / (2 * profiles.length + unavailableProfiles.length + customProfiles.length)
       let progress = 0
 
       if (profiles.length > 0) {
@@ -370,6 +386,14 @@ export default function MapList({
       }
 
       for (let i = 0; i < allNodesResponseData.length; i++) {
+        // Update progress
+        progress += progressStep
+        if (progress > 100) {
+          setProgress(100)
+        } else {
+          setProgress(progress)
+        }
+
         const profile = allNodesResponseData[i]
 
         if (!profile?.id || !profile?.profile_data?.primary_url || !profile?.profile_url) {
