@@ -263,9 +263,8 @@ export default function MapList({
           // If WP nodes is 404, it's new profile
           if (customNodesResponse.status === 404) {
             const profileResponse = await saveCustomNodes(profileObject)
+            const profileResponseData = await profileResponse.json()
             if (!profileResponse.ok) {
-              const profileResponseData = await profileResponse.json()
-
               // if the profile_url length is too long, alert the user and skip the profile
               if (
                 profileResponse.status === 400 &&
@@ -286,6 +285,7 @@ export default function MapList({
               )
               return
             }
+            profileObject.data.node_id = profileResponseData.node_id
           } else {
             // If WP nodes is not 404, it's updated profile.
             // Update information to profileObject from Nodes table

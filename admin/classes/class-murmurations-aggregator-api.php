@@ -863,7 +863,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$inserted_id = $this->wpdb->insert_id;
 
 			$response = array(
-				'node_id' => $inserted_id,
+				'node_id' => strval( $inserted_id ),
 			);
 
 			return rest_ensure_response( $response );
