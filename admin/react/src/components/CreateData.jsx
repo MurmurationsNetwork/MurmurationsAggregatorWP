@@ -2,7 +2,7 @@ import MapSettings from './MapSettings'
 import DataSource from './DataSource'
 import ProgressBar from './ProgressBar'
 import { createId } from '@paralleldrive/cuid2'
-import { saveCustomMap, saveCustomNodes } from '../utils/api'
+import {saveCustomMap, saveCustomNodes, updateCustomNodesAuthority, updateCustomNodesStatus} from '../utils/api'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
 import { fetchProfileData, validateProfileData } from '../utils/fetchProfile'
@@ -144,6 +144,7 @@ export default function CreateData({
         if (profileData === '') {
           profileObject.data.is_available = 0
           profileObject.data.unavailable_message = fetchProfileError
+          profileObject.data.status = 'ignore'
         }
 
         // Send profile data to validate
@@ -155,6 +156,7 @@ export default function CreateData({
           if (!isValid) {
             profileObject.data.is_available = 0
             profileObject.data.unavailable_message = 'Invalid Profile Data'
+            profileObject.data.status = 'ignore'
           }
         }
 
@@ -210,6 +212,35 @@ export default function CreateData({
           profile?.profile_data?.primary_url,
           profile?.index_data?.profile_url
         )
+
+        // Default has_authority is true, so we only need to update if it's false
+        if (!profile.data.has_authority) {
+          const updateAuthorityResponse = await updateCustomNodesAuthority(
+            profile.data.node_id,
+            profile.data.has_authority
+          )
+          if (!updateAuthorityResponse.ok) {
+            const updateAuthorityResponseData = await updateAuthorityResponse.json()
+            alert(
+              `Update Authority Error: ${updateAuthorityResponse.status} ${JSON.stringify(
+                updateAuthorityResponseData
+              )}`
+            )
+          }
+
+          // If not authority, set status to ignore
+          profile.data.status = 'ignore'
+
+          const updateStatusResponse = await updateCustomNodesStatus(profile)
+          if (!updateStatusResponse.ok) {
+            const updateStatusResponseData = await updateStatusResponse.json()
+            alert(
+              `Update Status Error: ${updateStatusResponse.status} ${JSON.stringify(
+                updateStatusResponseData
+              )}`
+            )
+          }
+        }
 
         profile.id = currentId
         currentId++

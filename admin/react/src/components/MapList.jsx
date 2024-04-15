@@ -243,6 +243,7 @@ export default function MapList({
           if (profileData === '') {
             profileObject.data.is_available = 0
             profileObject.data.unavailable_message = fetchProfileError
+            profileObject.data.status = 'ignore'
           } else {
             // Validate the profile data before adding to the list
             const isValid = await validateProfileData(
@@ -252,6 +253,7 @@ export default function MapList({
             if (!isValid) {
               profileObject.data.is_available = 0
               profileObject.data.unavailable_message = 'Invalid Profile Data'
+              profileObject.data.status = 'ignore'
             }
           }
 
@@ -364,7 +366,8 @@ export default function MapList({
             let profileObject = {
               profile_data: profile_data,
               index_data: {
-                profile_url: profile.profile_url
+                profile_url: profile.profile_url,
+                last_updated: profile.last_updated
               },
               data: {
                 map_id: mapId,
@@ -455,7 +458,7 @@ export default function MapList({
         }
 
         const updateResponse = await updateCustomNodesAuthority(
-          profile.id.toString(),
+          profile.id,
           hasAuthority
         )
         if (!updateResponse.ok) {
