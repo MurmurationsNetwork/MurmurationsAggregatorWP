@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<ruleset name="Murmurations Aggregator WordPress Plugin">
+    <description>Custom ruleset for my WordPress plugin development, excluding React app directory.</description>
+
+    <rule ref="WordPress-Extra">
+        <!-- Exclude react projects-->
+        <exclude-pattern>*/admin/react/*</exclude-pattern>
+        <exclude-pattern>*/admin/map/*</exclude-pattern>
+    </rule>
+</ruleset>

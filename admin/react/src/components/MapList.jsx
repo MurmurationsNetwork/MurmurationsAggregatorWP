@@ -7,14 +7,17 @@ import {
   getCustomUnavailableNodes,
   getProxyData,
   saveCustomNodes,
-  updateCustomMapLastUpdated, updateCustomNodesAuthority, updateCustomNodesStatus
+  updateCustomMapLastUpdated,
+  updateCustomNodes,
+  updateCustomNodesAuthority,
+  updateCustomNodesStatus
 } from '../utils/api'
 import PropTypes from 'prop-types'
 import { formDefaults } from '../data/formDefaults'
 import ProgressBar from './ProgressBar'
 import { useState } from 'react'
-import {addDefaultScheme, checkAuthority, generateAuthorityMap} from '../utils/domainAuthority'
-import {fetchProfileData, validateProfileData} from '../utils/fetchProfile'
+import { checkAuthority, getAuthorityMap } from '../utils/domainAuthority'
+import { fetchProfileData, validateProfileData } from '../utils/fetchProfile'
 
 export default function MapList({
   maps,
@@ -117,33 +120,37 @@ export default function MapList({
       let deletedProfiles = []
       let unauthorizedProfiles = []
 
-      // Setup progress bar
-      const progressStep = 100 / (profiles.length + unavailableProfiles.length)
-      let progress = 0
-
-      if (profiles.length > 0) {
-        // Get all nodes from WordPress DB to generate a primary url Map
-        const allNodesResponse = await getCustomNodes(mapId)
-        let allNodesResponseData = await allNodesResponse.json()
-        if (!allNodesResponse.ok) {
+      // Get Custom Nodes length for later use
+      let customProfiles = []
+      const customNodesResponse = await getCustomNodes(mapId)
+      const customNodesResponseData = await customNodesResponse.json()
+      if (!customNodesResponse.ok) {
+        if (customNodesResponse.status !== 404) {
           alert(
-            `Get Nodes Error: ${allNodesResponse.status} ${JSON.stringify(
-              allNodesResponseData
+            `Get Nodes Error: ${customNodesResponse.status} ${JSON.stringify(
+              customNodesResponseData
             )}`
           )
           return
         }
+      } else {
+        customProfiles = customNodesResponseData
+      }
 
-        const authorityCheckingList = generateAuthorityMap(
-          allNodesResponseData,
-          'profile_data.primary_url',
-          'profile_url'
-        )
+      // Setup progress bar
+      // In the domain authority section, besides the content of profiles already in the database, we will also include updated profiles. Additionally, by adding the original updated profiles and the unavailable profiles, we get the total number of profiles we need to handle.
+      const progressStep =
+        100 /
+        (2 * profiles.length +
+          unavailableProfiles.length +
+          customProfiles.length)
+      let progress = 0
 
+      if (profiles.length > 0) {
         // Loop through profiles which is from Index Service
         for (let i = 0; i < profiles.length; i++) {
           // Update progress
-          progress = (i + 1) * progressStep
+          progress += progressStep
           if (progress > 100) {
             setProgress(100)
           } else {
@@ -236,12 +243,17 @@ export default function MapList({
           if (profileData === '') {
             profileObject.data.is_available = 0
             profileObject.data.unavailable_message = fetchProfileError
+            profileObject.data.status = 'ignore'
           } else {
             // Validate the profile data before adding to the list
-            const isValid = await validateProfileData(profileData, mapResponseData?.index_url)
+            const isValid = await validateProfileData(
+              profileData,
+              mapResponseData?.index_url
+            )
             if (!isValid) {
               profileObject.data.is_available = 0
               profileObject.data.unavailable_message = 'Invalid Profile Data'
+              profileObject.data.status = 'ignore'
             }
           }
 
@@ -250,26 +262,11 @@ export default function MapList({
           profileObject.data.status = 'new'
           profileObject.data.extra_notes = ''
 
-          // Set domain authority
-          if (
-            profile?.profile_url &&
-            profile?.primary_url && authorityCheckingList.has(addDefaultScheme(profile?.primary_url))
-          ) {
-            profileObject.data.has_authority = checkAuthority(
-              profile.primary_url,
-              profile.profile_url
-            )
-          }
-
-          // If WP nodes is 404, it's new profile. If WP nodes is not 404, it's updated profile.
+          // If WP nodes is 404, it's new profile
           if (customNodesResponse.status === 404) {
-            if (!profileObject.data.has_authority) {
-              profileObject.data.status = 'ignore'
-            }
             const profileResponse = await saveCustomNodes(profileObject)
+            const profileResponseData = await profileResponse.json()
             if (!profileResponse.ok) {
-              const profileResponseData = await profileResponse.json()
-
               // if the profile_url length is too long, alert the user and skip the profile
               if (
                 profileResponse.status === 400 &&
@@ -290,54 +287,12 @@ export default function MapList({
               )
               return
             }
-
-            // If a profile is new and has no domain authority, put it in unauthorizedProfiles
-            if (!profileObject.data.has_authority) {
-              unauthorizedProfiles.push(profileObject)
-              continue
-            }
+            profileObject.data.node_id = profileResponseData.node_id
           } else {
+            // If WP nodes is not 404, it's updated profile.
             // Update information to profileObject from Nodes table
             profileObject.data.node_id = customNodesResponseData[0].id
             profileObject.data.post_id = customNodesResponseData[0].post_id
-
-            // Handle domain authority first, because if a profile has no domain authority, it should be ignored
-            if (!profileObject.data.has_authority) {
-              // if a published profile has no domain authority, mark it as ignored
-              profileObject.data.status = 'ignore'
-              if (customNodesResponseData[0].status === 'publish') {
-                // Delete the profile from WP nodes
-                const deleteWPNodeResponse = await deleteWpNodes(
-                  customNodesResponseData[0].post_id
-                )
-                if (!deleteWPNodeResponse.ok) {
-                  const deleteWPNodeResponseData = await deleteWPNodeResponse.json()
-                  alert(
-                    `Delete Profile Error: ${
-                      deleteWPNodeResponse.status
-                    } ${JSON.stringify(deleteWPNodeResponseData)}`
-                  )
-                  continue
-                }
-              }
-              // Update the profile in nodes table
-              const updateResponse = await updateCustomNodesStatus(profileObject)
-              if (!updateResponse.ok) {
-                const updateResponseData = await updateResponse.json()
-                alert(
-                  `Update Node Status Error: ${updateResponse.status} ${JSON.stringify(
-                    updateResponseData
-                  )}`
-                )
-                continue
-              }
-
-              // if a profile is already ignore, don't add it to the list
-              if (customNodesResponseData[0].status !== 'ignore') {
-                unauthorizedProfiles.push(profileObject)
-              }
-              continue
-            }
 
             // Showing the updates if there is any
             profileObject.data.status = customNodesResponseData[0].status
@@ -349,7 +304,7 @@ export default function MapList({
               profileObject.data.extra_notes = 'see updates'
             }
 
-            // Ignore profiles whose status is not 'new' and which do not have any updates - I want to show profiles with updates only
+            // Ignore profiles whose status is not 'new' and do not have any updates - I want to show profiles with updates only
             if (
               customNodesResponseData[0].status !== 'new' &&
               profileObject.data.extra_notes !== 'see updates'
@@ -361,126 +316,6 @@ export default function MapList({
           dataWithoutIds.push(profileObject)
         }
       }
-
-      // Domain Authority Checking: Update the other data after we have new data
-      // Get all nodes from WordPress DB to generate a primary url Map
-      const allNodesResponse = await getCustomNodes(mapId)
-      let allNodesResponseData = await allNodesResponse.json()
-      if (!allNodesResponse.ok) {
-        alert(
-          `Get Nodes Error: ${allNodesResponse.status} ${JSON.stringify(
-            allNodesResponseData
-          )}`
-        )
-        return
-      }
-
-      const authorityCheckingList = generateAuthorityMap(
-        allNodesResponseData,
-        'profile_data.primary_url',
-        'profile_url'
-      )
-
-      for (let i = 0; i < allNodesResponseData.length; i++) {
-        const node = allNodesResponseData[i]
-        if (node?.id && node.profile_data.primary_url && node.profile_url) {
-          let hasAuthority = 1
-          if (authorityCheckingList.has(addDefaultScheme(node?.profile_data?.primary_url))) {
-            hasAuthority = checkAuthority(
-              node.profile_data.primary_url,
-              node.profile_url
-            )
-          }
-          const updateResponse = await updateCustomNodesAuthority(node.id.toString(), hasAuthority)
-          if (!updateResponse.ok) {
-            const updateResponseData = await updateResponse.json()
-            alert(
-              `Update Node Status Error: ${updateResponse.status} ${JSON.stringify(
-                updateResponseData
-              )}`
-            )
-          }
-          // Construct the profileObject and put it in unauthorizedProfiles
-          let profileObject = {
-            profile_data: node.profile_data,
-            index_data: {
-              profile_url: node.profile_url,
-            },
-            data: {
-              node_id: node.id,
-              post_id: node.post_id,
-              map_id: node.map.id,
-              is_available: node.is_available,
-              unavailable_message: node.unavailable_message,
-              has_authority: hasAuthority,
-              last_updated: node.last_updated,
-              status: node.status,
-              tag_slug: tagSlug,
-            }
-          }
-          if (!profileObject.data.has_authority) {
-            // If a published profile has no domain authority, mark it as ignored
-            profileObject.data.status = 'ignore'
-            if (node.status === 'publish') {
-              // Delete the profile from WP nodes
-              const deleteWPNodeResponse = await deleteWpNodes(
-                profileObject.data.post_id
-              )
-              if (!deleteWPNodeResponse.ok) {
-                const deleteWPNodeResponseData = await deleteWPNodeResponse.json()
-                alert(
-                  `Delete Profile Error: ${
-                    deleteWPNodeResponse.status
-                  } ${JSON.stringify(deleteWPNodeResponseData)}`
-                )
-                continue
-              }
-            }
-            // Update the profile in nodes table
-            const updateResponse = await updateCustomNodesStatus(profileObject)
-            if (!updateResponse.ok) {
-              const updateResponseData = await updateResponse.json()
-              alert(
-                `Update Node Status Error: ${updateResponse.status} ${JSON.stringify(
-                  updateResponseData
-                )}`
-              )
-              continue
-            }
-
-            // If a profile is already ignore, don't add it to the list
-            if (node.status !== 'ignore') {
-              unauthorizedProfiles.push(profileObject)
-            }
-          } else {
-            // From NAP to AP
-            // I can use data.node_id to find the matched profile in dataWithoutIds
-            let matchedProfile = dataWithoutIds.find(
-              profile => profile.data.node_id === node.id
-            )
-            if (matchedProfile) {
-              if (hasAuthority !== matchedProfile.data.has_authority) {
-                // replace dataWithoutIds with matchedProfile
-                dataWithoutIds = matchedProfile.map(item => {
-                  if (item.data.node_id === node.id) {
-                    item.data.has_authority = hasAuthority
-                  }
-                  return item
-                })
-              }
-            } else {
-              hasAuthority = hasAuthority === 1
-              if (node.has_authority !== hasAuthority) {
-                dataWithoutIds.push(profileObject)
-              }
-            }
-          }
-        }
-      }
-
-      // remove duplicates from unauthorizedProfiles
-      unauthorizedProfiles = unauthorizedProfiles.filter((item, index, self) =>
-        self.findIndex(t => t.data.node_id === item.data.node_id) === index);
 
       // Handle unavailable profiles
       if (unavailableProfiles.length > 0) {
@@ -519,7 +354,10 @@ export default function MapList({
 
           if (profile_data !== '') {
             // Validate the profile data before adding to the list
-            const isValid = await validateProfileData(profile_data, mapResponseData?.index_url)
+            const isValid = await validateProfileData(
+              profile_data,
+              mapResponseData?.index_url
+            )
             if (!isValid) {
               // If the profile data is invalid, don't add it to the list
               continue
@@ -527,7 +365,10 @@ export default function MapList({
 
             let profileObject = {
               profile_data: profile_data,
-              index_data: profile,
+              index_data: {
+                profile_url: profile.profile_url,
+                last_updated: profile.last_updated
+              },
               data: {
                 map_id: mapId,
                 tag_slug: tagSlug,
@@ -535,10 +376,171 @@ export default function MapList({
                 status: profile.status,
                 is_available: 1,
                 unavailable_message: '',
+                last_updated: profile.last_updated,
                 has_authority: profile.has_authority
               }
             }
+
+            const updateResponse = await updateCustomNodes(profileObject)
+            if (!updateResponse.ok) {
+              const saveResponseData = await updateResponse.json()
+              alert(
+                `Save Profile Error: ${updateResponse.status} ${JSON.stringify(
+                  saveResponseData
+                )}`
+              )
+              continue
+            }
+
             dataWithoutIds.push(profileObject)
+          }
+        }
+      }
+
+      // Handle unauthorized profiles
+      // Previously, we retrieve updated profiles and unavailable profiles.
+      // Now, we need to check if the profiles have authority or not.
+      // 1. The first step involves checking the authority status of each profile. If the authority status remains unchanged, it indicates there are no modifications required, and thus, no action will be taken.
+      // 2. If the authority status changes, there are two distinct scenarios:
+      // 2.1 AP to NAP: If it's in a 'publish' status, we need to delete its wp_nodes and move it to the unauthorized list. Updated profiles and unavailable profiles only have AP to NAP states, because default value of has_authority is TRUE. If updated profiles and unavailable profiles transition to NAP, we don't want to move them to the unauthorized list.
+      // - 2.2 If a profile shifts from NAP to AP, we update the profile's background to reflect its new AP status. If users want to add this profile, they can go to 'Edit Nodes' and modify the status there.
+      const domainAuthorityMap = await getAuthorityMap(mapId)
+
+      // Loop through all profiles to check if they have authority
+      const allNodesResponse = await getCustomNodes(mapId)
+      let allNodesResponseData = await allNodesResponse.json()
+      if (!allNodesResponse.ok) {
+        alert(
+          `Get Nodes Error: ${allNodesResponse.status} ${JSON.stringify(
+            allNodesResponseData
+          )}`
+        )
+        return
+      }
+
+      for (let i = 0; i < allNodesResponseData.length; i++) {
+        // Update progress
+        progress += progressStep
+        if (progress > 100) {
+          setProgress(100)
+        } else {
+          setProgress(progress)
+        }
+
+        const profile = allNodesResponseData[i]
+        const originalAuthority = profile.has_authority ? 1 : 0
+
+        if (
+          !profile?.id ||
+          !profile?.profile_data?.primary_url ||
+          !profile?.profile_url
+        ) {
+          continue
+        }
+
+        const hasAuthority = checkAuthority(
+          domainAuthorityMap,
+          profile.profile_data.primary_url,
+          profile.profile_url
+        )
+
+        const matchedProfileIndex = dataWithoutIds.findIndex(
+          p => p.data.node_id === profile.id
+        )
+
+        // If we can find data in the dataWithoutIds, update the has_authority field because we set all data has_authority to true in the previous step
+        if (matchedProfileIndex !== -1) {
+          dataWithoutIds[matchedProfileIndex].data.has_authority = hasAuthority
+        }
+
+        if (originalAuthority === hasAuthority) {
+          continue
+        }
+
+        const updateResponse = await updateCustomNodesAuthority(
+          profile.id,
+          hasAuthority
+        )
+        if (!updateResponse.ok) {
+          const updateResponseData = await updateResponse.json()
+          alert(
+            `Update Authority Error: ${updateResponse.status} ${JSON.stringify(
+              updateResponseData
+            )}`
+          )
+        }
+
+        // Construct the profileObject
+        let profileObject = {
+          profile_data: profile.profile_data,
+          index_data: {
+            profile_url: profile.profile_url
+          },
+          data: {
+            node_id: profile.id,
+            post_id: profile.post_id,
+            map_id: profile.map.id,
+            is_available: profile.is_available,
+            unavailable_message: profile.unavailable_message,
+            has_authority: hasAuthority,
+            last_updated: profile.last_updated,
+            status: profile.status,
+            tag_slug: tagSlug
+          }
+        }
+
+        // From AP to NAP
+        if (originalAuthority && !hasAuthority) {
+          // If a profile has no domain authority, mark it as ignored
+          profileObject.data.status = 'ignore'
+          if (profile.status === 'publish') {
+            // Delete the profile from WP nodes
+            const deleteWPNodeResponse = await deleteWpNodes(
+              profileObject.data.post_id
+            )
+            if (!deleteWPNodeResponse.ok) {
+              const deleteWPNodeResponseData = await deleteWPNodeResponse.json()
+              alert(
+                `Delete Profile Error: ${
+                  deleteWPNodeResponse.status
+                } ${JSON.stringify(deleteWPNodeResponseData)}`
+              )
+              continue
+            }
+          }
+
+          // Update the profile in nodes table
+          const updateResponse = await updateCustomNodesStatus(profileObject)
+          if (!updateResponse.ok) {
+            const updateResponseData = await updateResponse.json()
+            alert(
+              `Update Node Status Error: ${
+                updateResponse.status
+              } ${JSON.stringify(updateResponseData)}`
+            )
+            continue
+          }
+
+          // If a profile is not in ignore state, and it's not update profiles or unavailable profiles, add it to the unauthorizedProfiles
+          if (profile.status !== 'ignore' && matchedProfileIndex === -1) {
+            unauthorizedProfiles.push(profileObject)
+          }
+        }
+
+        // From NAP to AP
+        if (!originalAuthority && hasAuthority) {
+          // Update the profile in nodes table
+          const updateResponse = await updateCustomNodesAuthority(
+            profileObject.data.node_id,
+            hasAuthority
+          )
+          if (!updateResponse.ok) {
+            const updateResponseData = await updateResponse.json()
+            alert(
+              `Update Node Authority Error: ${
+                updateResponse.status
+              } ${JSON.stringify(updateResponseData)}`
+            )
           }
         }
       }
@@ -556,7 +558,7 @@ export default function MapList({
         return
       }
 
-      // If it only has deleted profiles and unauthorized profiles, update map timestamp and set `setIsMapSelected` to false to return to the map list
+      // If it only has deleted profiles and unauthorized profiles, update map timestamp and set `setIsMapSelected` to false and return to the map list
       if (
         (deletedProfiles.length > 0 || unauthorizedProfiles.length > 0) &&
         dataWithoutIds.length === 0
@@ -576,10 +578,6 @@ export default function MapList({
         setIsMapSelected(true)
       }
 
-      if (dataWithoutIds.length > 0 && unauthorizedProfiles.length > 0) {
-        dataWithoutIds = dataWithoutIds.concat(unauthorizedProfiles)
-      }
-
       // loop through dataWithoutIds to add ids
       const dataWithIds = []
       let currentId = 1
@@ -597,7 +595,7 @@ export default function MapList({
     } finally {
       setIsLoading(false)
       setProgress(0)
-      window.scrollTo(0, 0);
+      window.scrollTo(0, 0)
     }
   }
 
