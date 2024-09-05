@@ -91,6 +91,16 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				),
 			);
 
+			register_rest_route(
+				$backend_namespace,
+				'/maps-dropdown',
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_maps_dropdown' ),
+					'permission_callback' => '__return_true',
+				),
+			);
+
 			// WP Nodes Routes
 			register_rest_route(
 				$backend_namespace,
@@ -457,6 +467,74 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			}
 
 			return rest_ensure_response( 'Map updated successfully.' );
+		}
+
+		public function get_maps_dropdown( $request ): WP_REST_Response|WP_Error {
+			$tag_slug = $request->get_param( 'tag_slug' );
+			if ( empty( $tag_slug ) ) {
+				return new WP_Error( 'missing_param', 'The tag_slug parameter is required', array( 'status' => 400 ) );
+			}
+
+			$query  = $this->wpdb->prepare(
+				"SELECT * FROM $this->table_name WHERE tag_slug = %s LIMIT 1",
+				$tag_slug
+			);
+			$result = $this->wpdb->get_row( $query );
+
+			if ( null === $result ) {
+				return new WP_Error( 'no_data_found', 'No data found for the given tag_slug', array( 'status' => 404 ) );
+			}
+
+			$query_url = $result->query_url;
+			// Parse the query URL
+			parse_str( wp_parse_url( $query_url, PHP_URL_QUERY ), $query_params );
+			$schema = $query_params['schema'] ?? '';
+
+			if ( empty( $schema ) ) {
+				return new WP_Error( 'invalid_query_url', 'The query_url does not contain a valid schema parameter', array( 'status' => 400 ) );
+			}
+
+			// Get schema data from the schema URL
+			$schema_url = 'https://test-library.murmurations.network/v2/schemas/' . $schema;
+			$response   = wp_remote_get( $schema_url );
+
+			if ( is_wp_error( $response ) ) {
+				return new WP_Error( 'external_request_failed', 'Failed to fetch schema data', array( 'status' => 500 ) );
+			}
+
+			$body        = wp_remote_retrieve_body( $response );
+			$schema_data = json_decode( $body, true );
+
+			if ( json_last_error() !== JSON_ERROR_NONE || ! isset( $schema_data['properties'] ) ) {
+				return new WP_Error( 'invalid_schema_response', 'Invalid schema data received', array( 'status' => 500 ) );
+			}
+
+			// Get All enum values from the schema
+			$dropdown_items = array();
+			foreach ( $schema_data['properties'] as $property_name => $property_data ) {
+				if ( isset( $property_data['enum'] ) && isset( $property_data['enumNames'] ) ) {
+					$dropdown_items[] = array(
+						'field_name' => $property_name,
+						'title'      => $property_data['title'] ?? $property_name,
+						'options'    => array_map(
+							function ( $enum_value, $enum_name ) {
+								return array(
+									'label' => $enum_name,
+									'value' => $enum_value,
+								);
+							},
+							$property_data['enum'],
+							$property_data['enumNames']
+						),
+					);
+				}
+			}
+
+			if ( empty( $dropdown_items ) ) {
+				return new WP_Error( 'no_dropdown_data', 'No dropdown data found in the schema', array( 'status' => 404 ) );
+			}
+
+			return new WP_REST_Response( $dropdown_items, 200 );
 		}
 
 		public function get_wp_node( $request ): WP_REST_Response|WP_Error {
