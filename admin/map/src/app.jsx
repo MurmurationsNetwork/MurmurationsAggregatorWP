@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import MapClient from './components/mapClient'
 import Directory from './components/directory'
 
@@ -13,15 +13,17 @@ export default function App(props) {
   const [profiles, setProfiles] = useState([])
   const [map, setMap] = useState({})
   const [isMapLoaded, setIsMapLoaded] = useState(false)
+  const [dropdownOptions, setDropdownOptions] = useState([])
 
   // search parameters
   const [name, setName] = useState('')
   const [tags, setTags] = useState('')
+  const selectRefs = useRef([])
 
   useEffect(() => {
     async function fetchData() {
       try {
-        await Promise.all([getProfiles(), getMap()])
+        await Promise.all([getProfiles(), getMap(), fetchDropdownOptions()])
         setIsMapLoaded(true)
       } catch (error) {
         alert(
@@ -86,6 +88,27 @@ export default function App(props) {
     }
   }
 
+  const fetchDropdownOptions = async () => {
+    try {
+      const response = await fetch(
+        `${apiUrl}/api/maps-dropdown?tag_slug=${tagSlug}`
+      )
+      if (!response.ok) {
+        alert(
+          `Error getting dropdown options, please contact the administrator, error: ${response.status}`
+        )
+        return
+      }
+
+      const data = await response.json()
+      setDropdownOptions(data)
+    } catch (error) {
+      alert(
+        `Error getting dropdown options, please contact the administrator, error: ${error}`
+      )
+    }
+  }
+
   const submitSearch = async event => {
     event.preventDefault()
     try {
@@ -94,7 +117,9 @@ export default function App(props) {
         return
       }
 
-      if (name !== '' || tags !== '') {
+      const selectedValues = selectRefs.current.map(ref => ref?.value || '')
+
+      if (name !== '' || tags !== '' || selectedValues.some(v => v !== '')) {
         // use index_url + query string to get profiles
         let params = { tags_filter: 'or' }
 
@@ -104,6 +129,13 @@ export default function App(props) {
         if (tags !== '') {
           params['tags'] = tags
         }
+
+        // Add dropdown values to params
+        dropdownOptions.forEach((dropdown, index) => {
+          if (selectedValues[index] !== '') {
+            params[dropdown.field_name] = selectedValues[index]
+          }
+        })
 
         const query = updateQueryString(map.query_url, params)
         const response = await fetch(`${map.index_url}?${query}`)
@@ -153,6 +185,20 @@ export default function App(props) {
           value={tags}
           onChange={e => setTags(e.target.value)}
         />
+        {dropdownOptions.map((dropdown, index) => (
+          <select
+            key={dropdown.field_name}
+            className="rounded border border-gray-300 p-2"
+            ref={el => (selectRefs.current[index] = el)}
+          >
+            <option value="">{dropdown.title}</option>
+            {dropdown.options.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        ))}
         <button type="submit" className="rounded bg-blue-500 p-2 text-white">
           Search
         </button>
