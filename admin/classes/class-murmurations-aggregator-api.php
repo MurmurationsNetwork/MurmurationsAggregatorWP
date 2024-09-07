@@ -549,7 +549,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			// Get All enum values from the schema
 			$dropdown_items = array();
 			foreach ( $schema_data['properties'] as $property_name => $property_data ) {
-				if ( isset( $property_data['enum'] ) && isset( $property_data['enumNames'] ) ) {
+				if ( isset( $property_data['enum'] ) ) {
+					$enum_names = ! empty( $property_data['enumNames'] )
+						? $property_data['enumNames']
+						: $property_data['enum'];
+
 					$dropdown_items[] = array(
 						'field_name' => $property_name,
 						'title'      => $property_data['title'] ?? $property_name,
@@ -561,14 +565,10 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 								);
 							},
 							$property_data['enum'],
-							$property_data['enumNames']
+							$enum_names
 						),
 					);
 				}
-			}
-
-			if ( empty( $dropdown_items ) ) {
-				return new WP_Error( 'no_dropdown_data', 'No dropdown data found in the schema', array( 'status' => 404 ) );
 			}
 
 			return new WP_REST_Response( $dropdown_items, 200 );
