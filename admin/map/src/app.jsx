@@ -44,7 +44,7 @@ export default function App(props) {
         }`
       } else {
         fetchURL =
-          `${apiUrl}/maps/${tagSlug}${view === 'dir' ? '?view=dir' : '?'}` +
+          `${apiUrl}/maps/${tagSlug}${view === 'dir' ? '?view=dir&' : '?'}` +
           queryURL
       }
       const response = await fetch(fetchURL)
