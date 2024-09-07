@@ -35,39 +35,29 @@ export default function App(props) {
     fetchData()
   }, [])
 
-  const getProfiles = async (searchProfiles = null) => {
+  const getProfiles = async (queryURL = null) => {
     try {
-      const response = await fetch(
-        `${apiUrl}/maps/${tagSlug}${view === 'dir' ? '?view=dir' : ''}`
-      )
+      let fetchURL
+      if (queryURL === null) {
+        fetchURL = `${apiUrl}/maps/${tagSlug}${
+          view === 'dir' ? '?view=dir' : ''
+        }`
+      } else {
+        fetchURL =
+          `${apiUrl}/maps/${tagSlug}${view === 'dir' ? '?view=dir' : '?'}` +
+          queryURL
+      }
+      const response = await fetch(fetchURL)
       const data = await response.json()
 
       // sort directory profiles by name
       const sortByName = (a, b) =>
         a.name.toLowerCase().localeCompare(b.name.toLowerCase())
 
-      if (searchProfiles === null) {
-        if (view === 'dir') {
-          data.sort(sortByName)
-        }
-        setProfiles(data)
-      } else {
-        // loop searchProfiles and find the match
-        let filteredProfiles = searchProfiles
-          .map(searchProfile =>
-            data.find(profile =>
-              view === 'dir'
-                ? profile?.profile_url === searchProfile.profile_url
-                : profile[3] === searchProfile.profile_url
-            )
-          )
-          .filter(profile => profile !== undefined)
-
-        if (view === 'dir') {
-          filteredProfiles.sort(sortByName)
-        }
-        setProfiles(filteredProfiles)
+      if (view === 'dir') {
+        data.sort(sortByName)
       }
+      setProfiles(data)
     } catch (error) {
       alert(
         `Error getting profiles, please contact the administrator, error: ${error}`
@@ -120,9 +110,7 @@ export default function App(props) {
       const selectedValues = selectRefs.current.map(ref => ref?.value || '')
 
       if (name !== '' || tags !== '' || selectedValues.some(v => v !== '')) {
-        // use index_url + query string to get profiles
-        let params = { tags_filter: 'or' }
-
+        let params = {}
         if (name !== '') {
           params['name'] = name
         }
@@ -137,10 +125,8 @@ export default function App(props) {
           }
         })
 
-        const query = updateQueryString(map.query_url, params)
-        const response = await fetch(`${map.index_url}?${query}`)
-        const data = await response.json()
-        await getProfiles(data?.data)
+        const query = updateQueryString('', params)
+        await getProfiles(query)
       } else {
         await getProfiles()
       }
