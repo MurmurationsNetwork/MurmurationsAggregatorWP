@@ -154,7 +154,7 @@ export default function App(props) {
   return (
     <div>
       <form
-        className="mb-4 flex items-center space-x-2"
+        className="mb-4 grid grid-cols-3 items-center gap-4"
         onSubmit={submitSearch}
       >
         <input
