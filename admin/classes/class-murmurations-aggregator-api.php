@@ -251,6 +251,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		public function get_map_nodes( $request ): WP_REST_Response|WP_Error {
 			$tag_slug = $request->get_param( 'tag_slug' );
 			$view     = $request->get_param( 'view' );
+			$params   = $request->get_params();
 
 			$args = array(
 				'post_type'      => 'murmurations_node',
@@ -278,27 +279,63 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				$profile_query = $this->wpdb->prepare( "SELECT profile_url FROM $this->node_table_name WHERE post_id = %d", get_the_ID() );
 				$node          = $this->wpdb->get_row( $profile_query );
 
-				if ( 'dir' === $view ) {
-					$map[] = array(
-						'id'           => get_the_ID(),
-						'name'         => get_the_title(),
-						'post_url'     => get_permalink(),
-						'profile_data' => $profile_data,
-						'profile_url'  => $node->profile_url ?? '',
-					);
-				} else {
-					$map[] = array(
-						$profile_data['geolocation']['lon'] ?? '',
-						$profile_data['geolocation']['lat'] ?? '',
-						get_the_ID(),
-						$node->profile_url ?? '',
-					);
+				if ( $this->matches_search_criteria( $profile_data, $params ) ) {
+					if ( 'dir' === $view ) {
+						$map[] = array(
+							'id'           => get_the_ID(),
+							'name'         => get_the_title(),
+							'post_url'     => get_permalink(),
+							'profile_data' => $profile_data,
+							'profile_url'  => $node->profile_url ?? '',
+						);
+					} else {
+						$map[] = array(
+							$profile_data['geolocation']['lon'] ?? '',
+							$profile_data['geolocation']['lat'] ?? '',
+							get_the_ID(),
+							$node->profile_url ?? '',
+						);
+					}
 				}
 			}
 
 			wp_reset_postdata();
 
 			return rest_ensure_response( $map );
+		}
+
+		private function matches_search_criteria( $profile_data, $params ): bool {
+			foreach ( $params as $key => $value ) {
+				if ( ! in_array( $key, array( 'view', 'tag_slug' ), true ) ) {
+					// If the profile data key is not set, return false
+					if ( ! isset( $profile_data[ $key ] ) ) {
+						return false;
+					}
+
+					// Array values need to be compared differently
+					// This is for tags, we're using `or` logic, any match should return true
+					if ( is_array( $profile_data[ $key ] ) ) {
+						$input_tags = array_map( 'trim', explode( ',', $value ) );
+
+						$match_found = false;
+						foreach ( $input_tags as $tag ) {
+							if ( in_array( strtolower( $tag ), array_map( 'strtolower', $profile_data[ $key ] ), true ) ) {
+								$match_found = true;
+								break;
+							}
+						}
+
+						if ( ! $match_found ) {
+							return false;
+						}
+					} elseif ( strtolower( $profile_data[ $key ] ) !== strtolower( $value ) ) {
+						// If the profile data value is not an array, compare directly
+						return false;
+					}
+				}
+			}
+
+			return true;
 		}
 
 		public function get_maps(): WP_REST_Response|WP_Error {
