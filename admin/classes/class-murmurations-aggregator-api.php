@@ -279,6 +279,20 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				$profile_query = $this->wpdb->prepare( "SELECT profile_url FROM $this->node_table_name WHERE post_id = %d", get_the_ID() );
 				$node          = $this->wpdb->get_row( $profile_query );
 
+				$latitude  = $profile_data['geolocation']['lat'] ?? '';
+				$longitude = $profile_data['geolocation']['lon'] ?? '';
+
+				// Check if schema starts with complimentary_currencies
+				if ( isset( $profile_data['linked_schemas'] ) && is_array( $profile_data['linked_schemas'] ) ) {
+					foreach ( $profile_data['linked_schemas'] as $schema ) {
+						if ( str_contains( $schema, 'complementary_currencies' ) ) {
+							$latitude  = $profile_data['latitude'] ?? $latitude;
+							$longitude = $profile_data['longitude'] ?? $longitude;
+							break;
+						}
+					}
+				}
+
 				if ( $this->matches_search_criteria( $profile_data, $params ) ) {
 					if ( 'dir' === $view ) {
 						$map[] = array(
@@ -290,8 +304,8 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 						);
 					} else {
 						$map[] = array(
-							$profile_data['geolocation']['lon'] ?? '',
-							$profile_data['geolocation']['lat'] ?? '',
+							$longitude,
+							$latitude,
 							get_the_ID(),
 							$node->profile_url ?? '',
 						);
