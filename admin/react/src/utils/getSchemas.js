@@ -1,8 +1,10 @@
-export const getSchemas = async () => {
+export const getSchemas = async (env) => {
+  let url = 'https://test-library.murmurations.network/v2/schemas'
+  if (env === 'production') {
+    url = 'https://library.murmurations.network/v2/schemas'
+  }
   try {
-    const response = await fetch(
-      'https://test-library.murmurations.network/v2/schemas'
-    )
+    const response = await fetch(url)
     const data = await response.json()
 
     // Remove test-schema from the list

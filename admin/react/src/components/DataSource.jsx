@@ -17,10 +17,22 @@ export default function DataSource({
       const countryKeys = Object.keys(countries)
       setCountries(countryKeys)
     })
-    getSchemas().then(schemas => {
+    getSchemas('staging').then(schemas => {
       setSchemas(schemas)
     })
   }, [])
+
+  useEffect(() => {
+    if (formData.data_url === 'https://index.murmurations.network/v2/nodes') {
+      getSchemas('production').then(schemas => {
+        setSchemas(schemas)
+      })
+    } else {
+      getSchemas('staging').then(schemas => {
+        setSchemas(schemas)
+      })
+    }
+  }, [formData.data_url]);
 
   const handleCountryChange = event => {
     const selected = Array.from(event.target.options)
