@@ -1,7 +1,7 @@
-import { schemas } from '../data/schemas'
 import { useEffect, useState } from 'react'
 import { getCountries } from '../utils/getCountries'
 import PropTypes from 'prop-types'
+import { getSchemas } from '../utils/getSchemas'
 
 export default function DataSource({
   formData,
@@ -10,11 +10,15 @@ export default function DataSource({
   setSelectedCountry
 }) {
   const [countries, setCountries] = useState([])
+  const [schemas, setSchemas] = useState([])
 
   useEffect(() => {
     getCountries().then(countries => {
       const countryKeys = Object.keys(countries)
       setCountries(countryKeys)
+    })
+    getSchemas().then(schemas => {
+      setSchemas(schemas)
     })
   }, [])
 

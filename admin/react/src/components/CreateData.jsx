@@ -2,7 +2,12 @@ import MapSettings from './MapSettings'
 import DataSource from './DataSource'
 import ProgressBar from './ProgressBar'
 import { createId } from '@paralleldrive/cuid2'
-import {saveCustomMap, saveCustomNodes, updateCustomNodesAuthority, updateCustomNodesStatus} from '../utils/api'
+import {
+  saveCustomMap,
+  saveCustomNodes,
+  updateCustomNodesAuthority,
+  updateCustomNodesStatus
+} from '../utils/api'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
 import { fetchProfileData, validateProfileData } from '../utils/fetchProfile'
@@ -220,11 +225,12 @@ export default function CreateData({
             profile.data.has_authority
           )
           if (!updateAuthorityResponse.ok) {
-            const updateAuthorityResponseData = await updateAuthorityResponse.json()
+            const updateAuthorityResponseData =
+              await updateAuthorityResponse.json()
             alert(
-              `Update Authority Error: ${updateAuthorityResponse.status} ${JSON.stringify(
-                updateAuthorityResponseData
-              )}`
+              `Update Authority Error: ${
+                updateAuthorityResponse.status
+              } ${JSON.stringify(updateAuthorityResponseData)}`
             )
           }
 
@@ -235,9 +241,9 @@ export default function CreateData({
           if (!updateStatusResponse.ok) {
             const updateStatusResponseData = await updateStatusResponse.json()
             alert(
-              `Update Status Error: ${updateStatusResponse.status} ${JSON.stringify(
-                updateStatusResponseData
-              )}`
+              `Update Status Error: ${
+                updateStatusResponse.status
+              } ${JSON.stringify(updateStatusResponseData)}`
             )
           }
         }
