@@ -14,6 +14,7 @@ export const getSchemas = async (env) => {
         name: schema.name
       }))
       .filter(schema => !schema.name.includes('test_schema'))
+      .sort((a, b) => a.title.localeCompare(b.title))
   } catch (error) {
     alert(
       `Error getting schemas, please contact the administrator, error: ${error}`
