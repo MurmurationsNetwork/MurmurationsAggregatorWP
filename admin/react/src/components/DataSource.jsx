@@ -25,14 +25,23 @@ export default function DataSource({
   useEffect(() => {
     if (formData.data_url === 'https://index.murmurations.network/v2/nodes') {
       getSchemas('production').then(schemas => {
+        handleInputChange({ target: { name: 'schema', value: '' } });
         setSchemas(schemas)
       })
     } else {
       getSchemas('staging').then(schemas => {
+        handleInputChange({ target: { name: 'schema', value: '' } });
         setSchemas(schemas)
       })
     }
   }, [formData.data_url]);
+
+  useEffect(() => {
+    if (schemas.length > 0 && !formData.schema) {
+      // Simulate onChange event to choose the first schema
+      handleInputChange({ target: { name: 'schema', value: schemas[0].name } })
+    }
+  }, [schemas, formData.schema])
 
   const handleCountryChange = event => {
     const selected = Array.from(event.target.options)
