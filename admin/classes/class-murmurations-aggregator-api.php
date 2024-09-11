@@ -553,28 +553,36 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$dropdown_items = array();
 			foreach ( $schema_data['properties'] as $property_name => $property_data ) {
 				if ( isset( $property_data['enum'] ) ) {
-					$enum_names = ! empty( $property_data['enumNames'] )
+					$enum_names       = ! empty( $property_data['enumNames'] )
 						? $property_data['enumNames']
 						: $property_data['enum'];
-
-					$dropdown_items[] = array(
-						'field_name' => $property_name,
-						'title'      => $property_data['title'] ?? $property_name,
-						'options'    => array_map(
-							function ( $enum_value, $enum_name ) {
-								return array(
-									'label' => $enum_name,
-									'value' => $enum_value,
-								);
-							},
-							$property_data['enum'],
-							$enum_names
-						),
-					);
+					$dropdown_items[] = $this->create_dropdown( $property_name, $property_data, $property_data['enum'], $enum_names );
+				} elseif ( 'array' === $property_data['type'] && isset( $property_data['items']['type'] ) && 'string' === $property_data['items']['type'] && isset( $property_data['items']['enum'] ) ) {
+					$enum_names       = ! empty( $property_data['items']['enumNames'] )
+						? $property_data['items']['enumNames']
+						: $property_data['items']['enum'];
+					$dropdown_items[] = $this->create_dropdown( $property_name, $property_data, $property_data['items']['enum'], $enum_names );
 				}
 			}
 
 			return new WP_REST_Response( $dropdown_items, 200 );
+		}
+
+		private function create_dropdown( $property_name, $property_data, $enum_items, $enum_names ): array {
+			return array(
+				'field_name' => $property_name,
+				'title'      => $property_data['title'] ?? $property_name,
+				'options'    => array_map(
+					function ( $enum_item, $enum_name ) {
+						return array(
+							'label' => $enum_name,
+							'value' => $enum_item,
+						);
+					},
+					$enum_items,
+					$enum_names
+				),
+			);
 		}
 
 		public function get_wp_node( $request ): WP_REST_Response|WP_Error {
