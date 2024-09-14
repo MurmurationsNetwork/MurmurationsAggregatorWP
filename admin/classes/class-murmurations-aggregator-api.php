@@ -258,7 +258,10 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			$query_urls = $this->wpdb->get_row( $query_sql );
 
 			$profile_url_hashmap = array();
+			$check_country       = false;
 			if ( $country_iso_3166 && $query_urls ) {
+				$check_country = true;
+
 				$request_url = $query_urls->index_url . $query_urls->query_url . '&country=' . $country_iso_3166;
 
 				$response = wp_remote_get( $request_url );
@@ -311,7 +314,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				$longitude = $profile_data['geolocation']['lon'] ?? $profile_data['longitude'] ?? '';
 
 				// Filter the search results by country, as the search for countries needs to be conducted from the Index
-				if ( isset( $node->profile_url ) && ! isset( $profile_url_hashmap[ $node->profile_url ] ) ) {
+				if ( $check_country && isset( $node->profile_url ) && ! isset( $profile_url_hashmap[ $node->profile_url ] ) ) {
 					continue;
 				}
 
