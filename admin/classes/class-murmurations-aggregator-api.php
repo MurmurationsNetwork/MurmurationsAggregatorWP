@@ -249,9 +249,37 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function get_map_nodes( $request ): WP_REST_Response|WP_Error {
-			$tag_slug = $request->get_param( 'tag_slug' );
-			$view     = $request->get_param( 'view' );
-			$params   = $request->get_params();
+			$tag_slug         = $request->get_param( 'tag_slug' );
+			$view             = $request->get_param( 'view' );
+			$country_iso_3166 = $request->get_param( 'country_iso_3166' );
+			$params           = $request->get_params();
+
+			$query_sql  = $this->wpdb->prepare( "SELECT index_url, query_url FROM $this->table_name WHERE tag_slug = %s", $tag_slug );
+			$query_urls = $this->wpdb->get_row( $query_sql );
+
+			$profile_url_hashmap = array();
+			if ( $country_iso_3166 && $query_urls ) {
+				$request_url = $query_urls->index_url . $query_urls->query_url . '&country=' . $country_iso_3166;
+
+				$response = wp_remote_get( $request_url );
+
+				if ( is_wp_error( $response ) ) {
+					return new WP_Error( 'request_failed', 'Failed to fetch data from Index', array( 'status' => 500 ) );
+				}
+
+				$response_body = wp_remote_retrieve_body( $response );
+				$data          = json_decode( $response_body, true );
+
+				if ( ! isset( $data['data'] ) || ! is_array( $data['data'] ) ) {
+					return new WP_Error( 'invalid_data', 'Invalid data received from Index', array( 'status' => 500 ) );
+				}
+
+				foreach ( $data['data'] as $item ) {
+					if ( isset( $item['profile_url'] ) ) {
+						$profile_url_hashmap[ $item['profile_url'] ] = true;
+					}
+				}
+			}
 
 			$args = array(
 				'post_type'      => 'murmurations_node',
@@ -282,6 +310,11 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				$latitude  = $profile_data['geolocation']['lat'] ?? $profile_data['latitude'] ?? '';
 				$longitude = $profile_data['geolocation']['lon'] ?? $profile_data['longitude'] ?? '';
 
+				// Filter the search results by country, as the search for countries needs to be conducted from the Index
+				if ( isset( $node->profile_url ) && ! isset( $profile_url_hashmap[ $node->profile_url ] ) ) {
+					continue;
+				}
+
 				if ( $this->matches_search_criteria( $profile_data, $params ) ) {
 					if ( 'dir' === $view ) {
 						$map[] = array(
@@ -309,7 +342,7 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 
 		private function matches_search_criteria( $profile_data, $params ): bool {
 			foreach ( $params as $key => $value ) {
-				if ( ! in_array( $key, array( 'view', 'tag_slug' ), true ) ) {
+				if ( ! in_array( $key, array( 'view', 'tag_slug', 'country_iso_3166' ), true ) ) {
 					// If the profile data key is not set, return false
 					if ( ! isset( $profile_data[ $key ] ) ) {
 						return false;
