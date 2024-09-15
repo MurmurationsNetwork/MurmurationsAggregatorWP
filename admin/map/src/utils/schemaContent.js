@@ -3,34 +3,6 @@ export function schemaContent(responseData, linkType) {
   const schema = responseData?.profile_data?.linked_schemas[0]
   const imageUrl = responseData?.profile_data?.image
   switch (schema) {
-    case 'organizations_schema-v1.0.0':
-      content = addImageToContent(content, imageUrl)
-      content = addTitleToContent(content, responseData?.profile_data?.name)
-      content = addDescriptionToContent(
-        content,
-        responseData?.profile_data?.description
-      )
-      content = addUrlToContent(
-        content,
-        responseData?.profile_data?.primary_url,
-        responseData.post_url,
-        linkType
-      )
-      break
-    case 'people_schema-v0.1.0':
-      content = addImageToContent(content, imageUrl)
-      content = addTitleToContent(content, responseData?.profile_data?.name)
-      content = addDescriptionToContent(
-        content,
-        responseData?.profile_data?.description
-      )
-      content = addUrlToContent(
-        content,
-        responseData?.profile_data?.primary_url,
-        responseData.post_url,
-        linkType
-      )
-      break
     case 'offers_wants_schema-v0.1.0':
       content = addImageToContent(content, imageUrl)
       content = addTitleToContent(content, responseData?.profile_data?.title)
@@ -53,6 +25,20 @@ export function schemaContent(responseData, linkType) {
       content = addUrlToContent(
         content,
         responseData?.profile_data?.details_url,
+        responseData.post_url,
+        linkType
+      )
+      break
+    default:
+      content = addImageToContent(content, imageUrl)
+      content = addTitleToContent(content, responseData?.profile_data?.name)
+      content = addDescriptionToContent(
+        content,
+        responseData?.profile_data?.description
+      )
+      content = addUrlToContent(
+        content,
+        responseData?.profile_data?.primary_url,
         responseData.post_url,
         linkType
       )

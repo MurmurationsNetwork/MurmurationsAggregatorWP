@@ -1,5 +1,5 @@
 === Murmurations Collaborative Map Builder ===
-Contributors: geoffturk, twang443
+Contributors: geoffturk, vthwang
 Donate link: https://opencollective.com/murmurations
 Tags: murmurations, network, regenerative economy, map
 Requires at least: 6.4.2

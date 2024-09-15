@@ -91,6 +91,16 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				),
 			);
 
+			register_rest_route(
+				$backend_namespace,
+				'/maps-dropdown',
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_maps_dropdown' ),
+					'permission_callback' => '__return_true',
+				),
+			);
+
 			// WP Nodes Routes
 			register_rest_route(
 				$backend_namespace,
@@ -239,8 +249,40 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 		}
 
 		public function get_map_nodes( $request ): WP_REST_Response|WP_Error {
-			$tag_slug = $request->get_param( 'tag_slug' );
-			$view     = $request->get_param( 'view' );
+			$tag_slug         = $request->get_param( 'tag_slug' );
+			$view             = $request->get_param( 'view' );
+			$country_iso_3166 = $request->get_param( 'country_iso_3166' );
+			$params           = $request->get_params();
+
+			$query_sql  = $this->wpdb->prepare( "SELECT index_url, query_url FROM $this->table_name WHERE tag_slug = %s", $tag_slug );
+			$query_urls = $this->wpdb->get_row( $query_sql );
+
+			$profile_url_hashmap = array();
+			$check_country       = false;
+			if ( $country_iso_3166 && $query_urls ) {
+				$check_country = true;
+
+				$request_url = $query_urls->index_url . $query_urls->query_url . '&country=' . $country_iso_3166;
+
+				$response = wp_remote_get( $request_url );
+
+				if ( is_wp_error( $response ) ) {
+					return new WP_Error( 'request_failed', 'Failed to fetch data from Index', array( 'status' => 500 ) );
+				}
+
+				$response_body = wp_remote_retrieve_body( $response );
+				$data          = json_decode( $response_body, true );
+
+				if ( ! isset( $data['data'] ) || ! is_array( $data['data'] ) ) {
+					return new WP_Error( 'invalid_data', 'Invalid data received from Index', array( 'status' => 500 ) );
+				}
+
+				foreach ( $data['data'] as $item ) {
+					if ( isset( $item['profile_url'] ) ) {
+						$profile_url_hashmap[ $item['profile_url'] ] = true;
+					}
+				}
+			}
 
 			$args = array(
 				'post_type'      => 'murmurations_node',
@@ -268,27 +310,71 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 				$profile_query = $this->wpdb->prepare( "SELECT profile_url FROM $this->node_table_name WHERE post_id = %d", get_the_ID() );
 				$node          = $this->wpdb->get_row( $profile_query );
 
-				if ( 'dir' === $view ) {
-					$map[] = array(
-						'id'           => get_the_ID(),
-						'name'         => get_the_title(),
-						'post_url'     => get_permalink(),
-						'profile_data' => $profile_data,
-						'profile_url'  => $node->profile_url ?? '',
-					);
-				} else {
-					$map[] = array(
-						$profile_data['geolocation']['lon'] ?? '',
-						$profile_data['geolocation']['lat'] ?? '',
-						get_the_ID(),
-						$node->profile_url ?? '',
-					);
+				$latitude  = $profile_data['geolocation']['lat'] ?? $profile_data['latitude'] ?? '';
+				$longitude = $profile_data['geolocation']['lon'] ?? $profile_data['longitude'] ?? '';
+
+				// Filter the search results by country, as the search for countries needs to be conducted from the Index
+				if ( $check_country && isset( $node->profile_url ) && ! isset( $profile_url_hashmap[ $node->profile_url ] ) ) {
+					continue;
+				}
+
+				if ( $this->matches_search_criteria( $profile_data, $params ) ) {
+					if ( 'dir' === $view ) {
+						$map[] = array(
+							'id'           => get_the_ID(),
+							'name'         => get_the_title(),
+							'post_url'     => get_permalink(),
+							'profile_data' => $profile_data,
+							'profile_url'  => $node->profile_url ?? '',
+						);
+					} else {
+						$map[] = array(
+							$longitude,
+							$latitude,
+							get_the_ID(),
+							$node->profile_url ?? '',
+						);
+					}
 				}
 			}
 
 			wp_reset_postdata();
 
 			return rest_ensure_response( $map );
+		}
+
+		private function matches_search_criteria( $profile_data, $params ): bool {
+			foreach ( $params as $key => $value ) {
+				if ( ! in_array( $key, array( 'view', 'tag_slug', 'country_iso_3166' ), true ) ) {
+					// If the profile data key is not set, return false
+					if ( ! isset( $profile_data[ $key ] ) ) {
+						return false;
+					}
+
+					// Array values need to be compared differently
+					// This is for tags, we're using `or` logic, any match should return true
+					if ( is_array( $profile_data[ $key ] ) ) {
+						$input_tags = array_map( 'trim', explode( ',', $value ) );
+
+						$match_found = false;
+						foreach ( $input_tags as $tag ) {
+							if ( in_array( strtolower( $tag ), array_map( 'strtolower', $profile_data[ $key ] ), true ) ) {
+								$match_found = true;
+								break;
+							}
+						}
+
+						if ( ! $match_found ) {
+							return false;
+						}
+					} elseif ( strtolower( $profile_data[ $key ] ) !== strtolower( $value ) ) {
+						// If the profile data value is not an array, compare directly
+						return false;
+					}
+				}
+			}
+
+			return true;
 		}
 
 		public function get_maps(): WP_REST_Response|WP_Error {
@@ -457,6 +543,82 @@ if ( ! class_exists( 'Murmurations_Aggregator_API' ) ) {
 			}
 
 			return rest_ensure_response( 'Map updated successfully.' );
+		}
+
+		public function get_maps_dropdown( $request ): WP_REST_Response|WP_Error {
+			$tag_slug = $request->get_param( 'tag_slug' );
+			if ( empty( $tag_slug ) ) {
+				return new WP_Error( 'missing_param', 'The tag_slug parameter is required', array( 'status' => 400 ) );
+			}
+
+			$query  = $this->wpdb->prepare(
+				"SELECT * FROM $this->table_name WHERE tag_slug = %s LIMIT 1",
+				$tag_slug
+			);
+			$result = $this->wpdb->get_row( $query );
+
+			if ( null === $result ) {
+				return new WP_Error( 'no_data_found', 'No data found for the given tag_slug', array( 'status' => 404 ) );
+			}
+
+			$query_url = $result->query_url;
+			// Parse the query URL
+			parse_str( wp_parse_url( $query_url, PHP_URL_QUERY ), $query_params );
+			$schema = $query_params['schema'] ?? '';
+
+			if ( empty( $schema ) ) {
+				return new WP_Error( 'invalid_query_url', 'The query_url does not contain a valid schema parameter', array( 'status' => 400 ) );
+			}
+
+			// Get schema data from the schema URL
+			$schema_url = 'https://test-library.murmurations.network/v2/schemas/' . $schema;
+			$response   = wp_remote_get( $schema_url );
+
+			if ( is_wp_error( $response ) ) {
+				return new WP_Error( 'external_request_failed', 'Failed to fetch schema data', array( 'status' => 500 ) );
+			}
+
+			$body        = wp_remote_retrieve_body( $response );
+			$schema_data = json_decode( $body, true );
+
+			if ( json_last_error() !== JSON_ERROR_NONE || ! isset( $schema_data['properties'] ) ) {
+				return new WP_Error( 'invalid_schema_response', 'Invalid schema data received', array( 'status' => 500 ) );
+			}
+
+			// Get All enum values from the schema
+			$dropdown_items = array();
+			foreach ( $schema_data['properties'] as $property_name => $property_data ) {
+				if ( isset( $property_data['enum'] ) ) {
+					$enum_names       = ! empty( $property_data['enumNames'] )
+						? $property_data['enumNames']
+						: $property_data['enum'];
+					$dropdown_items[] = $this->create_dropdown( $property_name, $property_data, $property_data['enum'], $enum_names );
+				} elseif ( 'array' === $property_data['type'] && isset( $property_data['items']['type'] ) && 'string' === $property_data['items']['type'] && isset( $property_data['items']['enum'] ) ) {
+					$enum_names       = ! empty( $property_data['items']['enumNames'] )
+						? $property_data['items']['enumNames']
+						: $property_data['items']['enum'];
+					$dropdown_items[] = $this->create_dropdown( $property_name, $property_data, $property_data['items']['enum'], $enum_names );
+				}
+			}
+
+			return new WP_REST_Response( $dropdown_items, 200 );
+		}
+
+		private function create_dropdown( $property_name, $property_data, $enum_items, $enum_names ): array {
+			return array(
+				'field_name' => $property_name,
+				'title'      => $property_data['title'] ?? $property_name,
+				'options'    => array_map(
+					function ( $enum_item, $enum_name ) {
+						return array(
+							'label' => $enum_name,
+							'value' => $enum_item,
+						);
+					},
+					$enum_items,
+					$enum_names
+				),
+			);
 		}
 
 		public function get_wp_node( $request ): WP_REST_Response|WP_Error {

@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import MapClient from './components/mapClient'
 import Directory from './components/directory'
 
@@ -13,15 +13,17 @@ export default function App(props) {
   const [profiles, setProfiles] = useState([])
   const [map, setMap] = useState({})
   const [isMapLoaded, setIsMapLoaded] = useState(false)
+  const [dropdownOptions, setDropdownOptions] = useState([])
 
   // search parameters
   const [name, setName] = useState('')
   const [tags, setTags] = useState('')
+  const selectRefs = useRef([])
 
   useEffect(() => {
     async function fetchData() {
       try {
-        await Promise.all([getProfiles(), getMap()])
+        await Promise.all([getProfiles(), getMap(), fetchDropdownOptions()])
         setIsMapLoaded(true)
       } catch (error) {
         alert(
@@ -33,39 +35,29 @@ export default function App(props) {
     fetchData()
   }, [])
 
-  const getProfiles = async (searchProfiles = null) => {
+  const getProfiles = async (queryURL = null) => {
     try {
-      const response = await fetch(
-        `${apiUrl}/maps/${tagSlug}${view === 'dir' ? '?view=dir' : ''}`
-      )
+      let fetchURL
+      if (queryURL === null) {
+        fetchURL = `${apiUrl}/maps/${tagSlug}${
+          view === 'dir' ? '?view=dir' : ''
+        }`
+      } else {
+        fetchURL =
+          `${apiUrl}/maps/${tagSlug}${view === 'dir' ? '?view=dir&' : '?'}` +
+          queryURL
+      }
+      const response = await fetch(fetchURL)
       const data = await response.json()
 
       // sort directory profiles by name
       const sortByName = (a, b) =>
         a.name.toLowerCase().localeCompare(b.name.toLowerCase())
 
-      if (searchProfiles === null) {
-        if (view === 'dir') {
-          data.sort(sortByName)
-        }
-        setProfiles(data)
-      } else {
-        // loop searchProfiles and find the match
-        let filteredProfiles = searchProfiles
-          .map(searchProfile =>
-            data.find(profile =>
-              view === 'dir'
-                ? profile?.profile_url === searchProfile.profile_url
-                : profile[3] === searchProfile.profile_url
-            )
-          )
-          .filter(profile => profile !== undefined)
-
-        if (view === 'dir') {
-          filteredProfiles.sort(sortByName)
-        }
-        setProfiles(filteredProfiles)
+      if (view === 'dir') {
+        data.sort(sortByName)
       }
+      setProfiles(data)
     } catch (error) {
       alert(
         `Error getting profiles, please contact the administrator, error: ${error}`
@@ -86,6 +78,27 @@ export default function App(props) {
     }
   }
 
+  const fetchDropdownOptions = async () => {
+    try {
+      const response = await fetch(
+        `${apiUrl}/api/maps-dropdown?tag_slug=${tagSlug}`
+      )
+      if (!response.ok) {
+        alert(
+          `Error getting dropdown options, please contact the administrator, error: ${response.status}`
+        )
+        return
+      }
+
+      const data = await response.json()
+      setDropdownOptions(data)
+    } catch (error) {
+      alert(
+        `Error getting dropdown options, please contact the administrator, error: ${error}`
+      )
+    }
+  }
+
   const submitSearch = async event => {
     event.preventDefault()
     try {
@@ -94,10 +107,10 @@ export default function App(props) {
         return
       }
 
-      if (name !== '' || tags !== '') {
-        // use index_url + query string to get profiles
-        let params = { tags_filter: 'or' }
+      const selectedValues = selectRefs.current.map(ref => ref?.value || '')
 
+      if (name !== '' || tags !== '' || selectedValues.some(v => v !== '')) {
+        let params = {}
         if (name !== '') {
           params['name'] = name
         }
@@ -105,10 +118,15 @@ export default function App(props) {
           params['tags'] = tags
         }
 
-        const query = updateQueryString(map.query_url, params)
-        const response = await fetch(`${map.index_url}?${query}`)
-        const data = await response.json()
-        await getProfiles(data?.data)
+        // Add dropdown values to params
+        dropdownOptions.forEach((dropdown, index) => {
+          if (selectedValues[index] !== '') {
+            params[dropdown.field_name] = selectedValues[index]
+          }
+        })
+
+        const query = updateQueryString('', params)
+        await getProfiles(query)
       } else {
         await getProfiles()
       }
@@ -136,7 +154,7 @@ export default function App(props) {
   return (
     <div>
       <form
-        className="mb-4 flex items-center space-x-2"
+        className="mb-4 grid grid-cols-3 items-center gap-4"
         onSubmit={submitSearch}
       >
         <input
@@ -153,6 +171,20 @@ export default function App(props) {
           value={tags}
           onChange={e => setTags(e.target.value)}
         />
+        {dropdownOptions.map((dropdown, index) => (
+          <select
+            key={dropdown.field_name}
+            className="rounded border border-gray-300 p-2"
+            ref={el => (selectRefs.current[index] = el)}
+          >
+            <option value="">{dropdown.title}</option>
+            {dropdown.options.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        ))}
         <button type="submit" className="rounded bg-blue-500 p-2 text-white">
           Search
         </button>

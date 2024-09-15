@@ -1,7 +1,7 @@
-import { schemas } from '../data/schemas'
 import { useEffect, useState } from 'react'
 import { getCountries } from '../utils/getCountries'
 import PropTypes from 'prop-types'
+import { getSchemas } from '../utils/getSchemas'
 
 export default function DataSource({
   formData,
@@ -10,13 +10,38 @@ export default function DataSource({
   setSelectedCountry
 }) {
   const [countries, setCountries] = useState([])
+  const [schemas, setSchemas] = useState([])
 
   useEffect(() => {
     getCountries().then(countries => {
       const countryKeys = Object.keys(countries)
       setCountries(countryKeys)
     })
+    getSchemas('staging').then(schemas => {
+      setSchemas(schemas)
+    })
   }, [])
+
+  useEffect(() => {
+    if (formData.data_url === 'https://index.murmurations.network/v2/nodes') {
+      getSchemas('production').then(schemas => {
+        handleInputChange({ target: { name: 'schema', value: '' } });
+        setSchemas(schemas)
+      })
+    } else {
+      getSchemas('staging').then(schemas => {
+        handleInputChange({ target: { name: 'schema', value: '' } });
+        setSchemas(schemas)
+      })
+    }
+  }, [formData.data_url]);
+
+  useEffect(() => {
+    if (schemas.length > 0 && !formData.schema) {
+      // Simulate onChange event to choose the first schema
+      handleInputChange({ target: { name: 'schema', value: schemas[0].name } })
+    }
+  }, [schemas, formData.schema])
 
   const handleCountryChange = event => {
     const selected = Array.from(event.target.options)
