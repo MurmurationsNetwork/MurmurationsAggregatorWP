@@ -1,3 +1,5 @@
+> This project has been archived. Please see [MurmurMaps](https://github.com/MurmurationsNetwork/MurmurMaps) for the latest implementation of Murmurations node profile aggregation and map generation.
+
 # Murmurations Collaborative Map Builder #
 **Contributors:** [geoffturk](https://profiles.wordpress.org/geoffturk/), [vthwang](https://profiles.wordpress.org/vthwang/)  
 **Donate link:** https://opencollective.com/murmurations  
